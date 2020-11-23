@@ -1,0 +1,10 @@
+
+- with multiple tools having been used, saving image saves multiple images of the image with different tool features showing or not showing
+
+- changing or loading image enables/selects drawing tool by default
+
+- rotating and then applying filters breaks rotation, edit: now it shifts by a few pixels every time, this adds up over rotations
+
+- addText() uses this.originalImageData.width/height to calculate x, y position but does it get updated when rotating?
+
+- after rotating, on mobile touch the draw tool draws on wrong coordinates
