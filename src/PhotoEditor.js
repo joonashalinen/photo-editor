@@ -983,31 +983,6 @@ class PhotoEditor extends React.Component {
             <Canvas id="canvas" containerId="canvasContainer"/>
             <Canvas id="drawingCanvas" containerId="drawingCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
             <Canvas id="overlayCanvas" containerId="overlayCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
-            {
-              this.state.selectedTool === "crop" ?
-                ( <>
-                    <Button onClick={(e) => {
-                      callToolFunction("acceptCrop", [])
-
-                      this.setState({
-                        selectedTool: "",
-                        showAcceptCancelMenu: false
-                      });
-                      this.inCropMode = false;
-                    }} type="primary" className="cropAccept"><img className="whiteCheckmark" src="check.svg" height="18px"></img></Button>
-                    <Button onClick={() => {
-                      callToolFunction("endCrop", [])
-                      this.setState({
-                        selectedTool: "",
-                        showAcceptCancelMenu: false
-                      });
-                      this.inCropMode = false;
-                    }} className="cropCancel">Cancel</Button>
-                  </>
-                )
-              :
-              null
-            }
           </div>
           <div id="tools" className="toolsMenuContainer">
             <EffectSlider min={-100} max={100} defaultValue={0} title="Contrast" onChange={(value) => {
@@ -1085,6 +1060,32 @@ class PhotoEditor extends React.Component {
                   }}></img>
                 </div>
               </Tooltip>
+              {
+                this.state.selectedTool === "crop" ?
+                  ( <>
+                      <Button onClick={(e) => {
+                        callToolFunction("acceptCrop", [])
+
+                        this.setState({
+                          selectedTool: "",
+                          showAcceptCancelMenu: false
+                        });
+                        this.inCropMode = false;
+                      }} type="primary" className="cropAccept"><img className="whiteCheckmark" src="check.svg" height="18px"></img></Button>
+                      <Button onClick={() => {
+                        callToolFunction("endCrop", [])
+                        this.setState({
+                          selectedTool: "",
+                          showAcceptCancelMenu: false
+                        });
+                        this.inCropMode = false;
+                      }} className="cropCancel">Cancel</Button>
+                    </>
+                  )
+                :
+                null
+              }
+
             </div>
             <div style={{marginTop: "10px", position: "relative", display: this.state.selectedTool === "addText" ? "inline-block" : "none"}}>
               <Tooltip title="Color">
