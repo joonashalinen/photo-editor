@@ -26,7 +26,7 @@ export default function CustomUpload(props) {
     <Upload accept={props.accept} action={props.onUpload} fileList={props.fileList ? props.fileList : []} customRequest={(obj) => {
       obj.onSuccess();
     }}>
-      <Button icon={<UploadOutlined />}>{props.buttonText}</Button>
+      <Button icon={<UploadOutlined />}>Select Photo</Button>
     </Upload>
   )
 

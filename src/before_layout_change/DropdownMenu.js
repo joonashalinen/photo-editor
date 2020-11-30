@@ -15,7 +15,7 @@ export default function({ items, defaultSelectedKey, onSelect, aStyle }) {
       {
         items.map((item, index) => (
           <Menu.Item key={index}>
-            <a target="_blank" rel="noopener noreferrer">
+            <a style={{fontSize: "12px"}} target="_blank" rel="noopener noreferrer">
               { item }
             </a>
           </Menu.Item>

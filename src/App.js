@@ -1,7 +1,10 @@
 import React from "react";
 import logo from './logo.svg';
-import './App.css';
-import PhotoEditor from "./PhotoEditor.js"
+import './App.less';
+import { Image, Button } from "antd";
+import { CloudUploadOutlined } from "@ant-design/icons"
+import PhotoEditor from "./PhotoEditor.js";
+import PicturesWallQueue from "./PicturesWallQueue.js"
 import CustomModal from "./CustomModal.js";
 import 'cropperjs/dist/cropper.css';
 
@@ -12,12 +15,24 @@ class App extends React.Component {
   }
 
   render() {
+
     return (
-      <div class="modalButtonContainer">
-        <CustomModal title="Photo Editor">
+      <div style={{display: "flex", width: "100%", height: "100%"}}>
+        <div style={{width: "60px", height: "100%", backgroundColor: "rgb(24 24 24)"}}></div>
+        <div style={{width: "100%", overflowY: "auto", backgroundColor: "#1f1f1f"}}>
+          <h1 style={{padding: "10px", marginTop: "20px"}}>Meme Generator</h1>
           <PhotoEditor/>
-        </CustomModal>
+          <div style={{display: "flex", alignItems: "center", marginTop: "50px", padding: "10px"}}>
+            <h2 style={{padding: "10px", fontWeight: "600"}}>Memes In Progress</h2>
+            <Button type="primary" size="large"><CloudUploadOutlined /> Upload All</Button>
+          </div>
+          <div style={{padding: "10px", transform: "scale(3) translate(33.33%, 33.33%)", width: "33.33%", marginLeft: "-7px"}}>
+            <PicturesWallQueue />
+          </div>
+        </div>
+        <div style={{width: "260px", height: "100%", backgroundColor: "rgb(24 24 24)"}}></div>
       </div>
+
     );
   }
 
