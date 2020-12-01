@@ -55,6 +55,18 @@ class PhotoEditor extends React.Component {
       "image/tiff",
       "image/bmp",
       "image/gif"
+    ];
+
+    this.emptyBackgroundMemes = [
+      "derp.svg",
+      "derpina.svg",
+      "cereal-guy.svg",
+      "yuno.svg",
+      "lol.svg",
+      "glasses-guy.svg",
+      "jackie-chan.svg",
+      "seriously.svg",
+      "are-you-kidding-me.svg"
     ]
 
     this.photoEditorLib = new PhotoEditorLib({
@@ -84,7 +96,7 @@ class PhotoEditor extends React.Component {
               this.state.selectedTool === "draw" ?
                 <>
                   <div className="toolOptionsSlider">
-                    <EffectSlider sliderWidth="80" positioning="horizontal" min={1} max={100} defaultValue={ this.state.drawingLineWidth } title="Size:" onChange={(value) => {
+                    <EffectSlider sliderWidth="80" positioning="horizontal" min={1} max={100} defaultValue={ this.state.drawingLineWidth } title="Size:" onAfterChange={(value) => {
                       this.photoEditorLib.setBrushSize(value);
                       this.photoEditorLib.setDrawingLineWidth(value);
                       this.setState({
@@ -93,7 +105,7 @@ class PhotoEditor extends React.Component {
                     }}/>
                   </div>
                   <div className="toolOptionsSlider" style={{width: "140px"}}>
-                    <EffectSlider sliderWidth="80" positioning="horizontal" min={10} max={100} defaultValue={this.state.brushHardness} title="Hardness:" onChange={(value) => {
+                    <EffectSlider sliderWidth="80" positioning="horizontal" min={10} max={100} defaultValue={this.state.brushHardness} title="Hardness:" onAfterChange={(value) => {
                       this.photoEditorLib.softBrush.setHardness(value / 100);
                       this.setState({
                         brushHardness: value
@@ -112,7 +124,7 @@ class PhotoEditor extends React.Component {
                   }} type="dashed" size="small" style={{ fontSize: "12px" }}>Erase All</Button>
                   <div style={{height: "10px"}}></div>
                   <div className="toolOptionsSlider">
-                    <EffectSlider sliderWidth="80" positioning="horizontal" min={1} max={100} defaultValue={ this.state.drawingLineWidth } title="Size:" onChange={(value) => {
+                    <EffectSlider sliderWidth="80" positioning="horizontal" min={1} max={100} defaultValue={ this.state.drawingLineWidth } title="Size:" onAfterChange={(value) => {
                       this.photoEditorLib.softBrush.setSize(value);
                       this.photoEditorLib.setDrawingLineWidth(value);
                       this.setState({
@@ -121,7 +133,7 @@ class PhotoEditor extends React.Component {
                     }}/>
                   </div>
                   <div className="toolOptionsSlider" style={{width: "140px"}}>
-                    <EffectSlider sliderWidth="80" positioning="horizontal" min={10} max={100} defaultValue={this.state.brushHardness} title="Hardness:" onChange={(value) => {
+                    <EffectSlider sliderWidth="80" positioning="horizontal" min={10} max={100} defaultValue={this.state.brushHardness} title="Hardness:" onAfterChange={(value) => {
                       this.photoEditorLib.softBrush.setHardness(value / 100);
                       this.setState({
                         brushHardness: value
@@ -221,11 +233,11 @@ class PhotoEditor extends React.Component {
 
             }} onClick={(target) => {
               if (target.key === "Delete Image Layer") {
-                this.photoEditorLib.deleteSelectedImageLayer();
+                this.photoEditorLib.deleteSelectedImage();
                 return;
               }
               if (target.key === "Bring To Front") {
-                this.photoEditorLib.bringSelectedImageLayerToFront();
+                this.photoEditorLib.bringSelectedImageToFront();
                 return;
               }
             }}>
@@ -234,7 +246,7 @@ class PhotoEditor extends React.Component {
             <Canvas id="drawingCanvas" containerId="drawingCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
             <Canvas id="cursorCanvas" containerId="cursorCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
             <Canvas id="overlayCanvas" containerId="overlayCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
-            <div id="drawingCanvasCursor" className="drawingCanvasCursor"></div>
+            <div id="drawingCanvasCursor" className="drawingCanvasCursor" style={{display: "none"}}></div>
             {
               this.state.selectedTool === "crop" ?
                 ( <>
@@ -265,8 +277,10 @@ class PhotoEditor extends React.Component {
           <div className="toolIcons">
             <Tooltip placement="right" title="Crop [C]">
               <div className={`toolIconContainer${this.state.selectedTool === "crop" ? " toolIconContainerSelected" : ""}`} onClick={(e) => {
+                return;
                 if (!this.state.imageInstanced) return;
                 if (this.state.selectedTool === "crop") return;
+                if (this.state.selectedTool === "draw") this.photoEditorLib.disableDrawingCanvas();
                 if (this.state.selectedTool === "addText") this.photoEditorLib.removeAllAnchors();
                 if (this.state.selectedTool === "eyedrop") this.photoEditorLib.disableColorPickerMode();
                 this.photoEditorLib.focusTool("crop");
@@ -285,7 +299,9 @@ class PhotoEditor extends React.Component {
               <div className={`toolIconContainer${this.state.selectedTool === "addText" ? " toolIconContainerSelected" : ""}`} onClick={(e) => {
                 if (!this.state.imageInstanced) return;
                 if (this.state.selectedTool === "addText") return;
+                if (this.state.selectedTool === "erase") this.photoEditorLib.disableDrawingCanvas();
                 if (this.state.selectedTool === "crop") this.photoEditorLib.endCrop();
+                if (this.state.selectedTool === "draw") this.photoEditorLib.disableDrawingCanvas();
                 if (this.state.selectedTool === "eyedrop") this.photoEditorLib.disableColorPickerMode();
                 this.photoEditorLib.readdAllAnchors();
                 this.photoEditorLib.focusTool("addText");
@@ -298,22 +314,26 @@ class PhotoEditor extends React.Component {
                 <img className="toolIcon" src="text.svg" width="24px"></img>
               </div>
             </Tooltip>
-            <Tooltip placement="right" title="Draw [D]">
+            <Tooltip placement="right" title="Paint [B]">
               <div className={`toolIconContainer${this.state.selectedTool === "draw" ? " toolIconContainerSelected" : ""}`} onClick={(e) => {
                 if (!this.state.imageInstanced) return;
                 if (this.state.selectedTool === "draw") return;
+                if (this.state.selectedTool === "erase") this.photoEditorLib.disableDrawingCanvas();
                 if (this.state.selectedTool === "crop") this.photoEditorLib.endCrop();
                 if (this.state.selectedTool === "addText") this.photoEditorLib.removeAllAnchors();
                 if (this.state.selectedTool === "eyedrop") this.photoEditorLib.disableColorPickerMode();
-                this.photoEditorLib.focusTool("draw");
+                //this.photoEditorLib.focusTool("draw");
+                this.photoEditorLib.focusCanvasContainer("konvaImagesContainer");
                 this.setState({
                   selectedTool: "draw"
                 });
                 this.photoEditorLib.selectedTool = "draw";
                 this.photoEditorLib.disableDrawingEraser();
+                this.photoEditorLib.enableDrawingCanvas();
+                this.photoEditorLib.konvaImagesContainer.style.cursor = "none";
                 this.photoEditorLib.drawToolWasJustSelected = true;
               }}>
-                <img className="toolIcon" src="pen.svg" height="18px"></img>
+                <img className="toolIcon" src="brush.svg" height="18px"></img>
               </div>
             </Tooltip>
             <Tooltip placement="right" title="Erase [E]">
@@ -321,16 +341,20 @@ class PhotoEditor extends React.Component {
                 if (!this.state.imageInstanced) return;
                 if (this.state.selectedTool === "erase") return;
                 if (this.state.selectedTool === "crop") this.photoEditorLib.endCrop();
+                if (this.state.selectedTool === "draw") this.photoEditorLib.disableDrawingCanvas();
                 if (this.state.selectedTool === "addText") this.photoEditorLib.removeAllAnchors();
                 if (this.state.selectedTool === "eyedrop") this.photoEditorLib.disableColorPickerMode();
-                this.photoEditorLib.focusTool("draw");
+                //this.photoEditorLib.focusTool("draw");
+                this.photoEditorLib.focusCanvasContainer("konvaImagesContainer");
                 this.setState({
                   selectedTool: "erase"
                 });
                 this.photoEditorLib.selectedTool = "erase";
+                this.photoEditorLib.enableDrawingCanvas();
                 this.photoEditorLib.enableDrawingEraser();
+                this.photoEditorLib.konvaImagesContainer.style.cursor = "none";
               }}>
-                <img className="toolIcon" src="eraser.svg" height="18px"></img>
+                <img className="toolIcon" src="eraser-filled.svg" height="18px"></img>
               </div>
             </Tooltip>
             <Tooltip placement="right" title="Pick Color [P]">
@@ -338,6 +362,8 @@ class PhotoEditor extends React.Component {
                 if (!this.state.imageInstanced) return;
                 if (this.state.selectedTool === "eyedrop") return;
                 if (this.state.selectedTool === "crop") this.photoEditorLib.endCrop();
+                if (this.state.selectedTool === "draw") this.photoEditorLib.disableDrawingCanvas();
+                if (this.state.selectedTool === "erase") this.photoEditorLib.disableDrawingCanvas();
                 if (this.state.selectedTool === "addText") this.photoEditorLib.removeAllAnchors();
                 this.photoEditorLib.enableColorPickerMode();
                 this.setState({
@@ -345,38 +371,45 @@ class PhotoEditor extends React.Component {
                 });
                 this.photoEditorLib.selectedTool = "eyedrop";
               }}>
-                <img className="toolIcon" src="eyedrop-outline.svg" height="18px"></img>
+                <img className="toolIcon" src="eyedrop.svg" height="18px"></img>
               </div>
             </Tooltip>
             <Tooltip placement="right" title="Rotate [R]">
               <div className="toolIconContainer">
                 <img className="toolIcon" src="refresh.svg" height="18px" style={{transform: "scaleX(-1)"}} onClick={() => {
+                  return;
                   if (!this.state.imageInstanced) return;
                   this.photoEditorLib.rotate();
                 }}></img>
               </div>
             </Tooltip>
             <Tooltip placement="right" title="Move [V]">
-              <div className={`toolIconContainer${this.state.selectedTool === "move" ? " toolIconContainerSelected" : ""}`}>
-                <img className="toolIcon" src="move-outline.svg" height="18px" onClick={() => {
-                  if (!this.state.imageInstanced) return;
-                  if (this.state.selectedTool === "move") return;
-                  if (this.state.selectedTool === "crop") this.photoEditorLib.endCrop();
-                  if (this.state.selectedTool === "addText") this.photoEditorLib.removeAllAnchors();
-                  if (this.state.selectedTool === "eyedrop") this.photoEditorLib.disableColorPickerMode();
-                  this.setState({
-                    selectedTool: "move"
-                  });
-                  this.photoEditorLib.selectedTool = "move";
-                }}></img>
+              <div id="move-tool-icon" className={`toolIconContainer${this.state.selectedTool === "move" ? " toolIconContainerSelected" : ""}`} onClick={() => {
+                if (!this.state.imageInstanced) return;
+                if (this.state.selectedTool === "move") return;
+                if (this.state.selectedTool === "crop") this.photoEditorLib.endCrop();
+                if (this.state.selectedTool === "draw") this.photoEditorLib.disableDrawingCanvas();
+                if (this.state.selectedTool === "erase") this.photoEditorLib.disableDrawingCanvas();
+                if (this.state.selectedTool === "addText") this.photoEditorLib.removeAllAnchors();
+                if (this.state.selectedTool === "eyedrop") this.photoEditorLib.disableColorPickerMode();
+                this.photoEditorLib.konvaImagesContainer.style.cursor = "move";
+                this.photoEditorLib.focusCanvasContainer("konvaImagesContainer");
+                this.setState({
+                  selectedTool: "move"
+                });
+                this.photoEditorLib.selectedTool = "move";
+              }}>
+                <img className="toolIcon" src="move-outline.svg" height="18px"></img>
               </div>
             </Tooltip>
             <Tooltip placement="right" title="Drag [G]">
               <div className={`toolIconContainer${this.state.selectedTool === "drag" ? " toolIconContainerSelected" : ""}`}>
-                <img className="toolIcon" src="hand-right-outline.svg" height="18px" onClick={() => {
+                <img className="toolIcon" src="hand-right.svg" height="18px" onClick={() => {
+                  return;
                   if (!this.state.imageInstanced) return;
                   if (this.state.selectedTool === "drag") return;
                   if (this.state.selectedTool === "crop") this.photoEditorLib.endCrop();
+                  if (this.state.selectedTool === "draw") this.photoEditorLib.disableDrawingCanvas();
                   if (this.state.selectedTool === "addText") this.photoEditorLib.removeAllAnchors();
                   if (this.state.selectedTool === "eyedrop") this.photoEditorLib.disableColorPickerMode();
                   document.getElementById("canvas").style.cursor = "grab";
@@ -393,6 +426,7 @@ class PhotoEditor extends React.Component {
                 if (!this.state.imageInstanced) return;
                 if (this.state.selectedTool === "effects") return;
                 if (this.state.selectedTool === "crop") this.photoEditorLib.endCrop();
+                if (this.state.selectedTool === "draw") this.photoEditorLib.disableDrawingCanvas();
                 if (this.state.selectedTool === "addText") this.photoEditorLib.removeAllAnchors();
                 if (this.state.selectedTool === "eyedrop") this.photoEditorLib.disableColorPickerMode();
                 this.setState({
@@ -409,7 +443,7 @@ class PhotoEditor extends React.Component {
             <Tabs type="card" tabBarStyle={{fontSize: "11px"}} tabBarGutter={0} size="small" defaultActiveKey="1">
               <Tabs.TabPane tab="Filters" key="1">
                 <div style={{width: "96%", margin: "auto"}}>
-                  <EffectSlider showInput={true} min={0} max={100} defaultValue={0} title="Blur" onChange={(value) => {
+                  <EffectSlider showInput={true} min={0} max={100} defaultValue={0} title="Blur" onAfterChange={(value) => {
                     this.photoEditorLib.setImageFilter("blur", [value, 20]);
                   }}/>
                   <h5 style={{display: "flex", justifyContent:"space-between", alignItems: "center"}}>Image Filter</h5>
@@ -422,16 +456,16 @@ class PhotoEditor extends React.Component {
               </Tabs.TabPane>
               <Tabs.TabPane tab="Adjustments" key="2">
                 <div style={{width: "96%", margin: "auto"}}>
-                  <EffectSlider showInput={true} min={-100} max={100} defaultValue={0} title="Contrast" onChange={(value) => {
+                  <EffectSlider showInput={true} min={-100} max={100} defaultValue={0} title="Contrast" onAfterChange={(value) => {
                     this.photoEditorLib.setImageFilter("contrast", [value / 100 + 1]);
                   }}/>
-                  <EffectSlider showInput={true} min={-100} max={100} defaultValue={0} title="Brightness" onChange={(value) => {
+                  <EffectSlider showInput={true} min={-100} max={100} defaultValue={0} title="Brightness" onAfterChange={(value) => {
                     this.photoEditorLib.setImageFilter("brightness", [value / 100 + 1]);
                   }}/>
-                  <EffectSlider showInput={true} min={-100} max={100} defaultValue={0} title="Gamma" onChange={(value) => {
+                  <EffectSlider showInput={true} min={-100} max={100} defaultValue={0} title="Gamma" onAfterChange={(value) => {
                     this.photoEditorLib.setImageFilter("gamma", [value / 100 + 1]);
                   }}/>
-                  <EffectSlider showInput={true} min={-100} max={100} defaultValue={0} title="Saturation" onChange={(value) => {
+                  <EffectSlider showInput={true} min={-100} max={100} defaultValue={0} title="Saturation" onAfterChange={(value) => {
                     this.photoEditorLib.setImageFilter("saturation", [value / 100 + 1]);
                   }}/>
                 </div>
@@ -474,7 +508,7 @@ class PhotoEditor extends React.Component {
                 <Tabs type="card" tabBarStyle={{fontSize: "11px"}} tabBarGutter={0} size="small" defaultActiveKey="1">
                   <Tabs.TabPane tab="Filters" key="1">
                     <div style={{width: "96%", margin: "auto"}}>
-                      <EffectSlider min={0} max={20} defaultValue={0} title="Blur" onChange={(value) => {
+                      <EffectSlider min={0} max={20} defaultValue={0} title="Blur" onAfterChange={(value) => {
 
                       }}/>
                       <h5 style={{display: "flex", justifyContent:"space-between", alignItems: "center"}}>Image Filters</h5>
@@ -487,16 +521,16 @@ class PhotoEditor extends React.Component {
                   </Tabs.TabPane>
                   <Tabs.TabPane tab="Adjustments" key="2">
                   <div style={{width: "96%", margin: "auto"}}>
-                    <EffectSlider showInput={true} min={-100} max={100} defaultValue={0} title="Contrast" onChange={(value) => {
+                    <EffectSlider showInput={true} min={-100} max={100} defaultValue={0} title="Contrast" onAfterChange={(value) => {
                       this.photoEditorLib.setImageFilter("contrast", [value / 100 + 1]);
                     }}/>
-                    <EffectSlider showInput={true} min={-100} max={100} defaultValue={0} title="Brightness" onChange={(value) => {
+                    <EffectSlider showInput={true} min={-100} max={100} defaultValue={0} title="Brightness" onAfterChange={(value) => {
                       this.photoEditorLib.setImageFilter("brightness", [value / 100 + 1]);
                     }}/>
-                    <EffectSlider showInput={true} min={-100} max={100} defaultValue={0} title="Gamma" onChange={(value) => {
+                    <EffectSlider showInput={true} min={-100} max={100} defaultValue={0} title="Gamma" onAfterChange={(value) => {
                       this.photoEditorLib.setImageFilter("gamma", [value / 100 + 1]);
                     }}/>
-                    <EffectSlider showInput={true} min={-100} max={100} defaultValue={0} title="Saturation" onChange={(value) => {
+                    <EffectSlider showInput={true} min={-100} max={100} defaultValue={0} title="Saturation" onAfterChange={(value) => {
                       this.photoEditorLib.setImageFilter("saturation", [value / 100 + 1]);
                     }}/>
                   </div>

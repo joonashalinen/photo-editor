@@ -4,6 +4,7 @@ class CanvasCursor {
   constructor(canvasElement, cursorElement, options) {
     this.canvas = canvasElement;
     this.cursor = cursorElement;
+    this.cursorParent = options.cursorParent ? options.cursorParent : this.canvas.parentElement;
 
     this.canvas.addEventListener("mousemove", (e) => {
       this.updateCursor(e);
@@ -65,20 +66,18 @@ class CanvasCursor {
 
   updateCursor(e) {
 
-    var canvasParent = this.canvas.parentElement;
-    var canvasParentRect = canvasParent.getBoundingClientRect();
+    var cursorParentRect = this.cursorParent.getBoundingClientRect();
 
     var canvasRect = this.canvas.getBoundingClientRect();
 
-    var x = canvasRect.x - canvasParentRect.x;
-    var y = canvasRect.y - canvasParentRect.y;
+    var x = canvasRect.x - cursorParentRect.x;
+    var y = canvasRect.y - cursorParentRect.y;
 
     x -= this.cursor.offsetWidth / 2;
     y -= this.cursor.offsetHeight / 2;
 
-    // +1px for some reason looks to be more centered with the brush preview
-    this.cursor.style.left = Math.floor(this.offsetX + x + e.offsetX * this.canvasScale) + 1 + "px";
-    this.cursor.style.top = Math.floor(this.offsetY + y + e.offsetY * this.canvasScale) + 1 + "px";
+    this.cursor.style.left = Math.floor(this.offsetX + x + e.offsetX * this.canvasScale) + "px";
+    this.cursor.style.top = Math.floor(this.offsetY + y + e.offsetY * this.canvasScale) + "px";
 
   }
 

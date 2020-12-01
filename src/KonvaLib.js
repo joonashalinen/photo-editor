@@ -33,9 +33,26 @@ class KonvaLib {
 
       layer.add(image);
 
+      this.imagesLayer = new Konva.Layer();
+      this.stage.add(this.imagesLayer);
+
+      this.imagesLayer.zIndex(1);
+
+      var mainLayer = new Konva.Layer();
+
+      this.stage.add(mainLayer);
+      this.mainLayer = mainLayer;
+
+      this.mainLayer.zIndex(2);
+
       this.stage.draw();
 
       this.backgroundImage = image;
+
+      // transformers won't update for some reason unless we update constantly
+      this.stage.on("mousemove", (e) => {
+        this.stage.batchDraw();
+      });
 
     }
 
@@ -43,11 +60,14 @@ class KonvaLib {
 
   }
 
-  addImage(imageObj) {
+  addImage(imageObj, options) {
 
+    /*
     var layer = new Konva.Layer();
 
-    this.stage.add(layer);
+    this.stage.add(layer); */
+
+    if (!options) options = {};
 
     var image = new Konva.Image({
       image: imageObj,
@@ -55,66 +75,123 @@ class KonvaLib {
       y: 0,
       width: imageObj.width,
       height: imageObj.height,
-      draggable: true
+      draggable: options && options.draggable === false ? options.draggable : true
     });
 
-    var transformer = new Konva.Transformer({
-      nodes: [image],
-      rotateAnchorOffset: 60,
-      enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right']
-    })
+    if (options.addToMainLayer) {
+      this.mainLayer.add(image);
+    } else {
+      this.imagesLayer.add(image);
+    }
 
-    layer.add(image);
-    layer.add(transformer);
+    var zIndex = options && typeof options.zIndex === "number" ? options.zIndex : this.topZIndex++;
+    image.zIndex(1);
 
-    layer.zIndex(this.topZIndex++);
+    if (!options || options.enableTransformer !== false) {
+      var transformer = new Konva.Transformer({
+        nodes: [image],
+        rotateAnchorOffset: 60,
+        enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+      });
+      this.mainLayer.add(transformer);
+      transformer.forceUpdate();
+    }
 
-    transformer.forceUpdate();
+    this.bringTransformersToFront();
+
     this.stage.draw();
+
+    return image;
 
   }
 
-  replaceImages(newImages) {
+  bringToFront(konvaNode) {
+    konvaNode.moveToTop();
+    this.bringTransformersToFront();
+    this.stage.draw();
+  }
 
-    var layers = this.stage.getChildren();
+  bringTransformersToFront() {
+    for (var i = 0; i < this.mainLayer.getChildren().length; i++) {
+      var node = this.mainLayer.getChildren()[i];
+      if (node instanceof Konva.Transformer) {
+        node.moveToTop();
+        node.zIndex(110)
+        node.forceUpdate();
+      }
+    }
+    this.stage.draw();
+  }
 
-    // start from 1, skip over the background layer
-    for (var i = 1; i < layers.length; i++) {
-      var layer = layers[i];
-      var image = layer.getChildren()[0];
-      var transformer = layer.getChildren()[1];
+  rearrangeImagesWithNodeLast(nodeToBeLast) {
+
+    var images = [];
+
+    for (var i = 0; i < this.mainLayer.getChildren().length; i++) {
+      var node = this.mainLayer.getChildren()[i];
+      if (node instanceof Konva.Image) {
+        node.remove();
+
+        if (node === nodeToBeLast) {
+          continue;
+        }
+        images.unshift(node);
+      }
+    }
+
+    images.push(nodeToBeLast);
+
+    for (var i = 0; i < images.length; i++) {
+      this.mainLayer.add(images[i]);
+      images[i].zIndex(1);
+    }
+
+    nodeToBeLast.zIndex(100)
+
+    this.stage.draw();
+  }
+
+  replaceImages(newImages, startIndex) {
+
+    var images = this.imagesLayer.getChildren();
+
+    for (var i = startIndex; i < images.length; i++) {
+      var image = images[i];
+      var transformer = this.mainLayer.getChildren()[2 + i];
+
+      console.log(this.mainLayer.getChildren()[2 + i])
 
       var newImage = new Konva.Image({
-        image: newImages[i - 1],
+        image: newImages[i],
         x: image.x(),
         y: image.y(),
         scale: image.scale(),
         width: image.width(),
         height: image.height(),
+        rotation: image.rotation(),
         draggable: true,
       });
 
       transformer.nodes([newImage]);
 
       image.remove();
-      transformer.remove();
 
-      layer.add(newImage);
-      layer.add(transformer);
+      this.imagesLayer.add(newImage);
       transformer.forceUpdate();
 
-      layer.draw();
+      this.stage.draw();
     }
 
   }
 
-  deleteImageLayer(image) {
-    image.getParent().remove();
+  deleteImage(image) {
+    image.remove();
+    this.stage.draw();
   }
 
   bringImageToFront(image) {
-    image.getParent().zIndex(this.topZIndex++);
-    console.log(image.getParent().zIndex())
+    image.zIndex(this.topZIndex++);
+    this.stage.draw();
   }
 
   getBackgroundImage() {
