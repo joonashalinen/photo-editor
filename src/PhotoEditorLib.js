@@ -567,6 +567,7 @@ class PhotoEditorLib {
 
       imageObj.id = this.runningImageId++;
 
+
       var konvaImage = this.konvaLib.addImage(imageObj, {
         targetable: true
       });
@@ -595,13 +596,11 @@ class PhotoEditorLib {
       this.konvaCursorCanvas = konvaCursorCanvas;
       this.konvaCursorCanvasNode = this.konvaLib.addImage(konvaCursorCanvas, options);
 
-      this.softBrush = new SoftBrush(konvaDrawingCanvas, {
+      this.softBrush = new SoftBrush(this.drawingCanvas, {
         size: this.defaultBrushSize / this.scale,
         hardness: this.defaultBrushHardness,
-        cursorCanvas: konvaCursorCanvas,
+        cursorCanvas: this.cursorCanvas,
         color: [255, 255, 255, 1],
-        konvaStage: this.konvaLib.stage,
-        konvaLayer: this.konvaLib.mainLayer,
         brushPreviewEnabled: true,
         canvasScale: this.scale,
         enabled: false
@@ -642,7 +641,7 @@ class PhotoEditorLib {
 
     }
 
-    this.focusCanvasContainer("konvaImagesContainer");
+    this.focusCanvasContainer("drawingCanvasContainer");
 
     this.dispatchEvent("load", []);
     this.dispatchEvent("imageTargetChange", [konvaImage]);

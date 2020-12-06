@@ -113,6 +113,7 @@ class SoftBrush {
       var angle = angleBetween(lastPoint, currentPoint);
 
 
+      /*
       var bezier = new Bezier(points[0].x, points[0].y, points[1].x, points[1].y, points[2].x, points[2].y);
 
       points = [points[2]];
@@ -155,7 +156,7 @@ class SoftBrush {
 
       }
 
-      return;
+      return; */
 
 
       for (var i = 0; i < dist; i += Math.max(1, this.size / 10) ) {
@@ -374,7 +375,7 @@ class SoftBrush {
         }
       });
 
-      var timeout;
+      let timeout;
 
       this.konvaStage.on('mousemove touchmove', () => {
 
@@ -385,7 +386,7 @@ class SoftBrush {
 
         timeout = window.requestAnimationFrame(() => {
 
-          console.log("got through")
+          console.log("asd")
 
           if (this.enabled) {
             var pos = this.konvaStage.getPointerPosition();
@@ -428,6 +429,87 @@ class SoftBrush {
 
       return;
     }
+
+    this.canvas.addEventListener('mousedown', (e) => {
+      if (this.enabled){
+        this.dispatchEvent("drawbegin");
+        isDrawing = true;
+        var pos = {x: e.offsetX, y: e.offsetY}
+
+        /*
+        var x = pos.x;
+        var y = pos.y;
+
+        if (this.konvaStage.rotation() === 90) {
+          pos.y = this.konvaStage.width() - x;
+          pos.x = y;
+        } else if (this.konvaStage.rotation() === 180) {
+          pos.y = this.konvaStage.height() - y;
+          pos.x = this.konvaStage.width() - x;
+        } else if (this.konvaStage.rotation() === 270) {
+          pos.y = x;
+          pos.x = this.konvaStage.height() - y;
+        } */
+
+        lastPoint = { x: pos.x, y: pos.y };
+        points.push(lastPoint);
+      }
+    });
+
+    this.canvas.addEventListener('mouseup', (e) => {
+      if (this.enabled) {
+        points = [];
+        isDrawing = false;
+        this.dispatchEvent("drawend");
+      }
+    });
+
+    var timeout;
+
+    this.canvas.addEventListener('mousemove', (e) => {
+
+
+      if (timeout) {
+        window.cancelAnimationFrame(timeout);
+      }
+
+      timeout = window.requestAnimationFrame(() => {
+
+        if (this.enabled) {
+          var pos = {x: e.offsetX, y: e.offsetY}
+
+          /*
+          var x = pos.x;
+          var y = pos.y;
+
+          if (this.konvaStage.rotation() === 90) {
+            pos.y = this.konvaLayer.width() - x + this.konvaLayer.y();
+            pos.x = y - this.konvaLayer.x();
+          } else if (this.konvaStage.rotation() === 180) {
+            pos.y = this.konvaStage.height() - y;
+            pos.x = this.konvaStage.width() - x;
+          } else if (this.konvaStage.rotation() === 270) {
+            pos.y = x;
+            pos.x = this.konvaStage.height() - y;
+          } */
+
+
+          handleMousemove(pos.x, pos.y);
+
+          this.dispatchEvent("draw");
+        }
+
+      });
+
+    });
+
+    this.canvas.addEventListener('mouseleave', (e) => {
+      if (this.enabled) {
+        this.clearCanvas(cursorCtx);
+        points = [];
+        mouseLeft = true;
+      }
+    });
 
     /*
     el.onmousemove = (e) => {

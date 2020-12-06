@@ -328,7 +328,7 @@ class PhotoEditor extends React.Component {
               </div>
             </ContextMenu>
             <Canvas id="cropDummyCanvas" containerId="cropDummyCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none", visibility: "hidden" }}/>
-            <Canvas id="drawingCanvas" containerId="drawingCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
+            <Canvas id="drawingCanvas" containerId="drawingCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent" }}/>
             <Canvas id="cursorCanvas" containerId="cursorCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
             <div id="drawingCanvasCursor" className="drawingCanvasCursor" style={{display: "none"}}></div>
             {
@@ -403,7 +403,7 @@ class PhotoEditor extends React.Component {
                 if (this.state.selectedTool === "crop") this.photoEditorLib.endCrop();
                 if (this.state.selectedTool === "addText") this.photoEditorLib.removeAllAnchors();
                 if (this.state.selectedTool === "eyedrop") this.photoEditorLib.disableColorPickerMode();
-                this.photoEditorLib.focusCanvasContainer("konvaImagesContainer");
+                this.photoEditorLib.focusCanvasContainer("drawingCanvasContainer");
                 this.setState({
                   selectedTool: "draw"
                 });
