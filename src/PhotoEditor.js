@@ -4,7 +4,7 @@ import Canvas from "./Canvas.js";
 import Upload from "./Upload.js" ;
 import EffectSlider from "./EffectSlider.js";
 import TextField from "./TextField.js";
-import { Input, InputNumber, Button, Tooltip, Empty, Select, Collapse } from "antd";
+import { Input, InputNumber, Button, Tooltip, Empty, Select, Collapse, Spin } from "antd";
 import { RotateRightOutlined, UploadOutlined, DownloadOutlined, CloudUploadOutlined } from "@ant-design/icons"
 import '@simonwep/pickr/dist/themes/nano.min.css';
 import "./PhotoEditor.css";
@@ -47,6 +47,8 @@ class PhotoEditor extends React.Component {
       gamma: 0,
       saturation: 0,
       filter: "None",
+      canvasesContainerLoading: false,
+      imageFilterPreviewsLoading: false
     }
 
     this.selectableFilters = [
@@ -117,7 +119,8 @@ class PhotoEditor extends React.Component {
         brightness: Math.floor((imageSettings.brightness - 1) * 100),
         gamma: Math.floor((imageSettings.gamma - 1) * 100),
         saturation: Math.floor((imageSettings.saturation - 1) * 100),
-        filter: imageSettings.filter
+        filter: imageSettings.filter,
+        imageFilterPreviewsLoading: false
       });
     }
 
@@ -265,9 +268,18 @@ class PhotoEditor extends React.Component {
         </div>
         <div className="canvasTools">
           <div id="canvasesContainer" className="canvasesContainer">
+            {
+              this.state.canvasesContainerLoading ?
+                <div style={{position: "absolute", top: "0px", left: "0px", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center"}}>
+                  <Spin spinning={this.state.canvasesContainerLoading}>
+                  </Spin>
+                </div>
+              :
+              null
+            }
             <div style={{position: "absolute", top: "190px", width:"100%"}}>
               {
-                !this.state.imageInstanced ?
+                !this.state.imageInstanced && !this.state.canvasesContainerLoading ?
                   <Empty
                     image="image-outline.svg"
                     imageStyle={{
@@ -572,6 +584,15 @@ class PhotoEditor extends React.Component {
                     }}/>
                   </div> */ }
                   {
+                    this.state.imageFilterPreviewsLoading ?
+                      <div style={{position: "absolute", top: "90px", left: "0px", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center"}}>
+                        <Spin spinning={this.state.imageFilterPreviewsLoading}>
+                        </Spin>
+                      </div>
+                    :
+                    null
+                  }
+                  {
                     this.state.selectedTargetImage ?
                       <ImageGridMenu updateState={updateState} onSelectChange={(selectedFilterName) => {
                         this.photoEditorLib.setSelectedImageFilter(selectedFilterName);
@@ -632,7 +653,7 @@ class PhotoEditor extends React.Component {
             </div>
             <div style={{position: "absolute", bottom: "0px", width: "100%", display: "flex" }}>
               <div style={{marginLeft: "5px"}}>
-                <Upload buttonText="Import Image" onUpload={(file) => {
+                <Upload buttonText="Import Image" onUpload={async (file) => {
                   if (!this.acceptedImageTypes.includes(file.type)) return;
 
                   if (this.state.imageInstanced) {
@@ -644,11 +665,17 @@ class PhotoEditor extends React.Component {
 
                   this.photoEditorLib.removeImageInstance();
 
-                  this.photoEditorLib.loadImage(file);
+                  this.setState({
+                    canvasesContainerLoading: true,
+                    imageFilterPreviewsLoading: true
+                  })
+
+                  await this.photoEditorLib.loadImage(file);
 
                   this.setState({
                     uploadFileList: [],
-                    imageInstanced: true
+                    imageInstanced: true,
+                    canvasesContainerLoading: false
                   });
                 }}
                 accept="image/png,image/jpeg,image/jpg"
