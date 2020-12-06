@@ -1117,7 +1117,7 @@ class PhotoEditorLib {
 
     this.focusCanvasContainer("konvaImagesContainer");
 
-    this.konvaImagesContainer.style.cursor = "auto";
+    this.konvaImagesContainer.style.cursor = "none";
 
     var cursorImage = document.createElement("img");
     var colorPreview = document.createElement("div");
@@ -1363,6 +1363,19 @@ class PhotoEditorLib {
 
     this.layer.draw();
 
+    this.konvaLib.transformersStageMainLayer.x(this.konvaLib.transformersStageMainLayer.x() + cropData.x * -1);
+    this.konvaLib.transformersStageMainLayer.y(this.konvaLib.transformersStageMainLayer.y() + cropData.y * -1);
+
+    this.konvaLib.transformersStage.size({
+      width: Math.floor(cropData.width),
+      height: Math.floor(cropData.height)
+    });
+
+    this.konvaLib.transformersStageMainLayer.size({
+      width: Math.floor(cropData.width),
+      height: Math.floor(cropData.height)
+    });
+
     this.konvaLib.imagesLayer.x(this.konvaLib.imagesLayer.x() + cropData.x * -1);
     this.konvaLib.imagesLayer.y(this.konvaLib.imagesLayer.y() + cropData.y * -1);
 
@@ -1381,18 +1394,8 @@ class PhotoEditorLib {
       height: Math.floor(cropData.height)
     });
 
-    this.konvaLib.transformersStage.size({
-      width: Math.floor(cropData.width),
-      height: Math.floor(cropData.height)
-    });
-
-    this.konvaLib.transformersStageMainLayer.size({
-      width: Math.floor(cropData.width),
-      height: Math.floor(cropData.height)
-    });
-
-    this.konvaLib.stage.batchDraw();
     this.konvaLib.transformersStage.batchDraw();
+    this.konvaLib.stage.batchDraw();
 
     var ctx = this.drawingCanvas.getContext("2d");
     var drawingImageData = ctx.getImageData(0, 0, this.drawingCanvas.width, this.drawingCanvas.height);

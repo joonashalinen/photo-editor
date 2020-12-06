@@ -152,10 +152,21 @@ class UndoRedo {
         this.parent.konvaLib.imagesLayer.x(latestUndoRedo.data.x);
         this.parent.konvaLib.imagesLayer.y(latestUndoRedo.data.y);
 
+        this.parent.konvaLib.transformersStageMainLayer.x(latestUndoRedo.data.x);
+        this.parent.konvaLib.transformersStageMainLayer.y(latestUndoRedo.data.y);
+
         this.parent.konvaLib.imagesLayer.offsetX(latestUndoRedo.data.imagesOffsetX);
         this.parent.konvaLib.imagesLayer.offsetY(latestUndoRedo.data.imagesOffsetY);
 
+        this.parent.konvaLib.transformersStageMainLayer.offsetX(latestUndoRedo.data.imagesOffsetX);
+        this.parent.konvaLib.transformersStageMainLayer.offsetY(latestUndoRedo.data.imagesOffsetY);
+
         this.parent.konvaDrawingCanvas.getContext("2d").putImageData(latestUndoRedo.data.drawingImageData, 0, 0);
+
+        this.parent.konvaLib.transformersStage.size({
+          width: latestUndoRedo.data.width,
+          height: latestUndoRedo.data.height
+        });
 
         this.parent.konvaLib.stage.size({
           width: latestUndoRedo.data.width,
@@ -163,8 +174,10 @@ class UndoRedo {
         });
 
         this.parent.konvaImagesContainer.firstElementChild.style.transform = latestUndoRedo.data.transform;
+        this.parent.konvaTransformersContainer.firstElementChild.style.transform = latestUndoRedo.data.transform;
 
-        this.parent.konvaLib.stage.draw();
+        this.parent.konvaLib.transformersStage.batchDraw();
+        this.parent.konvaLib.stage.batchDraw();
 
         break;
       }

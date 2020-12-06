@@ -63,14 +63,21 @@ class KonvaLib {
       this.stage.add(mainLayer);
       this.mainLayer = mainLayer;
 
-      var mainLayer = new Konva.Layer();
+      mainLayer = new Konva.Layer();
 
       this.transformersStage.add(mainLayer);
       this.transformersStageMainLayer = mainLayer;
 
       this.mainLayer.zIndex(2);
 
+      this.transformersStageMainLayer.offsetX(options.width / 2);
+      this.transformersStageMainLayer.offsetY(options.height / 2);
+
+      this.transformersStageMainLayer.x(options.width / 2);
+      this.transformersStageMainLayer.y(options.height / 2);
+
       this.stage.draw();
+      this.transformersStage.draw();
 
       this.backgroundImage = backgroundTileImage;
       this.colorBackgroundImage = colorBackgroundImage;
@@ -78,7 +85,6 @@ class KonvaLib {
 
       // transformers won't update for some reason unless we update constantly
       var timeout;
-      /*
       this.stage.on("mousemove", (e) => {
 
         if (timeout) {
@@ -101,7 +107,7 @@ class KonvaLib {
           this.stage.batchDraw();
           this.transformersStage.batchDraw();
         })
-      }); */
+      });
 
     }
 
@@ -145,6 +151,7 @@ class KonvaLib {
     image.zIndex(1);
 
     if (!options || options.enableTransformer !== false) {
+      /*
       var transformer = new Konva.Transformer({
         nodes: [image],
         rotateAnchorOffset: 60,
@@ -154,9 +161,9 @@ class KonvaLib {
         rotationSnaps: [0, 90, 180, 270]
       });
       this.transformersStageMainLayer.add(transformer);
-      transformer.forceUpdate();
+      transformer.forceUpdate(); */
 
-      transformer = new Konva.Transformer({
+    var transformer = new Konva.Transformer({
         nodes: [image],
         rotateAnchorOffset: 60,
         enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
