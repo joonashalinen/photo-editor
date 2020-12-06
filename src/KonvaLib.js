@@ -18,11 +18,12 @@ class KonvaLib {
 
     fillImage.onload = () => {
 
-      var layer = new Konva.Layer();
+      var backgroundLayer = new Konva.Layer();
+      this.backgroundLayer = backgroundLayer;
 
-      this.stage.add(layer);
+      this.stage.add(backgroundLayer);
 
-      var image = new Konva.Image({
+      var backgroundTileImage = new Konva.Image({
         fillPatternImage: fillImage,
         fillPatternX: 0,
         fillPatternY: 0,
@@ -31,12 +32,25 @@ class KonvaLib {
         height: options.height
       });
 
-      layer.add(image);
+      var colorBackgroundImage = new Konva.Image({
+        fillColor: "rgba(0,0,0,0)",
+        width: options.width,
+        height: options.height
+      });
+
+      backgroundLayer.add(backgroundTileImage);
+      backgroundLayer.add(colorBackgroundImage);
 
       this.imagesLayer = new Konva.Layer();
       this.stage.add(this.imagesLayer);
 
       this.imagesLayer.zIndex(1);
+
+      this.imagesLayer.offsetX(options.width / 2);
+      this.imagesLayer.offsetY(options.height / 2);
+
+      this.imagesLayer.x(options.width / 2);
+      this.imagesLayer.y(options.height / 2);
 
       var mainLayer = new Konva.Layer();
 
@@ -47,7 +61,9 @@ class KonvaLib {
 
       this.stage.draw();
 
-      this.backgroundImage = image;
+      this.backgroundImage = backgroundTileImage;
+      this.colorBackgroundImage = colorBackgroundImage;
+      this.backgroundImageColor = "transparent";
 
       // transformers won't update for some reason unless we update constantly
       this.stage.on("mousemove", (e) => {
@@ -58,6 +74,11 @@ class KonvaLib {
 
     this.topZIndex = 1;
 
+  }
+
+  setBackgroundColor(rgbaString) {
+    this.colorBackgroundImage.fill(rgbaString);
+    this.stage.batchDraw();
   }
 
   addImage(imageObj, options) {
@@ -75,8 +96,11 @@ class KonvaLib {
       y: 0,
       width: imageObj.width,
       height: imageObj.height,
-      draggable: options && options.draggable === false ? options.draggable : true
+      draggable: options.draggable ? options.draggable : false
     });
+
+    image.photoEditorId = imageObj.id;
+    image.targetable = options.targetable ? options.targetable : false;
 
     if (options.addToMainLayer) {
       this.mainLayer.add(image);
@@ -91,13 +115,18 @@ class KonvaLib {
       var transformer = new Konva.Transformer({
         nodes: [image],
         rotateAnchorOffset: 60,
-        enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+        enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
+        borderStroke: "rgb(0 149 255)",
+        anchorStroke: "rgb(0 149 255)",
+        rotationSnaps: [0, 90, 180, 270]
       });
       this.mainLayer.add(transformer);
       transformer.forceUpdate();
     }
 
     this.bringTransformersToFront();
+
+    if (!options.preventTarget) this.targetImage(image);
 
     this.stage.draw();
 
@@ -151,6 +180,150 @@ class KonvaLib {
     this.stage.draw();
   }
 
+  targetImage(image) {
+
+    var setSelectedTargetStyles = (target) => {
+
+      target.shadowEnabled(true);
+      target.shadowColor("black");
+      target.shadowOffsetY(20);
+      target.shadowOffsetX(0);
+      target.shadowOpacity(0.8);
+      target.shadowBlur(30);
+
+      target.strokeEnabled(true);
+      target.stroke("rgb(0 149 255)");
+      target.strokeWidth(5);
+      target.strokeScaleEnabled(false);
+
+      this.stage.batchDraw();
+
+    }
+
+    if (this.selectedTargetImage === image) {
+      this.unTargetImage(image);
+      return true;
+    }
+
+    if (!image.targetable) return false;
+
+    if (!this.selectedTargetImage) {
+      setSelectedTargetStyles(image);
+      this.showImageTransformer(image);
+      image.draggable(true);
+      this.selectedTargetImage = image;
+      return true;
+    }
+
+    this.unTargetImage(this.selectedTargetImage);
+    this.showImageTransformer(image);
+
+    setSelectedTargetStyles(image);
+
+    image.draggable(true);
+
+    this.selectedTargetImage = image;
+
+    return true;
+
+  }
+
+  previewTargetImage(image) {
+
+    var setPreviewTargetStyles = (target) => {
+
+      target.shadowEnabled(true);
+      target.shadowColor("black");
+      target.shadowOffsetY(20);
+      target.shadowOffsetX(0);
+      target.shadowOpacity(0.8);
+      target.shadowBlur(30);
+
+      target.strokeEnabled(true);
+      target.stroke("rgb(0 149 255)");
+      target.strokeWidth(5);
+      target.strokeScaleEnabled(false);
+
+      this.stage.batchDraw();
+
+    }
+
+    if (this.previewedTargetImage === image) return false;
+
+    this.unPreviewTargetImage(this.previewedTargetImage);
+
+    if (!image.targetable) return false;
+
+    setPreviewTargetStyles(image);
+    this.showImageTransformer(image);
+
+    this.previewedTargetImage = image;
+
+    return true;
+
+  }
+
+  unTargetImage(image) {
+    if (!image) return;
+    if (this.selectedTargetImage !== image) return;
+    image.shadowEnabled(false);
+    image.strokeEnabled(false);
+    image.draggable(false);
+    this.hideImageTransformer(image);
+    this.selectedTargetImage = false;
+  }
+
+  unPreviewTargetImage(image) {
+    if (!image) return;
+    if (this.previewedTargetImage !== image) return;
+    if (this.selectedTargetImage === image) return;
+    image.shadowEnabled(false);
+    image.strokeEnabled(false);
+    this.hideImageTransformer(image);
+    this.previewedTargetImage = false;
+  }
+
+  hideImageTransformer(image) {
+    this.mainLayer.getChildren().forEach((node) => {
+      if (!(node instanceof Konva.Transformer)) return;
+      if (!node.nodes().includes(image)) return;
+      node.hide();
+    });
+  }
+
+  showImageTransformer(image) {
+    this.mainLayer.getChildren().forEach((node) => {
+      if (!(node instanceof Konva.Transformer)) return;
+      if (!node.nodes().includes(image)) return;
+      node.show();
+    });
+  }
+
+  getImageTransformer(image, layer) {
+    return this.getNodeTransformer(image, layer);
+  }
+
+  getNodeTransformer(node, layer) {
+    var transformer;
+    layer = layer ? layer : this.mainLayer;
+    layer.getChildren().forEach((nodeTransformer) => {
+      if (!(nodeTransformer instanceof Konva.Transformer)) return;
+      if (!nodeTransformer.nodes().includes(node)) return;
+      transformer = nodeTransformer;
+    });
+    return transformer;
+  }
+
+  hideImage(image) {
+    image.visible(false);
+    this.stage.draw();
+  }
+
+  showImage(image) {
+    image.show();
+    this.stage.draw();
+  }
+
   replaceImages(newImages, startIndex) {
 
     var images = this.imagesLayer.getChildren();
@@ -158,8 +331,6 @@ class KonvaLib {
     for (var i = startIndex; i < images.length; i++) {
       var image = images[i];
       var transformer = this.mainLayer.getChildren()[2 + i];
-
-      console.log(this.mainLayer.getChildren()[2 + i])
 
       var newImage = new Konva.Image({
         image: newImages[i],
@@ -184,62 +355,84 @@ class KonvaLib {
 
   }
 
+  replaceImage(oldImage, newImageObj) {
+
+    var transformer = this.getImageTransformer(oldImage);
+
+    var newImage = new Konva.Image({
+      image: newImageObj,
+      x: oldImage.x(),
+      y: oldImage.y(),
+      scale: oldImage.scale(),
+      width: oldImage.width(),
+      height: oldImage.height(),
+      rotation: oldImage.rotation(),
+      draggable: oldImage.draggable()
+    });
+
+    newImage.targetable = oldImage.targetable;
+    newImage.photoEditorId = oldImage.photoEditorId;
+    newImage.zIndex(oldImage.zIndex());
+
+    console.log(oldImage.photoEditorId)
+
+    transformer.nodes([newImage]);
+
+    oldImage.remove();
+
+    this.imagesLayer.add(newImage);
+    transformer.forceUpdate();
+
+    if (this.selectedTargetImage === oldImage) this.targetImage(newImage);
+
+    this.stage.draw();
+
+    console.log(newImage, oldImage)
+
+    return [newImage, oldImage];
+
+  }
+
+  replaceImageWithSameId(imageObj) {
+
+    for (var i = 0; i < this.imagesLayer.getChildren().length; i++) {
+      var image = this.imagesLayer.getChildren()[i];
+      if (imageObj.id === image.photoEditorId) {
+        console.log("replacing image..")
+        return this.replaceImage(image, imageObj);
+      }
+    }
+
+  }
+
   deleteImage(image) {
     image.remove();
     this.stage.draw();
   }
 
+  deleteImageWithId(id) {
+    var image = this.getImageWithId(id);
+    if (image) image.remove();
+    this.stage.draw();
+    return image;
+  }
+
+  getImageWithId(id) {
+    for (var i = 0; i < this.imagesLayer.getChildren().length; i++) {
+      var image = this.imagesLayer.getChildren()[i];
+      if (id === image.photoEditorId) {
+        return image;
+      }
+    }
+  }
+
   bringImageToFront(image) {
-    image.zIndex(this.topZIndex++);
+    image.zIndex(this.imagesLayer.getChildren().length - 1);
     this.stage.draw();
   }
 
   getBackgroundImage() {
     return this.backgroundImage;
-  }
-
-  initKonva(options) {
-
-    var stage = new Konva.Stage({
-      container: 'overlayCanvasContainer',
-      width: document.getElementById("canvas").clientWidth,
-      height: document.getElementById("canvas").clientHeight
-    });
-
-    var layer = new Konva.Layer();
-
-    stage.add(layer);
-
-    this.layer = layer;
-    this.stage = stage;
-
-    document.getElementById("overlayCanvasContainer").firstElementChild.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
-    document.getElementById("overlayCanvasContainer").firstElementChild.style.position = `absolute`;
-
-    this.konvaReady = true;
-
-    this.konvaJsContent = document.getElementById("overlayCanvasContainer").firstElementChild;
-
-    this.stage.on("click", (e) => {
-      if (this.editingText) return;
-      if (e.target instanceof Konva.Text) return;
-      this.addText(e);
-    });
-
-    this.stage.on("mousemove", (e) => {
-
-      if (e.target instanceof Konva.Stage) {
-        this.konvaJsContent.style.cursor = "text";
-        return;
-      }
-
-      if (e.target instanceof Konva.Text) {
-        this.konvaJsContent.style.cursor = "auto";
-        return;
-      }
-
-    });
-
   }
 
 }

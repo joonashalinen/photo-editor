@@ -10,6 +10,7 @@
     "@testing-library/react": "^11.1.1",
     "@testing-library/user-event": "^12.2.0",
     "antd": "^4.8.2",
+    "bezier-js": "^4.0.3",
     "canvas-free-drawing": "^2.1.0",
     "craco-less": "^1.17.0",
     "cropperjs": "^1.5.9",

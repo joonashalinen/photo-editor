@@ -4,8 +4,7 @@ import './App.less';
 import { Image, Button } from "antd";
 import { CloudUploadOutlined } from "@ant-design/icons"
 import PhotoEditor from "./PhotoEditor.js";
-import PicturesWallQueue from "./PicturesWallQueue.js"
-import CustomModal from "./CustomModal.js";
+import PicturesWallQueue from "./PicturesWallQueue.js";
 import 'cropperjs/dist/cropper.css';
 
 class App extends React.Component {
@@ -23,8 +22,7 @@ class App extends React.Component {
           <h1 style={{padding: "10px", marginTop: "20px"}}>Meme Generator</h1>
           <PhotoEditor/>
           <div style={{display: "flex", alignItems: "center", marginTop: "50px", padding: "10px"}}>
-            <h2 style={{padding: "10px", fontWeight: "600"}}>Memes In Progress</h2>
-            <Button type="primary" size="large"><CloudUploadOutlined /> Upload All</Button>
+            <h2 style={{padding: "10px", fontWeight: "600"}}>Your Memes</h2>
           </div>
           <div style={{padding: "10px", transform: "scale(3) translate(33.33%, 33.33%)", width: "33.33%", marginLeft: "-7px"}}>
             <PicturesWallQueue />

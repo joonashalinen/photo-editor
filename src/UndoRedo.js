@@ -1,4 +1,6 @@
 
+import UndoRedoObject from "./UndoRedoObject.js";
+import UndoRedoTypesLib from "./UndoRedoTypesLib.js";
 
 class UndoRedo {
 
@@ -8,89 +10,37 @@ class UndoRedo {
     this.undoCache = [];
     this.redoCache = [];
 
+    this.typesLib = new UndoRedoTypesLib(parent);
+
   }
 
-  getKonvaUndoRedo() {
+  replaceImageNodeInCaches(oldImage, newImage) {
 
-    var transformerPairs = [];
-
-    for (var i = 0; i < this.parent.layer.children.length; i++) {
-      var node = this.parent.layer.children[i];
-      if (node instanceof this.parent.Konva.Text) {
-        transformerPairs.push([node.clone(), this.parent.layer.children[i + 1].clone()]);
-      }
+    var replace = (undoRedoItem) => {
+      if (!undoRedoItem.data.imageNode) return;
+      if (undoRedoItem.data.imageNode === oldImage) undoRedoItem.data.imageNode = newImage;
     }
 
-    var cloneLayer = this.parent.layer.clone();
-    cloneLayer.destroyChildren();
+    this.redoCache.forEach(replace);
+    this.undoCache.forEach(replace);
 
-    var undoRedoItem = {
-      data: {
-        layer: cloneLayer,
-        transformerPairs: transformerPairs
-      },
-      type: "konva"
-    }
-
-    return undoRedoItem;
   }
 
-  prepareFullClone(type, undoOrRedo) {
+  addKonvaImageUndoRedoEvents(konvaImage) {
 
-    var canvasClone = document.createElement("canvas");
-    canvasClone.width = this.parent.canvas.width;
-    canvasClone.height = this.parent.canvas.height;
+    var beforeDragUndoRedo;
 
-    var drawingCanvasClone = document.createElement("canvas");
-    drawingCanvasClone.width = this.parent.drawingCanvas.width;
-    drawingCanvasClone.height = this.parent.drawingCanvas.height;
-
-    var ctx = canvasClone.getContext("2d");
-    ctx.drawImage(this.parent.canvas, 0, 0);
-
-    ctx = drawingCanvasClone.getContext("2d");
-    ctx.drawImage(this.parent.drawingCanvas, 0, 0);
-
-
-    var undoItem = {
-      type: type,
-      canvas: {
-        data: canvasClone,
-        transformString: this.parent.canvas.style.transform
-      },
-      drawingCanvas: {
-        data: drawingCanvasClone,
-        transformString: this.parent.drawingCanvas.style.transform
-      }
+    var onDragStart = () => {
+      beforeDragUndoRedo = this.typesLib.getImageTransformUndoRedo(konvaImage);
     }
 
-    if (this.parent.konvaReady) {
-      undoItem.konva = {
-        data: {
-          width: this.parent.stage.width(),
-          height: this.parent.stage.height()
-        },
-        transformString: this.parent.konvaJsContent.style.transform
-      }
+    var onDragEnd = () => {
+      this.addToUndoCache(beforeDragUndoRedo);
     }
 
-    if (undoOrRedo === "redo") {
-      this.addToRedoCache(undoItem);
-    } else {
-      this.addToUndoCache(undoItem);
-    }
-  }
+    konvaImage.on("dragstart", onDragStart);
 
-  undoRedoFullClone(undoRedo) {
-
-    this.undoRedoCanvas(undoRedo.canvas, this.parent.canvas, undoRedo.canvas.transformString);
-    this.undoRedoCanvas(undoRedo.drawingCanvas, this.parent.drawingCanvas, undoRedo.drawingCanvas.transformString);
-
-    if (undoRedo.konva) {
-      this.parent.stage.width(undoRedo.konva.data.width);
-      this.parent.stage.height(undoRedo.konva.data.height)
-      this.parent.konvaJsContent.style.transform = undoRedo.konva.transformString;
-    }
+    konvaImage.on("dragend", onDragEnd);
 
   }
 
@@ -131,132 +81,357 @@ class UndoRedo {
     return this.undoCache;
   }
 
-  undoRedoCanvas(undoRedo, canvas, transformString) {
-    var ctx = canvas.getContext("2d");
-
-    canvas.width = undoRedo.data.width;
-    canvas.height = undoRedo.data.height;
-
-    ctx.putImageData(undoRedo.data.getContext("2d").getImageData(0, 0, undoRedo.data.width, undoRedo.data.height), 0, 0);
-
-    if (transformString) canvas.style.transform = transformString;
-
-  }
-
   undoRedo(undoOrRedo) {
 
     var handleUndoRedoCache = (undoRedoItem, undoOrRedo) => {
       if (undoOrRedo === "undo") {
         this.addToRedoCache(undoRedoItem);
         this.undoCache.pop();
-        console.log(this.undoCache.length, this.redoCache.length)
+        console.log(this.undoCache, this.redoCache)
       } else {
         this.addToUndoCache(undoRedoItem, null, true);
         this.redoCache.pop();
-        console.log(this.undoCache.length, this.redoCache.length)
+        console.log(this.undoCache, this.redoCache)
       }
     }
-
-    console.log(this.undoCache)
 
     var latestUndoRedo = undoOrRedo === "undo" ? this.undoCache[this.undoCache.length - 1] : this.redoCache[this.redoCache.length -  1];
 
-    console.log(latestUndoRedo)
-
     if (!latestUndoRedo) return;
 
-    if (latestUndoRedo.type === "drawingCanvas") {
+    switch (latestUndoRedo.type) {
 
-      handleUndoRedoCache({
-        data: this.cloneCanvas(this.parent.drawingCanvas),
-        type: "drawingCanvas"
-      }, undoOrRedo);
-      //if (undoOrRedo === "undo") this.addToRedoCache(this.cloneCanvas(this.parent.drawingCanvas), "drawingCanvas");
+      case "konva": {
 
-      this.undoRedoCanvas(latestUndoRedo, this.parent.drawingCanvas);
+        handleUndoRedoCache(this.typesLib.getKonvaUndoRedo(), undoOrRedo);
 
-    } else if (latestUndoRedo.type === "konva") {
+        this.parent.layer.destroy();
+        this.parent.stage.add(latestUndoRedo.data.layer);
 
-      console.log("undoing konva")
+        this.parent.layer = latestUndoRedo.data.layer;
 
-      handleUndoRedoCache(this.getKonvaUndoRedo(), undoOrRedo);
+        this.parent.texts = [];
 
-      this.parent.layer.destroy();
-      this.parent.stage.add(latestUndoRedo.data.layer);
+        for (var i = 0; i < latestUndoRedo.data.transformerPairs.length; i++) {
+          var pair = latestUndoRedo.data.transformerPairs[i];
+          this.parent.texts.push(pair[0]);
 
-      this.parent.layer = latestUndoRedo.data.layer;
+          var transformer = new this.parent.Konva.Transformer({
+            nodes: [pair[0]],
+            rotateAnchorOffset: 60,
+            enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+          })
 
-      /* for (var i = 0; i < latestUndoRedo.data.transformerPairs.length; i++) {
-        var pair = latestUndoRedo.data.transformerPairs[i];
-        console.log(pair)
-        pair[1].detach();
-        pair[1].nodes([pair[0]]);
-        pair[1].enabledAnchors(['top-left', 'top-right', 'bottom-left', 'bottom-right']);
-        pair[1].resizeEnabled(true);
-        this.parent.layer.add(pair[0]);
-        this.parent.layer.add(pair[1]);
-        pair[1].forceUpdate();
-      } */
+          transformer.on("mousedown", (e) => {
+            e.evt.cancelBubble = true
+            this.addToUndoCache(this.typesLib.getKonvaUndoRedo());
+          })
 
-      this.parent.texts = [];
+          this.parent.layer.add(pair[0]);
+          this.parent.layer.add(transformer);
 
-      console.log(latestUndoRedo.data.transformerPairs)
+        }
 
-      for (var i = 0; i < latestUndoRedo.data.transformerPairs.length; i++) {
-        var pair = latestUndoRedo.data.transformerPairs[i];
-        this.parent.texts.push(pair[0]);
+        this.parent.layer.draw();
 
-        var transformer = new this.parent.Konva.Transformer({
-          nodes: [pair[0]],
-          rotateAnchorOffset: 60,
-          enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+        break;
+      }
+
+      case "crop": {
+
+        handleUndoRedoCache(this.typesLib.getCropUndoRedo(), undoOrRedo);
+
+        this.parent.layer.offsetX(latestUndoRedo.data.offsetX);
+        this.parent.layer.offsetY(latestUndoRedo.data.offsetY);
+
+        this.parent.stage.size({
+          width: latestUndoRedo.data.width,
+          height: latestUndoRedo.data.height
         })
 
-        transformer.on("mousedown", (e) => {
-          e.evt.cancelBubble = true
-          this.addToUndoCache(this.getKonvaUndoRedo());
+        this.parent.konvaLib.imagesLayer.x(latestUndoRedo.data.x);
+        this.parent.konvaLib.imagesLayer.y(latestUndoRedo.data.y);
+
+        this.parent.konvaLib.imagesLayer.offsetX(latestUndoRedo.data.imagesOffsetX);
+        this.parent.konvaLib.imagesLayer.offsetY(latestUndoRedo.data.imagesOffsetY);
+
+        this.parent.konvaDrawingCanvas.getContext("2d").putImageData(latestUndoRedo.data.drawingImageData, 0, 0);
+
+        this.parent.konvaLib.stage.size({
+          width: latestUndoRedo.data.width,
+          height: latestUndoRedo.data.height
+        });
+
+        this.parent.konvaImagesContainer.firstElementChild.style.transform = latestUndoRedo.data.transform;
+
+        this.parent.konvaLib.stage.draw();
+
+        break;
+      }
+
+      case "rotate": {
+
+        if (undoOrRedo === "undo") {
+          this.parent.rotate(true);
+          this.parent.rotate(true);
+          this.parent.rotate(true);
+        } else {
+          this.parent.rotate(true);
+        }
+
+        this.parent.konvaLib.stage.draw();
+
+        handleUndoRedoCache(latestUndoRedo, undoOrRedo);
+
+        return;
+
+        this.parent.scale = latestUndoRedo.data.scale;
+
+        this.parent.konvaLib.imagesLayer.offsetX(latestUndoRedo.data.offsetX);
+        this.parent.konvaLib.imagesLayer.offsetY(latestUndoRedo.data.offsetY);
+
+        this.parent.konvaLib.imagesLayer.rotation(90);
+
+        this.parent.konvaLib.imagesLayer.x(latestUndoRedo.data.x);
+        this.parent.konvaLib.imagesLayer.y(latestUndoRedo.data.y);
+
+        this.parent.konvaLib.imagesLayer.size({
+          width: latestUndoRedo.data.width,
+          height: latestUndoRedo.data.height,
         })
 
-        this.parent.layer.add(pair[0]);
-        this.parent.layer.add(transformer);
+        this.parent.konvaLib.stage.size({
+          width: latestUndoRedo.data.width,
+          height: latestUndoRedo.data.height,
+        })
+
+        this.parent.konvaLib.mainLayer.size({
+          width: latestUndoRedo.data.width,
+          height: latestUndoRedo.data.height,
+        });
+
+        this.parent.konvaLib.backgroundImage.size({
+          width: latestUndoRedo.data.width,
+          height: latestUndoRedo.data.height,
+        });
+
+        this.parent.konvaLib.colorBackgroundImage.size({
+          width: latestUndoRedo.data.width,
+          height: latestUndoRedo.data.height,
+        });
+
+        this.parent.konvaDrawingCanvas.width = latestUndoRedo.data.width;
+        this.parent.konvaDrawingCanvas.height = latestUndoRedo.data.height;
+
+        this.parent.konvaDrawingCanvasNode.size({
+          width: latestUndoRedo.data.width,
+          height: latestUndoRedo.data.height,
+        });
+
+        this.parent.konvaDrawingCanvas.getContext("2d").putImageData(latestUndoRedo.data.drawingImageData, 0, 0);
+
+        this.parent.stage.width(latestUndoRedo.data.width);
+        this.parent.stage.height(latestUndoRedo.data.height);
+
+        this.parent.konvaImagesContainer.firstElementChild.style.transform = latestUndoRedo.data.transform;
+        document.getElementById("overlayCanvasContainer").firstElementChild.style.transform = latestUndoRedo.data.transform;
+
+        break;
+      }
+
+      case "image-transform": {
+
+        handleUndoRedoCache(this.typesLib.getImageTransformUndoRedo(latestUndoRedo.data.imageNode), undoOrRedo);
+
+        var image = latestUndoRedo.data.imageNode;
+
+        image.scale(latestUndoRedo.data.scale)
+        image.rotation(latestUndoRedo.data.rotation);
+        image.offsetX(latestUndoRedo.data.offsetX);
+        image.offsetY(latestUndoRedo.data.offsetY);
+        image.x(latestUndoRedo.data.x);
+        image.y(latestUndoRedo.data.y);
+        image.size({
+          width: latestUndoRedo.data.width,
+          height: latestUndoRedo.data.height
+        });
+
+        this.parent.konvaLib.stage.draw();
+
+        break;
 
       }
 
-      this.parent.layer.draw();
+      case "image-add": {
 
-      this.parent.setState({
-        numberOfTextFields: this.parent.texts.length
-      })
+        handleUndoRedoCache(this.typesLib.getImageAddUndoRedo(latestUndoRedo.data.imageNode, latestUndoRedo.data.transformer), undoOrRedo);
 
-    } else if (latestUndoRedo.type === "rotate" || latestUndoRedo.type === "crop") {
+        if (undoOrRedo === "undo") {
+          latestUndoRedo.data.imageNode.remove();
+          if (latestUndoRedo.data.transformer) latestUndoRedo.data.transformer.remove();
+          latestUndoRedo.data.imageNode.zIndex(latestUndoRedo.data.zIndex);
+        } else {
+          this.parent.konvaLib.imagesLayer.add(latestUndoRedo.data.imageNode);
+          if (latestUndoRedo.data.transformer) this.parent.konvaLib.mainLayer.add(latestUndoRedo.data.transformer);
+          latestUndoRedo.data.imageNode.zIndex(latestUndoRedo.data.zIndex);
+        }
 
-      console.log("undo/redoing full clone " + latestUndoRedo.type)
+        this.parent.konvaLib.stage.draw();
 
-      if (undoOrRedo === "undo") {
-        this.undoCache.pop();
-      } else {
-        this.redoCache.pop();
+        break;
+
       }
 
-      this.prepareFullClone(latestUndoRedo.type, undoOrRedo === "undo" ? "redo" : "undo");
+      case "image-delete": {
 
-      this.undoRedoFullClone(latestUndoRedo);
+        handleUndoRedoCache(this.typesLib.getImageDeleteUndoRedo(latestUndoRedo.data.imageNode, latestUndoRedo.data.transformer), undoOrRedo);
+
+        if (undoOrRedo === "undo") {
+          this.parent.konvaLib.imagesLayer.add(latestUndoRedo.data.imageNode);
+          if (latestUndoRedo.data.transformer) this.parent.konvaLib.mainLayer.add(latestUndoRedo.data.transformer);
+          latestUndoRedo.data.imageNode.zIndex(latestUndoRedo.data.zIndex);
+        } else {
+          latestUndoRedo.data.imageNode.remove();
+          if (latestUndoRedo.data.transformer) latestUndoRedo.data.transformer.remove();
+          latestUndoRedo.data.imageNode.zIndex(latestUndoRedo.data.zIndex);
+        }
+
+        this.parent.konvaLib.stage.draw();
+
+        break;
+
+      }
+
+      case "text-transform": {
+
+        handleUndoRedoCache(this.typesLib.getTextTransformUndoRedo(latestUndoRedo.data.textNode), undoOrRedo);
+
+        var text = latestUndoRedo.data.textNode;
+
+        text.scale(latestUndoRedo.data.scale)
+        text.rotation(latestUndoRedo.data.rotation);
+        text.offsetX(latestUndoRedo.data.offsetX);
+        text.offsetY(latestUndoRedo.data.offsetY);
+        text.x(latestUndoRedo.data.x);
+        text.y(latestUndoRedo.data.y);
+        text.text(latestUndoRedo.data.text);
+
+        this.parent.stage.draw();
+
+        break;
+
+      }
+
+      case "text-add": {
+
+        handleUndoRedoCache(this.typesLib.getTextAddUndoRedo(latestUndoRedo.data.textNode, latestUndoRedo.data.transformer), undoOrRedo);
+
+        if (undoOrRedo === "undo") {
+          latestUndoRedo.data.textNode.remove();
+          if (latestUndoRedo.data.transformer) latestUndoRedo.data.transformer.remove();
+          latestUndoRedo.data.textNode.zIndex(latestUndoRedo.data.zIndex);
+        } else {
+          this.parent.layer.add(latestUndoRedo.data.textNode);
+          if (latestUndoRedo.data.transformer) this.parent.layer.add(latestUndoRedo.data.transformer);
+          latestUndoRedo.data.textNode.zIndex(latestUndoRedo.data.zIndex);
+        }
+
+        this.parent.stage.draw();
+
+        break;
+
+      }
+
+      case "text-delete": {
+
+        handleUndoRedoCache(this.typesLib.getTextDeleteUndoRedo(latestUndoRedo.data.textNode, latestUndoRedo.data.transformer), undoOrRedo);
+
+        if (undoOrRedo === "undo") {
+          this.parent.layer.add(latestUndoRedo.data.textNode);
+          if (latestUndoRedo.data.transformer) this.parent.layer.add(latestUndoRedo.data.transformer);
+          latestUndoRedo.data.textNode.zIndex(latestUndoRedo.data.zIndex);
+        } else {
+          latestUndoRedo.data.textNode.remove();
+          if (latestUndoRedo.data.transformer) latestUndoRedo.data.transformer.remove();
+          latestUndoRedo.data.textNode.zIndex(latestUndoRedo.data.zIndex);
+        }
+
+        this.parent.stage.draw();
+
+        break;
+
+      }
+
+      case "filter": {
+
+        console.log(latestUndoRedo)
+
+        if (latestUndoRedo.data.remove) {
+
+          var matchingFilter = this.parent.getMatchingFilter(latestUndoRedo.data.filterName, latestUndoRedo.data.imageNode.photoEditorId);
+
+          var undoRedoItem = this.typesLib.getFilterUndoRedo(latestUndoRedo.data.imageNode, matchingFilter[0], matchingFilter[1]);
+
+          handleUndoRedoCache(undoRedoItem, undoOrRedo);
+
+        } else {
+
+          var matchingFilter = this.parent.getMatchingFilter(latestUndoRedo.data.filterName, latestUndoRedo.data.imageNode.photoEditorId);
+
+          if (!matchingFilter) {
+            handleUndoRedoCache(this.typesLib.getFilterRemoveUndoRedo(latestUndoRedo.data.imageNode, latestUndoRedo.data.filterName), undoOrRedo);
+          } else {
+            handleUndoRedoCache(this.typesLib.getFilterUndoRedo(latestUndoRedo.data.imageNode, matchingFilter[0], matchingFilter[1]), undoOrRedo);
+          }
+
+        }
+
+        var isAlreadyTargeted = (this.parent.konvaLib.selectedTargetImage === latestUndoRedo.data.imageNode);
+
+        if (!isAlreadyTargeted) {
+          this.parent.konvaLib.targetImage(latestUndoRedo.data.imageNode);
+        }
+
+        if (latestUndoRedo.data.remove) {
+          this.parent.removeAppliedFilter(latestUndoRedo.data.filterName, latestUndoRedo.data.imageNode.photoEditorId);
+        } else {
+          this.parent.addAppliedFilter(latestUndoRedo.data.filterName, latestUndoRedo.data.values, latestUndoRedo.data.imageNode.photoEditorId);
+        }
+
+        var image = this.parent.getSelectedImageWithNoFilters();
+
+        var imageObj = this.parent.getImageWithFilters(image);
+
+        var [newImageNode, oldImageNode] = this.parent.konvaLib.replaceImageWithSameId(imageObj);
+
+        this.replaceImageNodeInCaches(oldImageNode, newImageNode);
+        this.addKonvaImageUndoRedoEvents(newImageNode);
+
+        this.parent.konvaLib.stage.batchDraw();
+
+        if (isAlreadyTargeted) {
+          this.parent.dispatchEvent("selectedImageFilterChange", [newImageNode]);
+        } else {
+          this.parent.dispatchEvent("imageTargetChange", [newImageNode]);
+        }
+
+
+        break;
+
+      }
+
+      case "drawing": {
+
+        handleUndoRedoCache(this.typesLib.getDrawingUndoRedo(), undoOrRedo);
+
+        this.parent.konvaDrawingCanvas.getContext("2d").putImageData(latestUndoRedo.data.imageData, 0, 0);
+
+        this.parent.konvaLib.stage.draw();
+
+        break;
+      }
 
     }
-
-    if (this.parent.state.selectedTool === "erase") this.parent.enableDrawingEraser();
-
-  }
-
-  cloneCanvas(canvas) {
-
-    var cloneCanvas = document.createElement("canvas");
-    cloneCanvas.width = canvas.width;
-    cloneCanvas.height = canvas.height;
-
-    cloneCanvas.getContext("2d").drawImage(canvas, 0, 0);
-
-    return cloneCanvas;
 
   }
 

@@ -6,7 +6,7 @@ class CustomModal extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { visible: true };
+    this.state = { visible: false };
   }
 
   showModal = () => {
@@ -31,7 +31,7 @@ class CustomModal extends React.Component {
     return (
       <>
         <Button type="primary" onClick={this.showModal}>
-          Open Photo Editor
+          Save
         </Button>
         <Modal
           width={640}
@@ -41,6 +41,7 @@ class CustomModal extends React.Component {
           onCancel={this.handleCancel}
           okButtonProps={{id: "saveImageButton"}}
           okText="Save"
+          footer={null}
         >
           {this.props.children}
         </Modal>
