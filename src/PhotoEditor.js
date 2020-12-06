@@ -324,11 +324,12 @@ class PhotoEditor extends React.Component {
             }}>
               <div>
                 <div id="konvaImagesContainer" className="canvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
+                <Canvas id="drawingCanvas" containerId="drawingCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent" }}/>
+                <div id="konvaTransformersContainer" className="canvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
                 <Canvas id="overlayCanvas" containerId="overlayCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
               </div>
             </ContextMenu>
             <Canvas id="cropDummyCanvas" containerId="cropDummyCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none", visibility: "hidden" }}/>
-            <Canvas id="drawingCanvas" containerId="drawingCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent" }}/>
             <Canvas id="cursorCanvas" containerId="cursorCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
             <div id="drawingCanvasCursor" className="drawingCanvasCursor" style={{display: "none"}}></div>
             {
@@ -642,9 +643,9 @@ class PhotoEditor extends React.Component {
                   }
 
                   this.photoEditorLib.removeImageInstance();
-                  file.arrayBuffer().then(buffer => {
-                    this.photoEditorLib.loadImage(buffer);
-                  });
+
+                  this.photoEditorLib.loadImage(file);
+
                   this.setState({
                     uploadFileList: [],
                     imageInstanced: true

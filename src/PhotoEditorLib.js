@@ -11,6 +11,7 @@ import CanvasLib from "./CanvasLib.js";
 import ImageLib from "./ImageLib.js";
 import PixiLib from "./PixiLib.js";
 import KonvaLib from "./KonvaLib.js";
+import * as imageConversion from 'image-conversion';
 
 class PhotoEditorLib {
 
@@ -452,7 +453,9 @@ class PhotoEditorLib {
 
   }
 
-  async loadImage(buffer) {
+  async loadImage(file) {
+
+    var buffer = await file.arrayBuffer();
 
     if (!this.imageInstanced) {
 
@@ -466,6 +469,7 @@ class PhotoEditorLib {
       this.drawingCanvas = document.getElementById("drawingCanvas");
       this.cursorCanvas = document.getElementById("cursorCanvas");
       this.konvaImagesContainer = document.getElementById("konvaImagesContainer");
+      this.konvaTransformersContainer = document.getElementById("konvaTransformersContainer");
       this.canvasesContainer = document.getElementById("canvasesContainer");
 
     }
@@ -512,6 +516,7 @@ class PhotoEditorLib {
 
       this.konvaLib = new KonvaLib({
         containerId: "konvaImagesContainer",
+        transformersContainerId: "konvaTransformersContainer",
         width: this.canvas.width,
         height: this.canvas.height
       });
@@ -556,11 +561,11 @@ class PhotoEditorLib {
 
       this.konvaImagesContainer.firstElementChild.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
       this.konvaImagesContainer.firstElementChild.style.position = `absolute`;
-      /*this.konvaImagesContainer.style.width = this.canvas.width * this.scale + "px";
-      this.konvaImagesContainer.style.height = this.canvas.height * this.scale + "px";
-      this.konvaImagesContainer.style.left = ((this.canvasesContainer.offsetWidth - this.canvas.width * this.scale) / 2) + "px";
-      this.konvaImagesContainer.style.top = ((this.canvasesContainer.offsetHeight - this.canvas.height * this.scale) / 2) + "px"; */
       this.konvaImagesContainer.style.overflow = "hidden";
+
+      this.konvaTransformersContainer.firstElementChild.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
+      this.konvaTransformersContainer.firstElementChild.style.position = `absolute`;
+      this.konvaTransformersContainer.style.overflow = "hidden";
 
       var tempCanvas = CanvasLib.canvasFromImageData(imageData);
       var imageObj = await this.imageLib.canvasToImage(tempCanvas);
@@ -634,14 +639,28 @@ class PhotoEditorLib {
 
       document.getElementById("move-tool-icon").click();
 
+      var thumbnailImageFile = await imageConversion.compress(file, {
+        quality: 0.8,
+        width: 150,
+        height: 100,
+        orientation:2,
+        scale: 150 / this.canvas.width,
+      });
+
+      var thumbnailImageURL = await imageConversion.filetoDataURL(thumbnailImageFile);
+
+      var thumbnailImage = await imageConversion.urltoImage(thumbnailImageURL);
+
       this.filterPreviews.push([
         konvaImage,
-        this.generateFilterPreviewImages(this.canvas)
+        this.generateFilterPreviewImages(thumbnailImage)
       ]);
 
     }
 
-    this.focusCanvasContainer("drawingCanvasContainer");
+    setTimeout(() => {
+      this.focusCanvasContainer("konvaTransformersContainer");
+    }, 3000)
 
     this.dispatchEvent("load", []);
     this.dispatchEvent("imageTargetChange", [konvaImage]);
@@ -1671,6 +1690,7 @@ class PhotoEditorLib {
     document.getElementById("drawingCanvasContainer").style.pointerEvents = id === "drawingCanvasContainer" ? "auto" : "none";
     document.getElementById("overlayCanvasContainer").style.pointerEvents = id === "overlayCanvasContainer" ? "auto" : "none";
     document.getElementById("konvaImagesContainer").style.pointerEvents = id === "konvaImagesContainer" ? "auto" : "none";
+    document.getElementById("konvaTransformersContainer").style.pointerEvents = id === "konvaTransformersContainer" ? "auto" : "none";
     document.getElementById("cropDummyCanvasContainer").style.pointerEvents = id === "konvaImagesContainer" ? "auto" : "none";
   }
 

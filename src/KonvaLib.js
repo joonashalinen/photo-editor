@@ -16,6 +16,12 @@ class KonvaLib {
       height: options.height
     });
 
+    this.transformersStage = new Konva.Stage({
+      container: options.transformersContainerId,
+      width: options.width,
+      height: options.height
+    });
+
     fillImage.onload = () => {
 
       var backgroundLayer = new Konva.Layer();
@@ -57,6 +63,11 @@ class KonvaLib {
       this.stage.add(mainLayer);
       this.mainLayer = mainLayer;
 
+      var mainLayer = new Konva.Layer();
+
+      this.transformersStage.add(mainLayer);
+      this.transformersStageMainLayer = mainLayer;
+
       this.mainLayer.zIndex(2);
 
       this.stage.draw();
@@ -66,8 +77,29 @@ class KonvaLib {
       this.backgroundImageColor = "transparent";
 
       // transformers won't update for some reason unless we update constantly
+      var timeout;
       this.stage.on("mousemove", (e) => {
-        this.stage.batchDraw();
+
+        if (timeout) {
+          window.cancelAnimationFrame(timeout);
+        }
+
+        timeout = window.requestAnimationFrame(() => {
+          this.stage.batchDraw();
+          this.transformersStage.batchDraw();
+        });
+      });
+
+      var timeout2;
+      this.transformersStage.on("mousemove", (e) => {
+        if (timeout2) {
+          window.cancelAnimationFrame(timeout2);
+        }
+
+        timeout2 = window.requestAnimationFrame(() => {
+          this.stage.batchDraw();
+          this.transformersStage.batchDraw();
+        })
       });
 
     }
@@ -113,6 +145,17 @@ class KonvaLib {
 
     if (!options || options.enableTransformer !== false) {
       var transformer = new Konva.Transformer({
+        nodes: [image],
+        rotateAnchorOffset: 60,
+        enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
+        borderStroke: "rgb(0 149 255)",
+        anchorStroke: "rgb(0 149 255)",
+        rotationSnaps: [0, 90, 180, 270]
+      });
+      this.transformersStageMainLayer.add(transformer);
+      transformer.forceUpdate();
+
+      transformer = new Konva.Transformer({
         nodes: [image],
         rotateAnchorOffset: 60,
         enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],

@@ -17,6 +17,7 @@
     "croppie": "^2.6.5",
     "croppr": "^2.3.1",
     "fabric": "^4.2.0",
+    "image-conversion": "^2.1.1",
     "jimp": "^0.16.1",
     "konva": "^7.1.4",
     "lazy-brush": "^1.0.1",
