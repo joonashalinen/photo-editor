@@ -37,26 +37,26 @@ class CanvasLib {
 
   static rotateCanvas(canvas) {
 
-      var canvasCtx = canvas.getContext("2d");
+    var canvasCtx = canvas.getContext("2d");
 
-      var tempCanvas = document.createElement("canvas");
-      tempCanvas.width = canvas.width;
-      tempCanvas.height = canvas.height;
+    var tempCanvas = document.createElement("canvas");
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
 
-      tempCanvas.getContext("2d").drawImage(canvas, 0, 0);
+    tempCanvas.getContext("2d").drawImage(canvas, 0, 0);
 
-      canvas.height = canvas.width;
-      canvas.width = tempCanvas.height;
+    canvas.height = canvas.width;
+    canvas.width = tempCanvas.height;
 
-      canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
-      canvasCtx.save();
-      canvasCtx.translate(canvas.width / 2, canvas.height / 2)
-      canvasCtx.rotate(90 * Math.PI / 180);
-      canvasCtx.translate(canvas.width / -2, canvas.height / -2)
-      canvasCtx.drawImage(tempCanvas, (tempCanvas.height - tempCanvas.width) / 2, (tempCanvas.width - tempCanvas.height) / 2);
-      canvasCtx.restore();
+    canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+    canvasCtx.save();
+    canvasCtx.translate(canvas.width / 2, canvas.height / 2)
+    canvasCtx.rotate(90 * Math.PI / 180);
+    canvasCtx.translate(canvas.width / -2, canvas.height / -2)
+    canvasCtx.drawImage(tempCanvas, (tempCanvas.height - tempCanvas.width) / 2, (tempCanvas.width - tempCanvas.height) / 2);
+    canvasCtx.restore();
 
-    }
+  }
 
   static rotateCanvasSize(canvas) {
 

@@ -22,8 +22,14 @@ function EffectSlider({ min, max, value, disabled, defaultValue, title, onAfterC
               if (isNaN(newValue)) return;
               newValue = Math.min(max, newValue);
               newValue = Math.max(min, newValue);
-              updateState(name, newValue);
-              onAfterChange(newValue);
+              var stateObj = {};
+              stateObj[name] = newValue;
+              stateObj.canvasesContainerLoading = true;
+              updateState(stateObj);
+              setTimeout(() => {
+                onAfterChange(newValue);
+                updateState({canvasesContainerLoading: false});
+              }, 50);
             }}/>
           :
           null
@@ -37,8 +43,14 @@ function EffectSlider({ min, max, value, disabled, defaultValue, title, onAfterC
           if (isNaN(newValue)) return;
           newValue = Math.min(max, newValue);
           newValue = Math.max(min, newValue);
-          updateState(name, newValue);
-          onAfterChange(newValue);
+          var stateObj = {};
+          stateObj[name] = newValue;
+          stateObj.canvasesContainerLoading = true;
+          updateState(stateObj);
+          setTimeout(() => {
+            onAfterChange(newValue);
+            updateState({canvasesContainerLoading: false});
+          }, 50);
         }} value={value} defaultValue={defaultValue} />
       </div>
     </div>

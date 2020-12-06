@@ -156,7 +156,7 @@ class UndoRedoTypesLib {
   getDrawingUndoRedo() {
     return {
       data: {
-        imageData: this.parent.konvaDrawingCanvas.getContext("2d").getImageData(0, 0, this.parent.konvaDrawingCanvas.width, this.parent.konvaDrawingCanvas.height)
+        imageData: this.parent.drawingCanvas.getContext("2d").getImageData(0, 0, this.parent.drawingCanvas.width, this.parent.drawingCanvas.height)
       },
       type: "drawing"
     }

@@ -152,10 +152,16 @@ class PhotoEditor extends React.Component {
       return array;
     }
 
-    var updateState = (name, value) => {
-      var state = {};
-      state[name] = value;
-      this.setState(state);
+    var updateState = (...args) => {
+      if (args.length === 1) {
+        this.setState(args[0]);
+      } else {
+        var name = args[0];
+        var value = args[1];
+        var state = {};
+        state[name] = value;
+        this.setState(state);
+      }
     }
 
 
@@ -268,15 +274,6 @@ class PhotoEditor extends React.Component {
         </div>
         <div className="canvasTools">
           <div id="canvasesContainer" className="canvasesContainer">
-            {
-              this.state.canvasesContainerLoading ?
-                <div style={{position: "absolute", top: "0px", left: "0px", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center"}}>
-                  <Spin spinning={this.state.canvasesContainerLoading}>
-                  </Spin>
-                </div>
-              :
-              null
-            }
             <div style={{position: "absolute", top: "190px", width:"100%"}}>
               {
                 !this.state.imageInstanced && !this.state.canvasesContainerLoading ?
@@ -366,6 +363,15 @@ class PhotoEditor extends React.Component {
               :
               null
             }
+            {
+              this.state.canvasesContainerLoading ?
+                <div style={{position: "absolute", top: "0px", left: "0px", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center"}}>
+                  <Spin spinning={this.state.canvasesContainerLoading}>
+                  </Spin>
+                </div>
+              :
+              null
+            }
           </div>
           <div className="toolIcons">
             <Tooltip placement="right" title="Crop [C]">
@@ -438,7 +444,7 @@ class PhotoEditor extends React.Component {
                 if (this.state.selectedTool === "draw") this.photoEditorLib.disableDrawingCanvas();
                 if (this.state.selectedTool === "addText") this.photoEditorLib.removeAllAnchors();
                 if (this.state.selectedTool === "eyedrop") this.photoEditorLib.disableColorPickerMode();
-                this.photoEditorLib.focusCanvasContainer("konvaImagesContainer");
+                this.photoEditorLib.focusCanvasContainer("drawingCanvasContainer");
                 this.setState({
                   selectedTool: "erase"
                 });
@@ -552,11 +558,21 @@ class PhotoEditor extends React.Component {
                         }]);
                       }}/>
                       <EffectSlider name="bulgePinchCenterX" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={100} updateState={updateState} value={this.state.bulgePinchCenterX} defaultValue={this.state.bulgePinchCenterX} title="Bulge/Pinch Center X" onAfterChange={(value) => {
-                        this.photoEditorLib.setSelectedImageFilter("bulge/pinch", [{
-                          center: [value / 100, this.state.bulgePinchCenterY / 100],
-                          radius: this.state.bulgePinchRadius,
-                          strength: this.state.bulgePinchStrength / 100
-                        }]);
+
+
+
+                        setTimeout(() => {
+                          this.photoEditorLib.setSelectedImageFilter("bulge/pinch", [{
+                            center: [value / 100, this.state.bulgePinchCenterY / 100],
+                            radius: this.state.bulgePinchRadius,
+                            strength: this.state.bulgePinchStrength / 100
+                          }]);
+                          this.setState({
+                            canvasesContainerLoading: false
+                          })
+                        }, 50)
+
+
                       }}/>
                       <EffectSlider name="bulgePinchCenterY" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={100} updateState={updateState} value={this.state.bulgePinchCenterY} defaultValue={this.state.bulgePinchCenterY} title="Bulge/Pinch Center Y" onAfterChange={(value) => {
                         this.photoEditorLib.setSelectedImageFilter("bulge/pinch", [{
@@ -595,7 +611,15 @@ class PhotoEditor extends React.Component {
                   {
                     this.state.selectedTargetImage ?
                       <ImageGridMenu updateState={updateState} onSelectChange={(selectedFilterName) => {
-                        this.photoEditorLib.setSelectedImageFilter(selectedFilterName);
+                        this.setState({
+                          canvasesContainerLoading: true
+                        })
+                        setTimeout(() => {
+                          this.photoEditorLib.setSelectedImageFilter(selectedFilterName);
+                          this.setState({
+                            canvasesContainerLoading: false
+                          });
+                        }, 50)
                       }} titles={this.selectableFilters} images={this.state.filterPreviewImages} selectedIndex={this.selectableFilters.indexOf(this.state.filter)} />
                     :
                     null

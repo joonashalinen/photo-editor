@@ -508,6 +508,7 @@ class SoftBrush {
         this.clearCanvas(cursorCtx);
         points = [];
         mouseLeft = true;
+        isDrawing = false;
       }
     });
 

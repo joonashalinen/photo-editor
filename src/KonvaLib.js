@@ -78,6 +78,7 @@ class KonvaLib {
 
       // transformers won't update for some reason unless we update constantly
       var timeout;
+      /*
       this.stage.on("mousemove", (e) => {
 
         if (timeout) {
@@ -100,7 +101,7 @@ class KonvaLib {
           this.stage.batchDraw();
           this.transformersStage.batchDraw();
         })
-      });
+      }); */
 
     }
 

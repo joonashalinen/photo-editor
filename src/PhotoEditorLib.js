@@ -389,8 +389,9 @@ class PhotoEditorLib {
     canvas.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
     drawingCanvas.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
     konvaCanvas.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
-    //this.cursorCanvas.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
+    this.cursorCanvas.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
     this.konvaImagesContainer.firstElementChild.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
+    this.konvaTransformersContainer.firstElementChild.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
 
     var scaleOffsetX = this.originalImageData.width * (this.scale - this.nativeScale) / 2;
     var scaleOffsetY = this.originalImageData.height * (this.scale - this.nativeScale) / 2;
@@ -531,6 +532,7 @@ class PhotoEditorLib {
 
       var first = true;
       var timeout;
+
       this.konvaLib.stage.on("mousemove", (e) => {
 
         if (timeout) {
@@ -657,10 +659,6 @@ class PhotoEditorLib {
       ]);
 
     }
-
-    setTimeout(() => {
-      this.focusCanvasContainer("konvaTransformersContainer");
-    }, 3000)
 
     this.dispatchEvent("load", []);
     this.dispatchEvent("imageTargetChange", [konvaImage]);
@@ -957,6 +955,9 @@ class PhotoEditorLib {
       this.offsetY += e.movementY;
       //this.canvas.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
       this.konvaImagesContainer.firstElementChild.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
+      this.konvaTransformersContainer.firstElementChild.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
+      this.drawingCanvas.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
+      this.cursorCanvas.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
       //this.cursorCanvas.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
       if (this.konvaReady) this.konvaJsContent.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
     }
@@ -1161,14 +1162,6 @@ class PhotoEditorLib {
 
     if (!preventUndoCache) this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getRotateUndoRedo());
 
-    console.log(this.konvaLib.imagesLayer.offsetX(), this.konvaLib.imagesLayer.offsetY(),this.konvaLib.imagesLayer.x(), this.konvaLib.imagesLayer.y());
-
-
-
-    /*
-    this.konvaLib.imagesLayer.offsetX(this.konvaLib.imagesLayer.width() / 2);
-    this.konvaLib.imagesLayer.offsetY(this.konvaLib.imagesLayer.height() / 2); */
-
     this.konvaLib.imagesLayer.rotate(90);
 
     var x = this.konvaLib.imagesLayer.x();
@@ -1177,33 +1170,8 @@ class PhotoEditorLib {
     this.konvaLib.imagesLayer.x(y);
     this.konvaLib.imagesLayer.y(x);
 
-
-    /*
-    var horizontallyAligned = (this.konvaLib.imagesLayer.rotation() / 90) % 2 === 0 ? true : false;
-    var upsideDown = this.konvaLib.imagesLayer.rotation() % 180 === 0 &&  this.konvaLib.imagesLayer.rotation() % 360 !== 0 ? true : false;
-
-    if (this.konvaLib.imagesLayer.rotation() === 90) {
-      console.log(this.konvaLib.imagesLayer.height(), this.konvaLib.imagesLayer.width())
-      this.konvaLib.imagesLayer.x(this.konvaLib.imagesLayer.x() + this.konvaLib.imagesLayer.height() / 2);
-      this.konvaLib.imagesLayer.y(this.konvaLib.imagesLayer.y() + this.konvaLib.imagesLayer.width() / 2);
-    } else {
-      this.konvaLib.imagesLayer.x(horizontallyAligned ? this.konvaLib.imagesLayer.x() + this.konvaLib.imagesLayer.width() / 2 : this.konvaLib.imagesLayer.x() + this.konvaLib.imagesLayer.height() / 2);
-      this.konvaLib.imagesLayer.y(horizontallyAligned ? this.konvaLib.imagesLayer.y() + this.konvaLib.imagesLayer.height() / 2 : this.konvaLib.imagesLayer.y() + this.konvaLib.imagesLayer.width() / 2);
-
-      if (upsideDown) {
-        this.konvaLib.imagesLayer.x(this.konvaLib.imagesLayer.x() * -1 + this.konvaLib.imagesLayer.height())
-        this.konvaLib.imagesLayer.y(this.konvaLib.imagesLayer.y() * -1 + this.konvaLib.imagesLayer.width())
-      }
-    } */
-
     var width = this.konvaLib.imagesLayer.width();
     var height = this.konvaLib.imagesLayer.height();
-
-    /*
-    this.konvaLib.imagesLayer.size({
-      width: height,
-      height: width,
-    }) */
 
     this.konvaLib.stage.size({
       width: this.konvaLib.stage.height(),
@@ -1241,10 +1209,6 @@ class PhotoEditorLib {
       height: this.konvaCursorCanvasNode.width(),
     });
 
-    console.log(this.konvaDrawingCanvasNode.rotation(), this.konvaDrawingCanvasNode.y(), this.konvaDrawingCanvasNode.offsetY())
-    console.log(this.konvaDrawingCanvas.width, this.konvaDrawingCanvas.height);
-    console.log(this.konvaLib.mainLayer.rotation(), this.konvaLib.mainLayer.width(), this.konvaLib.mainLayer.height(), this.konvaLib.mainLayer.x(), this.konvaLib.mainLayer.y(), this.konvaLib.mainLayer.offsetX(), this.konvaLib.mainLayer.offsetY())
-
     ctx.putImageData(drawingImageData, 0, 0);
 
     this.konvaLib.mainLayer.size({
@@ -1254,14 +1218,8 @@ class PhotoEditorLib {
 
     this.konvaLib.stage.draw();
 
-    /*
-
-    CanvasLib.rotateCanvas(this.canvas);
-    CanvasLib.rotateCanvasSize(this.drawingCanvas);
-    CanvasLib.rotateCanvasSize(this.cursorCanvas); */
-
-    /*
-    if (this.selectedTool === "erase") this.enableDrawingEraser(); */
+    CanvasLib.rotateCanvas(this.drawingCanvas);
+    CanvasLib.rotateCanvasSize(this.cursorCanvas);
 
     this.stage.width(this.konvaLib.stage.width());
     this.stage.height(this.konvaLib.stage.height());
@@ -1283,6 +1241,8 @@ class PhotoEditorLib {
     var transformString = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
 
     this.konvaImagesContainer.firstElementChild.style.transform = transformString;
+    this.drawingCanvas.style.transform = transformString;
+    this.cursorCanvas.style.transform = transformString;
     document.getElementById("overlayCanvasContainer").firstElementChild.style.transform = transformString
 
   }
@@ -1356,6 +1316,7 @@ class PhotoEditorLib {
 
     ctx.drawImage(konvaImagesCanvas, 0, 0);
     ctx.drawImage(this.stage.toCanvas(), 0, 0);
+    ctx.drawImage(this.drawingCanvas, 0, 0);
 
     var cropper = new Cropper(cropDummyCanvas, {
       crop(event) {
@@ -1392,12 +1353,6 @@ class PhotoEditorLib {
 
     var cropData = this.cropper.getData();
 
-    /*
-    cropData.x = 50;
-    cropData.y = 100;
-    cropData.width = 400;
-    cropData.height = 300; */
-
     this.layer.offsetX(Math.floor(this.layer.offsetX() + cropData.x));
     this.layer.offsetY(Math.floor(this.layer.offsetY() + cropData.y));
 
@@ -1408,80 +1363,8 @@ class PhotoEditorLib {
 
     this.layer.draw();
 
-    /*
-    var horizontallyAligned = (this.konvaLib.imagesLayer.rotation() / 90) % 2 === 0 ? true : false;
-    var upsideDown = this.konvaLib.imagesLayer.rotation() % 180 === 0 &&  this.konvaLib.imagesLayer.rotation() % 360 !== 0 ? true : false; */
-
-    /*
-    if (horizontallyAligned) {
-      var x = cropData.x;
-      var y = cropData.y;
-      var height = cropData.height;
-      var width = cropData.width;
-    } else {
-      var x = cropData.y;
-      var y = cropData.x;
-      var height = cropData.width;
-      var width = cropData.height;
-    } */
-    /*
-    if (this.konvaLib.stage.rotation() === 90) {
-      this.konvaLib.imagesLayer.x(this.konvaLib.imagesLayer.x() + x * -1)
-      this.konvaLib.imagesLayer.y(this.konvaLib.imagesLayer.y() + y)
-    } else if (this.konvaLib.stage.rotation() === 180 || this.konvaLib.stage.rotation() % 360 === 0) {
-      this.konvaLib.imagesLayer.x(Math.floor(this.konvaLib.imagesLayer.x() + cropData.x) * -1 * (upsideDown ? -1 : 1));
-      this.konvaLib.imagesLayer.y(Math.floor(this.konvaLib.imagesLayer.y() + cropData.y) * -1 * (upsideDown ? -1 : 1));
-    } else if (this.konvaLib.stage.rotation() === 270) {
-      this.konvaLib.imagesLayer.x(this.konvaLib.imagesLayer.x() + x)
-      this.konvaLib.imagesLayer.y(this.konvaLib.imagesLayer.y() + y * -1)
-    } */
-
-
-/*
-    if (this.konvaLib.stage.rotation() === 90) {
-      this.konvaLib.mainLayer.x(this.konvaLib.mainLayer.x() + x * -1)
-      this.konvaLib.mainLayer.y(this.konvaLib.mainLayer.y() + y)
-    } else if (this.konvaLib.stage.rotation() === 180 || this.konvaLib.stage.rotation() % 360 === 0) {
-      this.konvaLib.mainLayer.x(Math.floor(this.konvaLib.mainLayer.x() + cropData.x) * -1 * (upsideDown ? -1 : 1));
-      this.konvaLib.mainLayer.y(Math.floor(this.konvaLib.mainLayer.y() + cropData.y) * -1 * (upsideDown ? -1 : 1));
-    } else if (this.konvaLib.stage.rotation() === 270) {
-      this.konvaLib.mainLayer.x(this.konvaLib.mainLayer.x() + x)
-      this.konvaLib.mainLayer.y(this.konvaLib.mainLayer.y() + y * -1)
-    } */
-
-    /*
-    this.konvaLib.imagesLayer.offsetX(Math.floor(this.konvaLib.imagesLayer.offsetX() + cropData.x) * (upsideDown ? -1 : 1));
-    this.konvaLib.imagesLayer.offsetY(Math.floor(this.konvaLib.imagesLayer.offsetY() + cropData.y) * (upsideDown ? -1 : 1)); */
-
-    /*
-    this.konvaLib.mainLayer.offsetX(Math.floor(this.konvaLib.mainLayer.offsetX() + cropData.x) * (upsideDown ? -1 : 1));
-    this.konvaLib.mainLayer.offsetY(Math.floor(this.konvaLib.mainLayer.offsetY() + cropData.y) * (upsideDown ? -1 : 1)); */
-
-    /*
-    this.konvaLib.imagesLayer.x(Math.floor(this.konvaLib.imagesLayer.x() + cropData.x) * -1 * (upsideDown ? -1 : 1));
-    this.konvaLib.imagesLayer.y(Math.floor(this.konvaLib.imagesLayer.y() + cropData.y) * -1 * (upsideDown ? -1 : 1)); */
-
-
     this.konvaLib.imagesLayer.x(this.konvaLib.imagesLayer.x() + cropData.x * -1);
     this.konvaLib.imagesLayer.y(this.konvaLib.imagesLayer.y() + cropData.y * -1);
-
-    /*
-    this.konvaLib.mainLayer.width(this.konvaLib.mainLayer.width() + cropData.x);
-    this.konvaLib.mainLayer.height(this.konvaLib.mainLayer.height() + cropData.y);
-
-    var ctx = this.konvaDrawingCanvas.getContext("2d");
-    var drawingImageData = ctx.getImageData(0, 0, this.konvaDrawingCanvas.width, this.konvaDrawingCanvas.height);
-
-    this.konvaDrawingCanvas.width = this.konvaDrawingCanvas.width + cropData.x;
-    this.konvaDrawingCanvas.height = this.konvaDrawingCanvas.height + cropData.y;
-
-    this.konvaDrawingCanvasNode.width(this.konvaDrawingCanvasNode.width() + cropData.x);
-    this.konvaDrawingCanvasNode.height(this.konvaDrawingCanvasNode.height() + cropData.y); */
-
-    var ctx = this.konvaDrawingCanvas.getContext("2d");
-    var drawingImageData = ctx.getImageData(0, 0, this.konvaDrawingCanvas.width, this.konvaDrawingCanvas.height);
-
-    ctx.putImageData(drawingImageData, cropData.x * -1, cropData.y * -1);
 
     this.konvaLib.stage.size({
       width: Math.floor(cropData.width),
@@ -1493,9 +1376,34 @@ class PhotoEditorLib {
       height: Math.floor(cropData.height)
     });
 
-    console.log(this.konvaLib.imagesLayer.x());
+    this.konvaLib.mainLayer.size({
+      width: Math.floor(cropData.width),
+      height: Math.floor(cropData.height)
+    });
 
-    this.konvaLib.stage.draw();
+    this.konvaLib.transformersStage.size({
+      width: Math.floor(cropData.width),
+      height: Math.floor(cropData.height)
+    });
+
+    this.konvaLib.transformersStageMainLayer.size({
+      width: Math.floor(cropData.width),
+      height: Math.floor(cropData.height)
+    });
+
+    this.konvaLib.stage.batchDraw();
+    this.konvaLib.transformersStage.batchDraw();
+
+    var ctx = this.drawingCanvas.getContext("2d");
+    var drawingImageData = ctx.getImageData(0, 0, this.drawingCanvas.width, this.drawingCanvas.height);
+
+    this.drawingCanvas.width = Math.floor(cropData.width);
+    this.drawingCanvas.height = Math.floor(cropData.height);
+
+    ctx.putImageData(drawingImageData, cropData.x * -1, cropData.y * -1);
+
+    this.cursorCanvas.width = Math.floor(cropData.width);
+    this.cursorCanvas.height = Math.floor(cropData.height);
 
     this.cropper.destroy();
 

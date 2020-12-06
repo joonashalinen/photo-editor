@@ -424,9 +424,7 @@ class UndoRedo {
 
         handleUndoRedoCache(this.typesLib.getDrawingUndoRedo(), undoOrRedo);
 
-        this.parent.konvaDrawingCanvas.getContext("2d").putImageData(latestUndoRedo.data.imageData, 0, 0);
-
-        this.parent.konvaLib.stage.draw();
+        this.parent.drawingCanvas.getContext("2d").putImageData(latestUndoRedo.data.imageData, 0, 0);
 
         break;
       }
