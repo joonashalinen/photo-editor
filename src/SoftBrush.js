@@ -377,13 +377,15 @@ class SoftBrush {
       var timeout;
 
       this.konvaStage.on('mousemove touchmove', () => {
-        
+
 
         if (timeout) {
           window.cancelAnimationFrame(timeout);
         }
 
         timeout = window.requestAnimationFrame(() => {
+
+          console.log("got through")
 
           if (this.enabled) {
             var pos = this.konvaStage.getPointerPosition();

@@ -401,6 +401,8 @@ class PhotoEditorLib {
 
   beginZoomMode() {
 
+    return;
+
     var canvasesContainer = document.getElementById("canvasesContainer");
     canvasesContainer.style.cursor = "zoom-in";
 
@@ -964,46 +966,56 @@ class PhotoEditorLib {
 
     var initColorPickerMode = () => {
 
+      var timeout;
+
       this.colorPickerMoveEventHandler = (e) => {
 
-        if (this.colorPickerModeDisabled) return;
-
-        var pos = this.konvaLib.stage.getPointerPosition();
-
-        var x = pos.x * this.scale;
-        var y = pos.y * this.scale;
-
-        var offsetX = (this.canvasesContainer.clientWidth - this.konvaImagesContainer.firstElementChild.clientWidth * this.scale) / 2;
-        var offsetY = (this.canvasesContainer.clientHeight - this.konvaImagesContainer.firstElementChild.clientHeight * this.scale) / 2;
-
-        /*
-        cursorImage.style.left = this.offsetLeftOriginX + this.offsetX + offsetX + x * this.scale + -1 +"px";
-        cursorImage.style.top = this.offsetLeftOriginY + this.offsetY + offsetY + y *this.scale - 15 +"px";
-
-        colorPreview.style.left = this.offsetLeftOriginX + this.offsetX + offsetX + e.offsetX * this.scale + 8 + "px";
-        colorPreview.style.top = this.offsetLeftOriginY + this.offsetY + offsetY + e.offsetY * this.scale + -4 + "px"; */
-
-        this.colorPickerCursorImage.style.left = this.offsetLeftOriginX + this.offsetX + x + offsetX - 1 + "px";
-        this.colorPickerCursorImage.style.top = this.offsetLeftOriginY + this.offsetY + y + offsetY - 16 + "px";
-
-        this.colorPickerColorPreview.style.left = this.offsetLeftOriginX + this.offsetX + x + offsetX + 8 + "px";
-        this.colorPickerColorPreview.style.top = this.offsetLeftOriginY + this.offsetY + y + offsetY - 4 + "px";
-
-        var konvaAsCanvas = this.stage.toCanvas();
-        var konvaImagesAsCanvas = this.konvaLib.stage.toCanvas();
-
-        var textCanvasColor = konvaAsCanvas.getContext("2d").getImageData(pos.x, pos.y, 1, 1).data;
-        var konvaImagesColor = konvaImagesAsCanvas.getContext("2d").getImageData(pos.x, pos.y, 1, 1).data;
-
-        if (konvaImagesColor[3] > 0) {
-          var color = konvaImagesColor;
+        if (timeout) {
+          window.cancelAnimationFrame(timeout);
         }
 
-        if (textCanvasColor[3] > 0) {
-          var color = textCanvasColor;
-        }
+        timeout = window.requestAnimationFrame(() => {
 
-        this.colorPickerColorPreview.style.backgroundColor = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${color[3]})`;
+          if (this.colorPickerModeDisabled) return;
+
+          var pos = this.konvaLib.stage.getPointerPosition();
+
+          var x = pos.x * this.scale;
+          var y = pos.y * this.scale;
+
+          var offsetX = (this.canvasesContainer.clientWidth - this.konvaImagesContainer.firstElementChild.clientWidth * this.scale) / 2;
+          var offsetY = (this.canvasesContainer.clientHeight - this.konvaImagesContainer.firstElementChild.clientHeight * this.scale) / 2;
+
+          /*
+          cursorImage.style.left = this.offsetLeftOriginX + this.offsetX + offsetX + x * this.scale + -1 +"px";
+          cursorImage.style.top = this.offsetLeftOriginY + this.offsetY + offsetY + y *this.scale - 15 +"px";
+
+          colorPreview.style.left = this.offsetLeftOriginX + this.offsetX + offsetX + e.offsetX * this.scale + 8 + "px";
+          colorPreview.style.top = this.offsetLeftOriginY + this.offsetY + offsetY + e.offsetY * this.scale + -4 + "px"; */
+
+          this.colorPickerCursorImage.style.left = this.offsetLeftOriginX + this.offsetX + x + offsetX - 1 + "px";
+          this.colorPickerCursorImage.style.top = this.offsetLeftOriginY + this.offsetY + y + offsetY - 16 + "px";
+
+          this.colorPickerColorPreview.style.left = this.offsetLeftOriginX + this.offsetX + x + offsetX + 8 + "px";
+          this.colorPickerColorPreview.style.top = this.offsetLeftOriginY + this.offsetY + y + offsetY - 4 + "px";
+
+          var konvaAsCanvas = this.stage.toCanvas();
+          var konvaImagesAsCanvas = this.konvaLib.stage.toCanvas();
+
+          var textCanvasColor = konvaAsCanvas.getContext("2d").getImageData(pos.x, pos.y, 1, 1).data;
+          var konvaImagesColor = konvaImagesAsCanvas.getContext("2d").getImageData(pos.x, pos.y, 1, 1).data;
+
+          if (konvaImagesColor[3] > 0) {
+            var color = konvaImagesColor;
+          }
+
+          if (textCanvasColor[3] > 0) {
+            var color = textCanvasColor;
+          }
+
+          this.colorPickerColorPreview.style.backgroundColor = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${color[3]})`;
+
+        });
 
       }
 
