@@ -108,19 +108,27 @@ class PhotoEditorLib {
       this.addText(e);
     });
 
+    var timeout;
     this.stage.on("mousemove", (e) => {
 
-      if (e.target instanceof Konva.Stage) {
-        this.konvaTarget = false;
-        this.konvaJsContent.style.cursor = "text";
-        return;
+      if (timeout) {
+        window.cancelAnimationFrame(timeout);
       }
 
-      if (e.target instanceof Konva.Text) {
-        this.konvaTarget = e.target;
-        this.konvaJsContent.style.cursor = "auto";
-        return;
-      }
+      timeout = window.requestAnimationFrame(() => {
+
+        if (e.target instanceof Konva.Stage) {
+          this.konvaTarget = false;
+          this.konvaJsContent.style.cursor = "text";
+          return;
+        }
+
+        if (e.target instanceof Konva.Text) {
+          this.konvaTarget = e.target;
+          this.konvaJsContent.style.cursor = "auto";
+          return;
+        }
+      });
 
     });
 
@@ -515,11 +523,21 @@ class PhotoEditorLib {
       document.getElementById("konvaImagesContainer").style.pointerEvents = "auto";
 
       var first = true;
+      var timeout;
       this.konvaLib.stage.on("mousemove", (e) => {
-        this.konvaTarget = e.target;
-        if (this.konvaTarget instanceof Konva.Image) {
-          this.konvaLib.previewTargetImage(e.target);
+
+        if (timeout) {
+          window.cancelAnimationFrame(timeout);
         }
+
+        timeout = window.requestAnimationFrame(() => {
+
+          this.konvaTarget = e.target;
+          if (this.konvaTarget instanceof Konva.Image) {
+            this.konvaLib.previewTargetImage(e.target);
+          }
+        });
+
       });
 
       this.konvaLib.stage.on("click", (e) => {

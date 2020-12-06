@@ -374,33 +374,44 @@ class SoftBrush {
         }
       });
 
+      var timeout;
+
       this.konvaStage.on('mousemove touchmove', () => {
+        
 
-        if (this.enabled) {
-          var pos = this.konvaStage.getPointerPosition();
-
-          /*
-          var x = pos.x;
-          var y = pos.y;
-
-          if (this.konvaStage.rotation() === 90) {
-            pos.y = this.konvaLayer.width() - x + this.konvaLayer.y();
-            pos.x = y - this.konvaLayer.x();
-          } else if (this.konvaStage.rotation() === 180) {
-            pos.y = this.konvaStage.height() - y;
-            pos.x = this.konvaStage.width() - x;
-          } else if (this.konvaStage.rotation() === 270) {
-            pos.y = x;
-            pos.x = this.konvaStage.height() - y;
-          } */
-
-
-          handleMousemove(pos.x / this.konvaStage.scale().x, pos.y / this.konvaStage.scale().y);
-
-          this.konvaStage.batchDraw();
-
-          this.dispatchEvent("draw");
+        if (timeout) {
+          window.cancelAnimationFrame(timeout);
         }
+
+        timeout = window.requestAnimationFrame(() => {
+
+          if (this.enabled) {
+            var pos = this.konvaStage.getPointerPosition();
+
+            /*
+            var x = pos.x;
+            var y = pos.y;
+
+            if (this.konvaStage.rotation() === 90) {
+              pos.y = this.konvaLayer.width() - x + this.konvaLayer.y();
+              pos.x = y - this.konvaLayer.x();
+            } else if (this.konvaStage.rotation() === 180) {
+              pos.y = this.konvaStage.height() - y;
+              pos.x = this.konvaStage.width() - x;
+            } else if (this.konvaStage.rotation() === 270) {
+              pos.y = x;
+              pos.x = this.konvaStage.height() - y;
+            } */
+
+
+            handleMousemove(pos.x / this.konvaStage.scale().x, pos.y / this.konvaStage.scale().y);
+
+            this.konvaStage.batchDraw();
+
+            this.dispatchEvent("draw");
+          }
+
+        });
 
       });
 
