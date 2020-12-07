@@ -1170,7 +1170,26 @@ class PhotoEditorLib {
 
     if (!preventUndoCache) this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getRotateUndoRedo());
 
-    this.konvaLib.imagesLayer.rotate(90);
+    /*
+    var degToRad = Math.PI / 180
+
+    var rotatePoint = ({x, y}, deg) => {
+        var rcos = Math.cos(deg * degToRad), rsin = Math.sin(deg * degToRad)
+        return {x: x*rcos - y*rsin, y: y*rcos + x*rsin}
+    }
+
+    //current rotation origin (0, 0) relative to desired origin - center (node.width()/2, node.height()/2)
+    var topLeft = {x:-this.konvaLib.imagesLayer.width()/2, y:-this.konvaLib.imagesLayer.height()/2}
+    var current = rotatePoint(topLeft, this.konvaLib.imagesLayer.rotation())
+    var rotated = rotatePoint(topLeft, 90)
+    var dx = rotated.x - current.x, dy = rotated.y - current.y
+
+    console.log(this.konvaLib.imagesLayer.x(), this.konvaLib.imagesLayer.y(), this.konvaLib.imagesLayer.offsetX(), this.konvaLib.imagesLayer.offsetY())
+    console.log(dx, dy)
+
+    this.konvaLib.imagesLayer.rotation(90)
+    this.konvaLib.imagesLayer.x(this.konvaLib.imagesLayer.x() + dx)
+    this.konvaLib.imagesLayer.y(this.konvaLib.imagesLayer.y() + dy) */
 
     /*
     var x = this.rotateOriginOffsetX;
@@ -1182,50 +1201,62 @@ class PhotoEditorLib {
     var y = this.konvaLib.imagesLayer.y() - this.cropOffsetY; */
 
 
-    var x = this.konvaLib.imagesLayer.x();
-    var y = this.konvaLib.imagesLayer.y();
-
     /*
-    if (this.konvaLib.imagesLayer.rotation() === 90) {
-      var cropOffsetX = this.cropOffsetY;
-      var cropOffsetY = this.cropOffsetX * -1;
-      console.log(cropOffsetX, cropOffsetY, x, y)
-      this.konvaLib.imagesLayer.x(y + cropOffsetX);
-      this.konvaLib.imagesLayer.y(x + cropOffsetY);
-    } else {
-      this.konvaLib.imagesLayer.x(y);
-      this.konvaLib.imagesLayer.y(x);
-    } */
+    var x = this.konvaLib.imagesLayer.x();
+    var y = this.konvaLib.imagesLayer.y(); */
+
+    var rotatePoint = ({ x, y }, rad) => {
+      var rcos = Math.cos(rad);
+      var rsin = Math.sin(rad);
+      return { x: x * rcos - y * rsin, y: y * rcos + x * rsin };
+    };
+
+    // will work for shapes with top-left origin, like rectangle
+    function rotateAroundCenter(node, rotation) {
+      //current rotation origin (0, 0) relative to desired origin - center (node.width()/2, node.height()/2)
+      var topLeft = { x: -node.width() / 2, y: -node.height() / 2 };
+      var current = rotatePoint(topLeft, Konva.getAngle(node.rotation()));
+      var rotated = rotatePoint(topLeft, Konva.getAngle(rotation));
+      var dx = rotated.x - current.x,
+        dy = rotated.y - current.y;
+
+      node.rotation(rotation);
+      node.x(node.x() + dx);
+      node.y(node.y() + dy);
+    }
+
+    // then use it
+    //rotateAroundCenter(this.konvaLib.imagesLayer, 90);
+
+    var width = this.konvaLib.imagesLayer.width();
+    var height = this.konvaLib.imagesLayer.height();
+
+    var x = this.konvaLib.imagesLayer.width() / 2;
+    var y = this.konvaLib.imagesLayer.height() / 2;
+
+
 
     this.konvaLib.imagesLayer.x(y);
     this.konvaLib.imagesLayer.y(x);
 
-    var offsetX = this.konvaLib.stage.x();
-    var offsetY = this.konvaLib.stage.y();
 
-    /*
-    if (this.konvaLib.imagesLayer.rotation() === 90) {
 
-      var cropOffsetX = this.konvaLib.stage.y() * -1;
-      var cropOffsetY = this.konvaLib.stage.x();
-      console.log(cropOffsetX, cropOffsetY, x, y)
-      this.konvaLib.stage.x(cropOffsetX);
-      this.konvaLib.stage.y(cropOffsetY);
-
-    } else {
-
-      this.konvaLib.stage.x(offsetY);
-      this.konvaLib.stage.y(offsetX);
-
-    } */
-
-    var width = this.konvaLib.imagesLayer.width();
-    var height = this.konvaLib.imagesLayer.height();
+    this.konvaLib.imagesLayer.rotate(90);
 
     this.konvaLib.stage.size({
       width: this.konvaLib.stage.height(),
       height: this.konvaLib.stage.width(),
     })
+
+    return;
+
+    //this.konvaLib.imagesLayer.rotate(90);
+
+    /*
+    this.konvaLib.imagesLayer.x(0)
+    this.konvaLib.imagesLayer.y(0)
+
+    this.konvaLib.stage.draw() */
 
     /*
     var offsetX = this.konvaLib.stage.offsetX();
@@ -1398,7 +1429,7 @@ class PhotoEditorLib {
 
   async acceptCrop() {
 
-    this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getCropUndoRedo());
+    //this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getCropUndoRedo());
 
     document.getElementById("overlayCanvasContainer").style.visibility = "visible";
 
@@ -1458,6 +1489,16 @@ class PhotoEditorLib {
       width: Math.floor(cropData.width),
       height: Math.floor(cropData.height)
     });
+
+    var diffX = Math.floor(cropData.width) / 2 - this.konvaLib.imagesLayer.offsetX();
+    var diffY =  Math.floor(cropData.height) / 2 - this.konvaLib.imagesLayer.offsetY();
+
+    this.konvaLib.imagesLayer.offsetX(Math.floor(cropData.width) / 2);
+    this.konvaLib.imagesLayer.offsetY(Math.floor(cropData.height) / 2);
+
+    this.konvaLib.imagesLayer.x(this.konvaLib.imagesLayer.x() + diffX);
+    this.konvaLib.imagesLayer.y(this.konvaLib.imagesLayer.y() + diffY);
+
 
 /*    this.konvaLib.imagesCroppingLayer.size({
       width: Math.floor(cropData.width),

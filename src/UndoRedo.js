@@ -145,9 +145,51 @@ class UndoRedo {
 
         var replacedImages = this.parent.konvaLib.replaceImages(latestUndoRedo.data.images, 0);
 
+
         for (var i = 0; i < latestUndoRedo.data.images.length; i++) {
           let image = latestUndoRedo.data.images[i];
           this.addKonvaImageUndoRedoEvents(image);
+          this.replaceImageNodeInCaches(replacedImages[i], image);
+
+          /*
+          if (undoOrRedo === "redo") {
+
+            for (let i = 0; i < this.undoCache.length; i++) {
+
+              let cacheItem = this.undoCache[i];
+              if (cacheItem.type !== "crop") continue;
+
+              for (let i = 0; i < cacheItem.data.images.length; i++) {
+
+                let cacheImage = cacheItem.data.images[i];
+                console.log(cacheItem.data.images)
+                if (cacheImage.photoEditorId !== image.photoEditorId) continue;
+                cacheItem.data.images.splice(cacheItem.data.images.indexOf(cacheImage), 1, image);
+
+                break;
+              }
+
+            }
+
+            for (let i = 0; i < this.redoCache.length; i++) {
+
+              let cacheItem = this.redoCache[i];
+              if (cacheItem.type !== "crop") continue;
+
+              for (let i = 0; i < cacheItem.data.images.length; i++) {
+
+                let cacheImage = cacheItem.data.images[i];
+                if (cacheImage.photoEditorId !== image.photoEditorId) continue;
+                cacheItem.data.images.splice(cacheItem.data.images.indexOf(cacheImage), 1, image);
+
+                break;
+              }
+
+            }
+
+
+          } */
+
         }
 
         this.parent.layer.offsetX(latestUndoRedo.data.offsetX);
@@ -277,6 +319,8 @@ class UndoRedo {
           width: latestUndoRedo.data.width,
           height: latestUndoRedo.data.height
         });
+
+        if (!image.getParent()) this.parent.konvaLib.replaceImageWithSameId(image);
 
         this.parent.konvaLib.stage.batchDraw();
 

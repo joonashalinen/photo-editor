@@ -59,7 +59,7 @@ class KonvaLib {
       this.imagesLayer.offsetY(options.height / 2);
 
       this.imagesLayer.x(options.width / 2);
-      this.imagesLayer.y(options.height / 2);
+      this.imagesLayer.y(options.height / 2); 
 
       var mainLayer = new Konva.Layer();
 
@@ -213,8 +213,8 @@ class KonvaLib {
         newY = boundaryBox.y;
       }
 
-      var width = image.width() * image.getAbsoluteScale().x;
-      var height = image.height() * image.getAbsoluteScale().y;
+      var width = image.width() * image.getScale().x;
+      var height = image.height() * image.getScale().y;
 
       var newWidth = width;
       var newHeight = height;
@@ -263,11 +263,13 @@ class KonvaLib {
 
       var scale = image.scale();
 
+      var existingCrop = image.crop();
+
       image.crop({
-        x: (newX - x) / image.getAbsoluteScale().x,
-        y: (newY - y) / image.getAbsoluteScale().y,
-        width: newWidth / image.getAbsoluteScale().x,
-        height: newHeight / image.getAbsoluteScale().y
+        x: existingCrop.x + (newX - x) / image.getScale().x,
+        y: existingCrop.y + (newY - y) / image.getScale().y,
+        width: newWidth / image.getScale().x,
+        height: newHeight / image.getScale().y
       });
 
       var relativeX = Math.abs(boundaryBox.x - newX);
@@ -277,8 +279,8 @@ class KonvaLib {
       image.y(relativeY);
 
       image.size({
-        width: newWidth / image.getAbsoluteScale().x,
-        height: newHeight / image.getAbsoluteScale().y
+        width: newWidth / image.getScale().x,
+        height: newHeight / image.getScale().y
       })
 
     }
@@ -534,7 +536,7 @@ class KonvaLib {
 
     var transformer = this.getImageTransformer(oldImage);
 
-    var newImage = new Konva.Image({
+    var newImage = newImageObj instanceof Konva.Image ? newImageObj : new Konva.Image({
       image: newImageObj,
       x: oldImage.x(),
       y: oldImage.y(),
@@ -570,10 +572,11 @@ class KonvaLib {
 
   replaceImageWithSameId(imageObj) {
 
+    var id = imageObj instanceof Konva.Image ? imageObj.photoEditorId : imageObj.id;
+
     for (var i = 0; i < this.imagesLayer.getChildren().length; i++) {
       var image = this.imagesLayer.getChildren()[i];
-      if (imageObj.id === image.photoEditorId) {
-        console.log("replacing image..")
+      if (id=== image.photoEditorId) {
         return this.replaceImage(image, imageObj);
       }
     }
