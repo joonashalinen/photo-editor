@@ -548,6 +548,7 @@ class PhotoEditorLib {
 
       this.konvaLib.stage.on("click", (e) => {
         if (e.target instanceof Konva.Image) {
+          console.log("targeting")
           var targeted = this.konvaLib.targetImage(e.target);
           if (targeted) this.dispatchEvent("imageTargetChange", [e.target]);
         }
@@ -644,7 +645,6 @@ class PhotoEditorLib {
         quality: 0.8,
         width: 150,
         height: 100,
-        orientation:2,
         scale: 150 / this.canvas.width,
       });
 

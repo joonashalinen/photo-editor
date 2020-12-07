@@ -190,6 +190,8 @@ class UndoRedo {
 
           } */
 
+          this.parent.konvaLib.targetImage(image)
+
         }
 
         this.parent.layer.offsetX(latestUndoRedo.data.offsetX);
@@ -305,9 +307,9 @@ class UndoRedo {
 
       case "image-transform": {
 
-        handleUndoRedoCache(this.typesLib.getImageTransformUndoRedo(latestUndoRedo.data.imageNode), undoOrRedo);
+        var image = this.parent.konvaLib.getImageWithId(latestUndoRedo.data.imageNode.photoEditorId);
 
-        var image = latestUndoRedo.data.imageNode;
+        handleUndoRedoCache(this.typesLib.getImageTransformUndoRedo(image), undoOrRedo);
 
         image.scale(latestUndoRedo.data.scale)
         image.rotation(latestUndoRedo.data.rotation);
@@ -319,8 +321,6 @@ class UndoRedo {
           width: latestUndoRedo.data.width,
           height: latestUndoRedo.data.height
         });
-
-        if (!image.getParent()) this.parent.konvaLib.replaceImageWithSameId(image);
 
         this.parent.konvaLib.stage.batchDraw();
 

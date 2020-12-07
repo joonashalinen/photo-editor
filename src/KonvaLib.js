@@ -59,7 +59,7 @@ class KonvaLib {
       this.imagesLayer.offsetY(options.height / 2);
 
       this.imagesLayer.x(options.width / 2);
-      this.imagesLayer.y(options.height / 2); 
+      this.imagesLayer.y(options.height / 2);
 
       var mainLayer = new Konva.Layer();
 
@@ -514,8 +514,12 @@ class KonvaLib {
         width: image.width(),
         height: image.height(),
         rotation: image.rotation(),
-        draggable: true,
+        draggable: image.draggable()
       });
+
+      newImage.targetable = image.targetable;
+      newImage.photoEditorId = image.photoEditorId;
+      newImage.zIndex(image.zIndex());
 
       transformer.nodes([newImage]);
 

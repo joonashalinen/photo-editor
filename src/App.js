@@ -17,7 +17,7 @@ class App extends React.Component {
 
     return (
       <div style={{display: "flex", width: "100%", height: "100%"}}>
-        <div style={{width: "60px", height: "100%", backgroundColor: "rgb(24 24 24)"}}></div>
+        <div className="testLeftSidebar"></div>
         <div style={{width: "100%", overflowY: "auto", backgroundColor: "#1f1f1f"}}>
           <h1 style={{padding: "10px", marginTop: "20px"}}>Meme Generator</h1>
           <PhotoEditor/>
@@ -28,7 +28,7 @@ class App extends React.Component {
             <PicturesWallQueue />
           </div>
         </div>
-        <div style={{width: "260px", height: "100%", backgroundColor: "rgb(24 24 24)"}}></div>
+        <div className="testRightSidebar"></div>
       </div>
 
     );

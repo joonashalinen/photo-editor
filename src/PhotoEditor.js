@@ -256,7 +256,7 @@ class PhotoEditor extends React.Component {
           {
             this.state.imageInstanced ?
               <Tooltip title="Delete Canvas">
-                <div style={{position: "absolute", right: "35%", bottom: "10px", marginRight: "69px"}}>
+                <div className="clearCanvasButton">
                   <ConfirmPopupButton onOk={() => {
                     this.photoEditorLib.removeImageInstance();
                   }} content={
@@ -270,12 +270,12 @@ class PhotoEditor extends React.Component {
             null
           }
           <Tooltip title="Redo">
-            <img className="toolIcon undoRedoButton" src="redo.svg" height="18px" style={{position: "absolute", bottom: "10px", marginRight: "21px"}} onClick={() => {
+            <img className="toolIcon redoButton undoRedoButton" src="redo.svg" height="18px" onClick={() => {
               this.photoEditorLib.redo();
             }}></img>
           </Tooltip>
           <Tooltip title="Undo">
-            <img className="toolIcon undoRedoButton" src="redo.svg" height="18px" style={{position: "absolute", bottom: "10px", marginRight: "45px", transform: "scaleX(-1)"}} onClick={() => {
+            <img className="toolIcon undoButton undoRedoButton" src="redo.svg" height="18px" onClick={() => {
               this.photoEditorLib.undo();
             }}></img>
           </Tooltip>
@@ -683,7 +683,7 @@ class PhotoEditor extends React.Component {
                 </div>
               </div>
             </div>
-            <div style={{position: "absolute", bottom: "0px", width: "100%", display: "flex" }}>
+            <div className="fileOptionsMenu" style={{position: "absolute", bottom: "0px", width: "100%", display: "flex" }}>
               <div style={{marginLeft: "5px"}}>
                 <Upload buttonText="Import Image" onUpload={async (file) => {
                   if (!this.acceptedImageTypes.includes(file.type)) return;
@@ -711,9 +711,6 @@ class PhotoEditor extends React.Component {
                 accept="image/png,image/jpeg,image/jpg"
                 showUploadList={{showPreviewIcon: false}}
                 fileList={this.state.uploadFileList}/>
-              </div>
-              <div style={{marginLeft: "5px"}}>
-                <Button>Cancel</Button>
               </div>
               <div style={{marginLeft: "5px"}}>
                 <CustomModal>
