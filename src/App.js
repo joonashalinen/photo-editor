@@ -15,6 +15,33 @@ class App extends React.Component {
 
   render() {
 
+    var testImages = [
+      {
+        uid: '-1',
+        name: 'image.png',
+        status: 'done',
+        url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
+      },
+      {
+        uid: '-2',
+        name: 'image.png',
+        status: 'done',
+        url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
+      },
+      {
+        uid: '-3',
+        name: 'image.png',
+        status: 'done',
+        url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
+      },
+      {
+        uid: '-4',
+        name: 'image.png',
+        status: 'done',
+        url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
+      }
+    ];
+
     return (
       <div style={{display: "flex", width: "100%", height: "100%"}}>
         <div className="testLeftSidebar"></div>
@@ -24,8 +51,8 @@ class App extends React.Component {
           <div style={{display: "flex", alignItems: "center", marginTop: "50px", padding: "10px"}}>
             <h2 style={{padding: "10px", fontWeight: "600"}}>Your Memes</h2>
           </div>
-          <div style={{padding: "10px", transform: "scale(3) translate(33.33%, 33.33%)", width: "33.33%", marginLeft: "-7px"}}>
-            <PicturesWallQueue />
+          <div>
+            <PicturesWallQueue width={240} height={240} images={testImages} />
           </div>
         </div>
         <div className="testRightSidebar"></div>

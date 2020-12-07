@@ -32,6 +32,15 @@ class UndoRedoTypesLib {
 
   getCropUndoRedo() {
 
+    var drawingImageData = this.parent.drawingCanvas.getContext("2d").getImageData(0, 0, this.parent.drawingCanvas.width, this.parent.drawingCanvas.height);
+
+    /*
+    var drawingImageDataCopy = new ImageData(
+      new Uint8ClampedArray(drawingImageData.data),
+      drawingImageData.width,
+      drawingImageData.height
+    ) */
+
     return {
       data: {
         images: this.parent.konvaLib.cloneAllImages(),
@@ -44,7 +53,7 @@ class UndoRedoTypesLib {
         imagesOffsetY: this.parent.konvaLib.imagesLayer.offsetY(),
         x: this.parent.konvaLib.imagesLayer.x(),
         y: this.parent.konvaLib.imagesLayer.y(),
-        drawingImageData: this.parent.konvaDrawingCanvas.getContext("2d").getImageData(0, 0, this.parent.konvaDrawingCanvas.width, this.parent.konvaDrawingCanvas.height)
+        drawingImageData: drawingImageData
       },
       type: "crop"
     }

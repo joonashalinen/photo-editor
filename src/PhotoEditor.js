@@ -237,7 +237,7 @@ class PhotoEditor extends React.Component {
             </div>
             <div style={{display: this.state.selectedTool === "addText" ? "inline-block" : "none", marginLeft: "10px"}}>
               <Select size="small" defaultValue="Impact" onChange={(fontName) => {
-                this.photoEditorLib.selectedFont = fontName;
+                this.photoEditorLib.setSelectedFont(fontName);
               }}>
                 <Select.Option value="Impact"><span style={{fontFamily: "Impact"}}>Impact</span></Select.Option>
                 <Select.Option value="Calibri"><span style={{fontFamily: "Calibri"}}>Calibri</span></Select.Option>
@@ -347,6 +347,7 @@ class PhotoEditor extends React.Component {
               </div>
             </ContextMenu>
             <Canvas id="cropDummyCanvas" containerId="cropDummyCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none", visibility: "hidden" }}/>
+            <Canvas id="colorPickerCanvas" containerId="colorPickerCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none"}}/>
             <Canvas id="cursorCanvas" containerId="cursorCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
             <div id="drawingCanvasCursor" className="drawingCanvasCursor" style={{display: "none"}}></div>
             {
@@ -388,7 +389,7 @@ class PhotoEditor extends React.Component {
                 if (this.state.selectedTool === "crop") return;
                 if (this.state.selectedTool === "drag") this.photoEditorLib.konvaLib.stage.listening(true);
                 if (this.state.selectedTool === "draw") this.photoEditorLib.disableDrawingCanvas();
-                if (this.state.selectedTool === "addText") this.photoEditorLib.removeAllAnchors();
+                if (this.state.selectedTool === "addText") this.photoEditorLib.untargetKonvaText(this.photoEditorLib.konvaTextTarget);
                 if (this.state.selectedTool === "eyedrop") this.photoEditorLib.disableColorPickerMode();
                 this.setState({
                   showAcceptCancelMenu: true,
@@ -428,7 +429,7 @@ class PhotoEditor extends React.Component {
                 if (this.state.selectedTool === "drag") this.photoEditorLib.konvaLib.stage.listening(true);
                 if (this.state.selectedTool === "erase") this.photoEditorLib.disableDrawingCanvas();
                 if (this.state.selectedTool === "crop") this.photoEditorLib.endCrop();
-                if (this.state.selectedTool === "addText") this.photoEditorLib.removeAllAnchors();
+                if (this.state.selectedTool === "addText") this.photoEditorLib.untargetKonvaText(this.photoEditorLib.konvaTextTarget);
                 if (this.state.selectedTool === "eyedrop") this.photoEditorLib.disableColorPickerMode();
                 this.photoEditorLib.focusCanvasContainer("drawingCanvasContainer");
                 this.setState({
@@ -450,7 +451,7 @@ class PhotoEditor extends React.Component {
                 if (this.state.selectedTool === "drag") this.photoEditorLib.konvaLib.stage.listening(true);
                 if (this.state.selectedTool === "crop") this.photoEditorLib.endCrop();
                 if (this.state.selectedTool === "draw") this.photoEditorLib.disableDrawingCanvas();
-                if (this.state.selectedTool === "addText") this.photoEditorLib.removeAllAnchors();
+                if (this.state.selectedTool === "addText") this.photoEditorLib.untargetKonvaText(this.photoEditorLib.konvaTextTarget);
                 if (this.state.selectedTool === "eyedrop") this.photoEditorLib.disableColorPickerMode();
                 this.photoEditorLib.focusCanvasContainer("drawingCanvasContainer");
                 this.setState({
@@ -472,7 +473,7 @@ class PhotoEditor extends React.Component {
                 if (this.state.selectedTool === "crop") this.photoEditorLib.endCrop();
                 if (this.state.selectedTool === "draw") this.photoEditorLib.disableDrawingCanvas();
                 if (this.state.selectedTool === "erase") this.photoEditorLib.disableDrawingCanvas();
-                if (this.state.selectedTool === "addText") this.photoEditorLib.removeAllAnchors();
+                if (this.state.selectedTool === "addText") this.photoEditorLib.untargetKonvaText(this.photoEditorLib.konvaTextTarget);
                 this.photoEditorLib.enableColorPickerMode();
                 this.setState({
                   selectedTool: "eyedrop"
@@ -498,7 +499,7 @@ class PhotoEditor extends React.Component {
                 if (this.state.selectedTool === "crop") this.photoEditorLib.endCrop();
                 if (this.state.selectedTool === "draw") this.photoEditorLib.disableDrawingCanvas();
                 if (this.state.selectedTool === "erase") this.photoEditorLib.disableDrawingCanvas();
-                if (this.state.selectedTool === "addText") this.photoEditorLib.removeAllAnchors();
+                if (this.state.selectedTool === "addText") this.photoEditorLib.untargetKonvaText(this.photoEditorLib.konvaTextTarget);
                 if (this.state.selectedTool === "eyedrop") this.photoEditorLib.disableColorPickerMode();
                 this.photoEditorLib.konvaImagesContainer.style.cursor = "move";
                 this.photoEditorLib.focusCanvasContainer("konvaImagesContainer");
@@ -520,7 +521,7 @@ class PhotoEditor extends React.Component {
                   if (this.state.selectedTool === "drag") return;
                   if (this.state.selectedTool === "crop") this.photoEditorLib.endCrop();
                   if (this.state.selectedTool === "draw") this.photoEditorLib.disableDrawingCanvas();
-                  if (this.state.selectedTool === "addText") this.photoEditorLib.removeAllAnchors();
+                  if (this.state.selectedTool === "addText") this.photoEditorLib.untargetKonvaText(this.photoEditorLib.konvaTextTarget);
                   if (this.state.selectedTool === "eyedrop") this.photoEditorLib.disableColorPickerMode();
                   this.photoEditorLib.konvaImagesContainer.style.cursor = "grab";
                   this.photoEditorLib.focusCanvasContainer("konvaImagesContainer");

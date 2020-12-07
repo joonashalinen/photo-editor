@@ -5,6 +5,8 @@ class KonvaLib {
 
   constructor(options) {
 
+    this.initialScale = options.initialScale;
+
     var fillPatternBase64Url = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAARUlEQVRYhe3VsQkAMAwDQSVkIO0/hTdShlAgzat/OHDhlSQqNjNNrl3VDwYAAAAAAAAAOO0/t131nAAAAAAAAAD4C5B0ARR5Ca7CHgmpAAAAAElFTkSuQmCC`
 
     var fillImage = new Image(fillPatternBase64Url, 32, 32);
@@ -171,7 +173,8 @@ class KonvaLib {
         enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
         borderStroke: "rgb(0 149 255)",
         anchorStroke: "rgb(0 149 255)",
-        rotationSnaps: [0, 90, 180, 270]
+        rotationSnaps: [0, 90, 180, 270],
+        anchorSize: this.initialScale ? 15 / this.initialScale : 15
       });
       this.mainLayer.add(transformer);
       transformer.forceUpdate();

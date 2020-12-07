@@ -1,6 +1,7 @@
 
 import UndoRedoObject from "./UndoRedoObject.js";
 import UndoRedoTypesLib from "./UndoRedoTypesLib.js";
+import CanvasLib from "./CanvasLib.js";
 
 class UndoRedo {
 
@@ -198,8 +199,8 @@ class UndoRedo {
         this.parent.layer.offsetY(latestUndoRedo.data.offsetY);
 
         this.parent.stage.size({
-          width: latestUndoRedo.data.width,
-          height: latestUndoRedo.data.height
+          width: Math.floor(latestUndoRedo.data.width),
+          height: Math.floor(latestUndoRedo.data.height)
         })
 
         this.parent.konvaLib.imagesLayer.x(latestUndoRedo.data.x);
@@ -214,18 +215,29 @@ class UndoRedo {
         this.parent.konvaLib.transformersStageMainLayer.offsetX(latestUndoRedo.data.imagesOffsetX);
         this.parent.konvaLib.transformersStageMainLayer.offsetY(latestUndoRedo.data.imagesOffsetY);
 
+        this.parent.drawingCanvas.width = Math.floor(latestUndoRedo.data.width);
+        this.parent.drawingCanvas.height = Math.floor(latestUndoRedo.data.height);
+
+        this.parent.cursorCanvas.width = Math.floor(latestUndoRedo.data.width);
+        this.parent.cursorCanvas.height = Math.floor(latestUndoRedo.data.height);
+
         this.parent.drawingCanvas.getContext("2d").putImageData(latestUndoRedo.data.drawingImageData, 0, 0);
 
+        this.parent.colorPickerCanvas.width = Math.floor(latestUndoRedo.data.width);
+        this.parent.colorPickerCanvas.height = Math.floor(latestUndoRedo.data.height);
+
         this.parent.konvaLib.transformersStage.size({
-          width: latestUndoRedo.data.width,
-          height: latestUndoRedo.data.height
+          width: Math.floor(latestUndoRedo.data.width),
+          height: Math.floor(latestUndoRedo.data.height)
         });
 
         this.parent.konvaLib.stage.size({
-          width: latestUndoRedo.data.width,
-          height: latestUndoRedo.data.height
+          width: Math.floor(latestUndoRedo.data.width),
+          height: Math.floor(latestUndoRedo.data.height)
         });
 
+        this.parent.drawingCanvas.style.transform = latestUndoRedo.data.transform;
+        this.parent.cursorCanvas.style.transform = latestUndoRedo.data.transform;
         this.parent.konvaImagesContainer.firstElementChild.style.transform = latestUndoRedo.data.transform;
         this.parent.konvaTransformersContainer.firstElementChild.style.transform = latestUndoRedo.data.transform;
 

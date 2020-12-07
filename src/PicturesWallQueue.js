@@ -1,7 +1,8 @@
 
 import React from "react";
-import { Upload, Modal } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Upload, Modal, Image} from 'antd';
+import { PlusOutlined, ToolOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import "./PicturesWallQueue.css";
 
 function getBase64(file) {
   return new Promise((resolve, reject) => {
@@ -17,32 +18,7 @@ class PicturesWallQueue extends React.Component {
     previewVisible: false,
     previewImage: '',
     previewTitle: '',
-    fileList: [
-      {
-        uid: '-1',
-        name: 'image.png',
-        status: 'done',
-        url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-      },
-      {
-        uid: '-2',
-        name: 'image.png',
-        status: 'done',
-        url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-      },
-      {
-        uid: '-3',
-        name: 'image.png',
-        status: 'done',
-        url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-      },
-      {
-        uid: '-4',
-        name: 'image.png',
-        status: 'done',
-        url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-      }
-    ],
+    images: this.props.images
   };
 
   handleCancel = () => this.setState({ previewVisible: false });
@@ -70,24 +46,30 @@ class PicturesWallQueue extends React.Component {
       </div>
     );
     return (
-      <>
-        <Upload
-          action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
-          listType="picture-card"
-          fileList={fileList}
-          onPreview={this.handlePreview}
-          onChange={this.handleChange}
-        >
-        </Upload>
-        <Modal
-          visible={previewVisible}
-          title={previewTitle}
-          footer={null}
-          onCancel={this.handleCancel}
-        >
-          <img alt="example" style={{ width: '100%' }} src={previewImage} />
-        </Modal>
-      </>
+      <div class="picturesWallQueueMainContainer">
+        {
+          this.state.images.map((image) => {
+            return (
+              <div style={{width: this.props.width + 40, height: this.props.height + 40}} className="picturesWallQueueContainer">
+                <Image className="picturesWallQueuePicture" width={this.props.width} src={image.url}/>
+                <div className="picturesWallQueueIconsContainer">
+                  <div className="picturesWallQueueIcons">
+                    <EyeOutlined className="picturesWallQueueIcon" onClick={() => {
+                      this.props.onClickDelete();
+                    }}/>
+                    <DeleteOutlined className="picturesWallQueueIcon" onClick={() => {
+                      this.props.onClickDelete();
+                    }}/>
+                    <ToolOutlined className="picturesWallQueueIcon" onClick={() => {
+                      this.props.onClickDelete();
+                    }}/>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        }
+      </div>
     );
   }
 }

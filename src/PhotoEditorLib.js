@@ -99,11 +99,53 @@ class PhotoEditorLib {
 
     this.konvaJsContent = document.getElementById("overlayCanvasContainer").firstElementChild;
 
+    this.konvaTextTarget = false;
+
+    var target = (text) => {
+
+      if (this.konvaTextTarget === text) {
+        untarget(text);
+        return;
+      }
+
+      if (this.konvaTextTarget) untarget(this.konvaTextTarget);
+
+      var transformer = this.konvaLib.getNodeTransformer(text, this.layer);
+      transformer.show();
+
+      text.draggable(true);
+
+      this.konvaTextTarget = text;
+
+      this.stage.batchDraw();
+    }
+
+    var untarget = (text) => {
+
+      if (!text) return;
+
+      var transformer = this.konvaLib.getNodeTransformer(text, this.layer);
+      if (transformer) transformer.hide();
+
+      text.draggable(false);
+
+      this.konvaTextTarget = false;
+
+      this.stage.batchDraw();
+
+    }
+
+    this.targetKonvaText = target;
+    this.untargetKonvaText = untarget;
+
     this.stage.on("click", (e) => {
       if (this.editingText) return;
       if (e.evt.button === 2) return;
-      if (e.target instanceof Konva.Text) return;
-      this.addText(e);
+      if (e.target instanceof Konva.Text) {
+        target(e.target);
+        return;
+      };
+      target(this.addText(e));
     });
 
     var timeout;
@@ -387,6 +429,7 @@ class PhotoEditorLib {
     drawingCanvas.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
     konvaCanvas.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
     this.cursorCanvas.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
+    this.colorPickerCanvas.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
     this.konvaImagesContainer.firstElementChild.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
     this.konvaTransformersContainer.firstElementChild.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
 
@@ -468,6 +511,7 @@ class PhotoEditorLib {
       this.cursorCanvas = document.getElementById("cursorCanvas");
       this.konvaImagesContainer = document.getElementById("konvaImagesContainer");
       this.konvaTransformersContainer = document.getElementById("konvaTransformersContainer");
+      this.colorPickerCanvas = document.getElementById("colorPickerCanvas");
       this.canvasesContainer = document.getElementById("canvasesContainer");
 
     }
@@ -478,6 +522,9 @@ class PhotoEditorLib {
 
     canvas.height = image.bitmap.height;
     canvas.width = image.bitmap.width;
+
+    this.colorPickerCanvas.height = image.bitmap.height;
+    this.colorPickerCanvas.width = image.bitmap.width;
 
     var ctx = canvas.getContext("2d");
 
@@ -516,7 +563,8 @@ class PhotoEditorLib {
         containerId: "konvaImagesContainer",
         transformersContainerId: "konvaTransformersContainer",
         width: this.canvas.width,
-        height: this.canvas.height
+        height: this.canvas.height,
+        initialScale: this.scale
       });
 
       /*this.konvaLib.stage.scale({
@@ -558,6 +606,8 @@ class PhotoEditorLib {
 
       CanvasLib.copyCanvasProperties(this.canvas, this.drawingCanvas);
       CanvasLib.copyCanvasProperties(this.canvas, this.cursorCanvas);
+
+      this.colorPickerCanvas.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
 
       this.konvaImagesContainer.firstElementChild.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
       this.konvaImagesContainer.firstElementChild.style.position = `absolute`;
@@ -738,6 +788,17 @@ class PhotoEditorLib {
 
   }
 
+  setSelectedFont(fontName) {
+    this.selectedFont = fontName;
+    if (this.konvaTextTarget) {
+      this.konvaTextTarget.fontFamily(fontName);
+      var transformer = this.konvaLib.getNodeTransformer(this.konvaTextTarget, this.layer);
+      if (transformer) transformer.forceUpdate();
+      this.stage.batchDraw();
+    }
+
+  }
+
   addText(e) {
 
     this.focusCanvasContainer("overlayCanvasContainer")
@@ -769,7 +830,7 @@ class PhotoEditorLib {
       fontSize: 70 / this.scale,
       fontFamily: this.selectedFont,
       fill: this.selectedTextColor.rgbaString,
-      draggable: true
+      draggable: false
     });
 
     // text.x(text.x() < this.layer.offsetX() ? this.layer.offsetX() : text.x());
@@ -952,7 +1013,7 @@ class PhotoEditorLib {
       this.konvaTransformersContainer.firstElementChild.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
       this.drawingCanvas.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
       this.cursorCanvas.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
-      //this.cursorCanvas.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
+      this.colorPickerCanvas.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
       if (this.konvaReady) this.konvaJsContent.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
     }
 
@@ -983,6 +1044,8 @@ class PhotoEditorLib {
 
       this.colorPickerMoveEventHandler = (e) => {
 
+        console.log("moving")
+
         if (timeout) {
           window.cancelAnimationFrame(timeout);
         }
@@ -991,7 +1054,9 @@ class PhotoEditorLib {
 
           if (this.colorPickerModeDisabled) return;
 
-          var pos = this.konvaLib.stage.getPointerPosition();
+          //var pos = this.konvaLib.stage.getPointerPosition();
+
+          var pos = {x: e.offsetX, y: e.offsetY};
 
           var x = pos.x * this.scale;
           var y = pos.y * this.scale;
@@ -1017,9 +1082,14 @@ class PhotoEditorLib {
 
           var textCanvasColor = konvaAsCanvas.getContext("2d").getImageData(pos.x, pos.y, 1, 1).data;
           var konvaImagesColor = konvaImagesAsCanvas.getContext("2d").getImageData(pos.x, pos.y, 1, 1).data;
+          var drawingCanvasColor = this.drawingCanvas.getContext("2d").getImageData(pos.x, pos.y, 1, 1).data;
 
           if (konvaImagesColor[3] > 0) {
             var color = konvaImagesColor;
+          }
+
+          if (drawingCanvasColor[3] > 0) {
+            var color = drawingCanvasColor;
           }
 
           if (textCanvasColor[3] > 0) {
@@ -1036,7 +1106,9 @@ class PhotoEditorLib {
 
         if (this.colorPickerModeDisabled) return;
 
-        var pos = this.konvaLib.stage.getPointerPosition();
+        //var pos = this.konvaLib.stage.getPointerPosition();
+
+        var pos = {x: e.offsetX, y: e.offsetY};
 
         var x = pos.x;
         var y = pos.y;
@@ -1096,22 +1168,22 @@ class PhotoEditorLib {
 
       }
 
-      this.konvaLib.stage.on("mousemove", this.colorPickerMoveEventHandler);
+      this.colorPickerCanvas.addEventListener("mousemove", this.colorPickerMoveEventHandler);
       /* this.stage.on("mousemove", (e) => {
         var textCanvasColor = this.konvaJsContent.firstElementChild.getContext("2d").getImageData(e.evt.clientX / this.scale, e.clientY / this.scale, 1, 1).data;
       }) */
-      this.konvaLib.stage.on("mouseover", this.colorPickerMouseinEventHandler);
-      this.konvaLib.stage.on("mouseout", this.colorPickerMouseoutEventHandler);
-      this.konvaLib.stage.on("click", this.colorPickerClickEventHandler);
+      this.colorPickerCanvas.addEventListener("mouseover", this.colorPickerMouseinEventHandler);
+      this.colorPickerCanvas.addEventListener("mouseout", this.colorPickerMouseoutEventHandler);
+      this.colorPickerCanvas.addEventListener("click", this.colorPickerClickEventHandler);
 
       this.colorPickerModeInitialized = true;
     }
 
     this.colorPickerModeDisabled = false;
 
-    this.focusCanvasContainer("konvaImagesContainer");
+    this.focusCanvasContainer("colorPickerCanvasContainer");
 
-    this.konvaImagesContainer.style.cursor = "none";
+    this.colorPickerCanvas.style.cursor = "none";
 
     var cursorImage = document.createElement("img");
     var colorPreview = document.createElement("div");
@@ -1291,6 +1363,8 @@ class PhotoEditorLib {
 
     CanvasLib.rotateCanvas(this.drawingCanvas);
     CanvasLib.rotateCanvasSize(this.cursorCanvas);
+    CanvasLib.rotateCanvas(this.colorPickerCanvas);
+
 
     this.stage.width(this.konvaLib.stage.width());
     this.stage.height(this.konvaLib.stage.height());
@@ -1314,6 +1388,7 @@ class PhotoEditorLib {
     this.konvaImagesContainer.firstElementChild.style.transform = transformString;
     this.drawingCanvas.style.transform = transformString;
     this.cursorCanvas.style.transform = transformString;
+    this.colorPickerCanvas.style.transform = transformString;
     document.getElementById("overlayCanvasContainer").firstElementChild.style.transform = transformString
 
   }
@@ -1424,6 +1499,11 @@ class PhotoEditorLib {
 
     var cropData = this.cropper.getData();
 
+    cropData.x = Math.floor(cropData.x);
+    cropData.y = Math.floor(cropData.y);
+    cropData.width = Math.floor(cropData.width);
+    cropData.height = Math.floor(cropData.height)
+
     this.layer.offsetX(Math.floor(this.layer.offsetX() + cropData.x));
     this.layer.offsetY(Math.floor(this.layer.offsetY() + cropData.y));
 
@@ -1504,10 +1584,15 @@ class PhotoEditorLib {
     this.drawingCanvas.width = Math.floor(cropData.width);
     this.drawingCanvas.height = Math.floor(cropData.height);
 
+    console.log(cropData.x, cropData.y)
+
     ctx.putImageData(drawingImageData, cropData.x * -1, cropData.y * -1);
 
     this.cursorCanvas.width = Math.floor(cropData.width);
     this.cursorCanvas.height = Math.floor(cropData.height);
+
+    this.colorPickerCanvas.width = Math.floor(cropData.width);
+    this.colorPickerCanvas.height = Math.floor(cropData.height);
 
     this.cropper.destroy();
 
@@ -1643,7 +1728,9 @@ class PhotoEditorLib {
     this.textColorPicker = this.getDefaultColorPicker("#text-color-picker", this.selectedTextColor);
     this.textColorPicker.on("color:change", (color) => {
       this.selectedTextColor = color;
+      if (this.konvaTextTarget) this.konvaTextTarget.fill(color.rgbaString);
       document.getElementById("text-color-picker-button").style.backgroundColor = color.rgbaString;
+      this.stage.batchDraw();
     });
     this.selectedTextColor = this.textColorPicker.color;
   }
@@ -1704,6 +1791,7 @@ class PhotoEditorLib {
     document.getElementById("konvaImagesContainer").style.pointerEvents = id === "konvaImagesContainer" ? "auto" : "none";
     document.getElementById("konvaTransformersContainer").style.pointerEvents = id === "konvaTransformersContainer" ? "auto" : "none";
     document.getElementById("cropDummyCanvasContainer").style.pointerEvents = id === "konvaImagesContainer" ? "auto" : "none";
+    document.getElementById("colorPickerCanvasContainer").style.pointerEvents = id === "colorPickerCanvasContainer" ? "auto" : "none";
   }
 
   exportImage() {
