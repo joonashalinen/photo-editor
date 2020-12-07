@@ -39,6 +39,12 @@ class PhotoEditorLib {
     this.offsetX = 0;
     this.offsetY = 0;
 
+    this.rotateOriginOffsetX = 0;
+    this.rotateOriginOffsetY = 0;
+
+    this.cropOffsetX = 0;
+    this.cropOffsetY = 0;
+
     this.offsetLeftOriginX = 0;
     this.offsetLeftOriginY = 0;
 
@@ -574,10 +580,12 @@ class PhotoEditorLib {
 
       imageObj.id = this.runningImageId++;
 
-
       var konvaImage = this.konvaLib.addImage(imageObj, {
         targetable: true
       });
+
+      this.rotateOriginOffsetX = konvaImage.width() / 2;
+      this.rotateOriginOffsetY = konvaImage.height() / 2;
 
       this.undoRedoLib.addKonvaImageUndoRedoEvents(konvaImage, this.konvaLib);
 
@@ -1164,11 +1172,52 @@ class PhotoEditorLib {
 
     this.konvaLib.imagesLayer.rotate(90);
 
+    /*
+    var x = this.rotateOriginOffsetX;
+    var y = this.rotateOriginOffsetY; */
+
+
+    /*
+    var x = this.konvaLib.imagesLayer.x() - this.cropOffsetX;
+    var y = this.konvaLib.imagesLayer.y() - this.cropOffsetY; */
+
+
     var x = this.konvaLib.imagesLayer.x();
     var y = this.konvaLib.imagesLayer.y();
 
+    /*
+    if (this.konvaLib.imagesLayer.rotation() === 90) {
+      var cropOffsetX = this.cropOffsetY;
+      var cropOffsetY = this.cropOffsetX * -1;
+      console.log(cropOffsetX, cropOffsetY, x, y)
+      this.konvaLib.imagesLayer.x(y + cropOffsetX);
+      this.konvaLib.imagesLayer.y(x + cropOffsetY);
+    } else {
+      this.konvaLib.imagesLayer.x(y);
+      this.konvaLib.imagesLayer.y(x);
+    } */
+
     this.konvaLib.imagesLayer.x(y);
     this.konvaLib.imagesLayer.y(x);
+
+    var offsetX = this.konvaLib.stage.x();
+    var offsetY = this.konvaLib.stage.y();
+
+    /*
+    if (this.konvaLib.imagesLayer.rotation() === 90) {
+
+      var cropOffsetX = this.konvaLib.stage.y() * -1;
+      var cropOffsetY = this.konvaLib.stage.x();
+      console.log(cropOffsetX, cropOffsetY, x, y)
+      this.konvaLib.stage.x(cropOffsetX);
+      this.konvaLib.stage.y(cropOffsetY);
+
+    } else {
+
+      this.konvaLib.stage.x(offsetY);
+      this.konvaLib.stage.y(offsetX);
+
+    } */
 
     var width = this.konvaLib.imagesLayer.width();
     var height = this.konvaLib.imagesLayer.height();
@@ -1177,6 +1226,13 @@ class PhotoEditorLib {
       width: this.konvaLib.stage.height(),
       height: this.konvaLib.stage.width(),
     })
+
+    /*
+    var offsetX = this.konvaLib.stage.offsetX();
+    var offsetY = this.konvaLib.stage.offsetY();
+
+    this.konvaLib.stage.x(offsetY);
+    this.konvaLib.stage.y(offsetX); */
 
     this.konvaLib.backgroundImage.size({
       width: this.konvaLib.backgroundImage.height(),
@@ -1363,21 +1419,35 @@ class PhotoEditorLib {
 
     this.layer.draw();
 
-    this.konvaLib.transformersStageMainLayer.x(this.konvaLib.transformersStageMainLayer.x() + cropData.x * -1);
-    this.konvaLib.transformersStageMainLayer.y(this.konvaLib.transformersStageMainLayer.y() + cropData.y * -1);
+    this.konvaLib.cropImages(cropData);
 
+    /*
+    this.konvaLib.transformersStageMainLayer.x(this.konvaLib.transformersStageMainLayer.x() + cropData.x * -1);
+    this.konvaLib.transformersStageMainLayer.y(this.konvaLib.transformersStageMainLayer.y() + cropData.y * -1); */
+
+    /*
     this.konvaLib.transformersStage.size({
       width: Math.floor(cropData.width),
       height: Math.floor(cropData.height)
-    });
-
+    }); */
+    /*
     this.konvaLib.transformersStageMainLayer.size({
       width: Math.floor(cropData.width),
       height: Math.floor(cropData.height)
-    });
+    }); */
+    /*
+    var x = this.konvaLib.imagesLayer.x() - this.cropOffsetX;
+    var y = this.konvaLib.imagesLayer.y() - this.cropOffsetY;
 
-    this.konvaLib.imagesLayer.x(this.konvaLib.imagesLayer.x() + cropData.x * -1);
-    this.konvaLib.imagesLayer.y(this.konvaLib.imagesLayer.y() + cropData.y * -1);
+    this.cropOffsetX += cropData.x * -1;
+    this.cropOffsetY += cropData.y * -1; */
+
+    /*
+    this.konvaLib.imagesLayer.x(x + this.cropOffsetX);
+    this.konvaLib.imagesLayer.y(y + this.cropOffsetY); */
+    /*
+    this.konvaLib.stage.x(this.konvaLib.stage.x() + cropData.x * -1);
+    this.konvaLib.stage.y(this.konvaLib.stage.y() + cropData.y * -1); */
 
     this.konvaLib.stage.size({
       width: Math.floor(cropData.width),
@@ -1389,12 +1459,18 @@ class PhotoEditorLib {
       height: Math.floor(cropData.height)
     });
 
+/*    this.konvaLib.imagesCroppingLayer.size({
+      width: Math.floor(cropData.width),
+      height: Math.floor(cropData.height)
+    }); */
+
+    /*
     this.konvaLib.mainLayer.size({
       width: Math.floor(cropData.width),
       height: Math.floor(cropData.height)
-    });
+    }); */
 
-    this.konvaLib.transformersStage.batchDraw();
+    //this.konvaLib.transformersStage.batchDraw();
     this.konvaLib.stage.batchDraw();
 
     var ctx = this.drawingCanvas.getContext("2d");

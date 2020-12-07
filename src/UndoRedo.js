@@ -132,7 +132,7 @@ class UndoRedo {
 
         }
 
-        this.parent.layer.draw();
+        this.parent.layer.batchDraw();
 
         break;
       }
@@ -140,6 +140,15 @@ class UndoRedo {
       case "crop": {
 
         handleUndoRedoCache(this.typesLib.getCropUndoRedo(), undoOrRedo);
+
+        console.log(this.undoCache, this.redoCache)
+
+        var replacedImages = this.parent.konvaLib.replaceImages(latestUndoRedo.data.images, 0);
+
+        for (var i = 0; i < latestUndoRedo.data.images.length; i++) {
+          let image = latestUndoRedo.data.images[i];
+          this.addKonvaImageUndoRedoEvents(image);
+        }
 
         this.parent.layer.offsetX(latestUndoRedo.data.offsetX);
         this.parent.layer.offsetY(latestUndoRedo.data.offsetY);
@@ -161,7 +170,7 @@ class UndoRedo {
         this.parent.konvaLib.transformersStageMainLayer.offsetX(latestUndoRedo.data.imagesOffsetX);
         this.parent.konvaLib.transformersStageMainLayer.offsetY(latestUndoRedo.data.imagesOffsetY);
 
-        this.parent.konvaDrawingCanvas.getContext("2d").putImageData(latestUndoRedo.data.drawingImageData, 0, 0);
+        this.parent.drawingCanvas.getContext("2d").putImageData(latestUndoRedo.data.drawingImageData, 0, 0);
 
         this.parent.konvaLib.transformersStage.size({
           width: latestUndoRedo.data.width,
@@ -192,7 +201,7 @@ class UndoRedo {
           this.parent.rotate(true);
         }
 
-        this.parent.konvaLib.stage.draw();
+        this.parent.konvaLib.stage.batchDraw();
 
         handleUndoRedoCache(latestUndoRedo, undoOrRedo);
 
@@ -269,7 +278,7 @@ class UndoRedo {
           height: latestUndoRedo.data.height
         });
 
-        this.parent.konvaLib.stage.draw();
+        this.parent.konvaLib.stage.batchDraw();
 
         break;
 
@@ -289,7 +298,7 @@ class UndoRedo {
           latestUndoRedo.data.imageNode.zIndex(latestUndoRedo.data.zIndex);
         }
 
-        this.parent.konvaLib.stage.draw();
+        this.parent.konvaLib.stage.batchDraw();
 
         break;
 
@@ -309,7 +318,7 @@ class UndoRedo {
           latestUndoRedo.data.imageNode.zIndex(latestUndoRedo.data.zIndex);
         }
 
-        this.parent.konvaLib.stage.draw();
+        this.parent.konvaLib.stage.batchDraw();
 
         break;
 
@@ -329,7 +338,7 @@ class UndoRedo {
         text.y(latestUndoRedo.data.y);
         text.text(latestUndoRedo.data.text);
 
-        this.parent.stage.draw();
+        this.parent.stage.batchDraw();
 
         break;
 
@@ -349,7 +358,7 @@ class UndoRedo {
           latestUndoRedo.data.textNode.zIndex(latestUndoRedo.data.zIndex);
         }
 
-        this.parent.stage.draw();
+        this.parent.stage.batchDraw();
 
         break;
 
@@ -369,7 +378,7 @@ class UndoRedo {
           latestUndoRedo.data.textNode.zIndex(latestUndoRedo.data.zIndex);
         }
 
-        this.parent.stage.draw();
+        this.parent.stage.batchDraw();
 
         break;
 

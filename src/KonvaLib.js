@@ -47,7 +47,10 @@ class KonvaLib {
       backgroundLayer.add(backgroundTileImage);
       backgroundLayer.add(colorBackgroundImage);
 
+      //this.imagesCroppingLayer = new Konva.Layer();
+
       this.imagesLayer = new Konva.Layer();
+      //this.imagesCroppingLayer.add(this.imagesLayer);
       this.stage.add(this.imagesLayer);
 
       this.imagesLayer.zIndex(1);
@@ -162,8 +165,7 @@ class KonvaLib {
       });
       this.transformersStageMainLayer.add(transformer);
       transformer.forceUpdate(); */
-
-    var transformer = new Konva.Transformer({
+      var transformer = new Konva.Transformer({
         nodes: [image],
         rotateAnchorOffset: 60,
         enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
@@ -182,6 +184,123 @@ class KonvaLib {
     this.stage.draw();
 
     return image;
+
+  }
+
+  cropImages(boundaryBox) {
+
+    var images = this.imagesLayer.getChildren();
+
+    for (var i = 0; i < images.length; i++) {
+      var image = images[i];
+
+      var x = image.x() + image.offsetX();
+      var y = image.y() + image.offsetY();
+
+      if (x > boundaryBox.x + boundaryBox.width ||
+          y > boundaryBox.y + boundaryBox.height) {
+        continue;
+      }
+
+      var newX = x;
+      var newY = y;
+
+      if (boundaryBox.x > x) {
+        newX = boundaryBox.x;
+      }
+
+      if (boundaryBox.y > y) {
+        newY = boundaryBox.y;
+      }
+
+      var width = image.width() * image.getAbsoluteScale().x;
+      var height = image.height() * image.getAbsoluteScale().y;
+
+      var newWidth = width;
+      var newHeight = height;
+
+      if (boundaryBox.x > x) {
+        if (boundaryBox.x + boundaryBox.width <= x + width) {
+          console.log("image width cuts from middle")
+          newWidth = boundaryBox.width;
+        }
+        if (boundaryBox.x + boundaryBox.width >= x + width) {
+          console.log("image width cuts from left")
+          newWidth = x + width - boundaryBox.x;
+        }
+      }
+
+      if (boundaryBox.x < x) {
+        if (boundaryBox.x + boundaryBox.width > x) {
+          if (boundaryBox.x + boundaryBox.width < x + width) {
+            console.log("image width cuts from right")
+            newWidth = boundaryBox.x + boundaryBox.width - x;
+          }
+        }
+      }
+
+      if (boundaryBox.y > y) {
+        if (boundaryBox.y + boundaryBox.height <= y + height) {
+          console.log("image height cuts from middle")
+          newHeight = boundaryBox.height;
+        }
+        if (boundaryBox.y + boundaryBox.height >= y + height) {
+          console.log("image height cuts from top")
+          newHeight = y + height - boundaryBox.y;
+        }
+      }
+
+      if (boundaryBox.y < y) {
+        if (boundaryBox.y + boundaryBox.height > y) {
+          if (boundaryBox.y + boundaryBox.height < y + height) {
+            console.log("image height cuts from bottom")
+            newHeight = boundaryBox.y + boundaryBox.height - y;
+          }
+        }
+      }
+
+      console.log(newX - x, newY - y, newWidth, newHeight)
+
+      var scale = image.scale();
+
+      image.crop({
+        x: (newX - x) / image.getAbsoluteScale().x,
+        y: (newY - y) / image.getAbsoluteScale().y,
+        width: newWidth / image.getAbsoluteScale().x,
+        height: newHeight / image.getAbsoluteScale().y
+      });
+
+      var relativeX = Math.abs(boundaryBox.x - newX);
+      var relativeY = Math.abs(boundaryBox.y - newY);
+
+      image.x(relativeX);
+      image.y(relativeY);
+
+      image.size({
+        width: newWidth / image.getAbsoluteScale().x,
+        height: newHeight / image.getAbsoluteScale().y
+      })
+
+    }
+
+  }
+
+  cloneAllImages() {
+
+    var cloneImages = [];
+    var images = this.imagesLayer.getChildren();
+
+    for (var i = 0; i < images.length; i++) {
+      var image = images[i];
+
+      var cloneImage = image.clone();
+      cloneImage.photoEditorId = image.photoEditorId;
+
+      cloneImages.push(cloneImage);
+
+    }
+
+    return cloneImages;
 
   }
 
@@ -381,9 +500,11 @@ class KonvaLib {
 
     for (var i = startIndex; i < images.length; i++) {
       var image = images[i];
-      var transformer = this.mainLayer.getChildren()[2 + i];
+      var transformer = this.getImageTransformer(image);
 
-      var newImage = new Konva.Image({
+      if (image.photoEditorId !== newImages[i].photoEditorId) return;
+
+      var newImage = newImages[i] instanceof Konva.Image ? newImages[i] : new Konva.Image({
         image: newImages[i],
         x: image.x(),
         y: image.y(),
@@ -401,8 +522,11 @@ class KonvaLib {
       this.imagesLayer.add(newImage);
       transformer.forceUpdate();
 
-      this.stage.draw();
     }
+
+    this.stage.batchDraw();
+
+    return images;
 
   }
 
