@@ -23,7 +23,7 @@ class PhotoEditor extends React.Component {
 
     var selectedTool = "";
 
-    this.state = {
+    this.defaultState = {
       image: props.image ? props.image : "",
       selectedTargetImage: false,
       numberOfTextFields: 0,
@@ -50,6 +50,8 @@ class PhotoEditor extends React.Component {
       canvasesContainerLoading: false,
       imageFilterPreviewsLoading: false
     }
+
+    this.state = this.defaultState;
 
     this.selectableFilters = [
       "None",
@@ -134,6 +136,10 @@ class PhotoEditor extends React.Component {
       var filterPreviewImages = this.photoEditorLib.getFilterPreviewImages(imageNode);
       var imageSettings = this.photoEditorLib.getSelectedTargetImageSettings();
       setFiltersState(imageSettings, filterPreviewImages);
+    });
+
+    this.photoEditorLib.on("removeImageInstance", () => {
+      this.setState(this.defaultState);
     });
 
   }
@@ -251,7 +257,9 @@ class PhotoEditor extends React.Component {
             this.state.imageInstanced ?
               <Tooltip title="Delete Canvas">
                 <div style={{position: "absolute", right: "35%", bottom: "10px", marginRight: "69px"}}>
-                  <ConfirmPopupButton content={
+                  <ConfirmPopupButton onOk={() => {
+                    this.photoEditorLib.removeImageInstance();
+                  }} content={
                     <img className="toolIcon undoRedoButton" src="times-circle_antd-colors.svg" height="18px" style={{filter: "brightness(1)"}} onClick={() => {
 
                     }}></img>
@@ -686,8 +694,6 @@ class PhotoEditor extends React.Component {
                     });
                     return;
                   }
-
-                  this.photoEditorLib.removeImageInstance();
 
                   this.setState({
                     canvasesContainerLoading: true,

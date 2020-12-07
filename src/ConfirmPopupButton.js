@@ -44,7 +44,7 @@ function ConfirmPopupButton(props) {
       okType: 'danger',
       cancelText: 'No',
       onOk() {
-        console.log('OK');
+        props.onOk();
       },
       onCancel() {
         console.log('Cancel');

@@ -15,17 +15,14 @@ import * as imageConversion from 'image-conversion';
 
 class PhotoEditorLib {
 
-  constructor({ selectableFilters, adjustableFilters, adjustments, selectedTool, defaultBrushSize, defaultBrushHardness }) {
+  constructor(options) {
 
-    this.imageFilters = {
-      contrast: 0,
-      brightness: 0,
-      saturation: 0
-    }
+    this.originalOptions = options;
+
+    var { selectableFilters, adjustableFilters, adjustments, selectedTool, defaultBrushSize, defaultBrushHardness } = options;
 
     this.appliedPixiFilters = {};
 
-    this.colors = new Colors();
     this.activeTransformers = [];
     this.reattachTextAnchorList = [];
     this.imageInstanced = false;
@@ -38,12 +35,6 @@ class PhotoEditorLib {
 
     this.offsetX = 0;
     this.offsetY = 0;
-
-    this.rotateOriginOffsetX = 0;
-    this.rotateOriginOffsetY = 0;
-
-    this.cropOffsetX = 0;
-    this.cropOffsetY = 0;
 
     this.offsetLeftOriginX = 0;
     this.offsetLeftOriginY = 0;
@@ -668,17 +659,12 @@ class PhotoEditorLib {
 
     }
 
-    this.dispatchEvent("load", []);
+    setTimeout(() => {
+      document.getElementById("move-tool-icon").click();
+    }, 50)
+
     this.dispatchEvent("imageTargetChange", [konvaImage]);
 
-    /*
-    setTimeout(() => {
-      this.setSelectedImageFilter("bulge/pinch", [{
-        center: [200, 200],
-        radius: 400,
-        strength: 1
-      }]);
-    }, 3000) */
 
   }
 
@@ -1248,8 +1234,6 @@ class PhotoEditorLib {
       height: this.konvaLib.stage.width(),
     })
 
-    return;
-
     //this.konvaLib.imagesLayer.rotate(90);
 
     /*
@@ -1769,29 +1753,49 @@ class PhotoEditorLib {
 
     if (!this.imageInstanced) return;
 
-    var canvas = document.getElementById("canvas");
+    //var canvas = document.getElementById("canvas");
     var drawingCanvas = document.getElementById("drawingCanvas");
 
-    var ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    //var ctx = canvas.getContext("2d");
+    //ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx = drawingCanvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    var ctx = drawingCanvas.getContext("2d");
+    ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
 
     if (this.konvaReady) {
 
-      document.getElementById("overlayCanvasContainer").firstElementChild.remove();
+      this.stage.destroyChildren();
+      this.konvaLib.stage.listening(false);
+      this.stage.remove();
 
       this.stage = false;
       this.layer = false;
       this.konvaReady = false;
 
+      document.getElementById("overlayCanvasContainer").firstElementChild.remove();
+
     }
+
+    this.konvaLib.stage.destroyChildren();
+    this.konvaLib.stage.listening(false);
+    this.konvaLib.stage.remove();
+
+    document.getElementById("konvaImagesContainer").firstElementChild.remove();
+    document.getElementById("konvaTransformersContainer").firstElementChild.remove();
+
+    delete this.konvaLib;
+    delete this.softBrush;
+
+    this.appliedPixiFilters = {};
+
+    this.runningImageId = 1;
 
     this.texts = [];
 
     this.offsetX = 0;
     this.offsetY = 0;
+
+    this.filterPreviews = [];
 
     this.offsetLeftOriginX = 0;
     this.offsetLeftOriginY = 0;
@@ -1800,8 +1804,17 @@ class PhotoEditorLib {
     this.reattachTextAnchorList = [];
     this.imageInstanced = false;
 
+    this.inCropMode = false;
+
+    this.selectedTool = "";
+
+    this.defaultBrushSize = this.originalOptions.defaultBrushSize ? this.originalOptions.defaultBrushSize : 20;
+    this.defaultBrushHardness = this.originalOptions.defaultBrushHardness ? this.originalOptions.defaultBrushHardness : 0.5;
+
     this.undoRedoLib.clearRedoCache();
     this.undoRedoLib.clearUndoCache();
+
+    this.dispatchEvent("removeImageInstance", []);
 
   }
 
