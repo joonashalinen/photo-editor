@@ -1429,7 +1429,7 @@ class PhotoEditorLib {
 
   async acceptCrop() {
 
-    //this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getCropUndoRedo());
+    this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getCropUndoRedo());
 
     document.getElementById("overlayCanvasContainer").style.visibility = "visible";
 
