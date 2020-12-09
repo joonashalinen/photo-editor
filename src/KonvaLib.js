@@ -7,6 +7,8 @@ class KonvaLib {
   constructor(options, callback) {
 
     this.initialScale = options.initialScale;
+    this.initialOptions = options;
+    this.options = options;
 
     var fillPatternBase64Url = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAARUlEQVRYhe3VsQkAMAwDQSVkIO0/hTdShlAgzat/OHDhlSQqNjNNrl3VDwYAAAAAAAAAOO0/t131nAAAAAAAAAD4C5B0ARR5Ca7CHgmpAAAAAElFTkSuQmCC`
 
@@ -161,17 +163,21 @@ class KonvaLib {
     image.zIndex(1);
 
     if (!options || options.enableTransformer !== false) {
-      /*
       var transformer = new Konva.Transformer({
         nodes: [image],
         rotateAnchorOffset: 60,
         enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
         borderStroke: "rgb(0 149 255)",
         anchorStroke: "rgb(0 149 255)",
-        rotationSnaps: [0, 90, 180, 270]
+        borderStrokeWidth: 1,
+        rotationSnaps: [0, 90, 180, 270],
+        anchorSize: this.initialScale ? 30 / this.initialScale : 30,
+        anchorCornerRadius: this.initialScale ? 30 / this.initialScale : 30,
+        anchorStrokeWidth: this.initialScale ? 1 / this.initialScale : 1,
+        anchorFill: "rgba(255, 255, 255, 0.5)"
       });
       this.transformersStageMainLayer.add(transformer);
-      transformer.forceUpdate(); */
+      transformer.forceUpdate();
       var transformer = new Konva.Transformer({
         nodes: [image],
         rotateAnchorOffset: 60,
@@ -218,6 +224,8 @@ class KonvaLib {
     tempRotationLayer.x(y);
     tempRotationLayer.y(x);
 
+    console.log(this.imagesLayerRotation)
+
     if (this.imagesLayerRotation === 90 || this.imagesLayerRotation === 270) {
 
       tempRotationLayer.offsetX(x);
@@ -242,6 +250,10 @@ class KonvaLib {
 
       console.log(tempRotationLayer.width(), this.stage.height(), y)
 
+      console.log(tempRotationLayer.x(), tempRotationLayer.y(), tempRotationLayer.width(), tempRotationLayer.height(), this.stage.width(), this.stage.height());
+      console.log(tempRotationLayer.x() + ((tempRotationLayer.height() - this.stage.width()) / 2))
+      console.log(tempRotationLayer.y() - ((this.stage.height() - tempRotationLayer.width()) / 2))
+
       tempRotationLayer.x(tempRotationLayer.x() + ((tempRotationLayer.height() - this.stage.width()) / 2));
       tempRotationLayer.y(tempRotationLayer.y() - ((this.stage.height() - tempRotationLayer.width()) / 2));
 
@@ -255,6 +267,18 @@ class KonvaLib {
 
       return;
     }
+
+    /*
+    tempRotationLayer.add(new Konva.Rect({
+      width: tempRotationLayer.width(),
+      height: tempRotationLayer.height(),
+      x: 0,
+      y: 0,
+      fill: "grey",
+      draggable: true
+    })) */
+
+    console.log(tempRotationLayer.width(), tempRotationLayer.height(), tempRotationLayer.x(), tempRotationLayer.y(), tempRotationLayer.offsetX(), tempRotationLayer.offsetY())
 
     tempRotationLayer.rotate(90);
 
@@ -302,116 +326,27 @@ class KonvaLib {
 
   }
 
-  cropImages(boundaryBox) {
+  fixLayerContentsPositioning(layer) {
 
-    var images = this.imagesLayer.getChildren();
+    var contents = layer.getChildren();
 
-    for (var i = 0; i < images.length; i++) {
-      var image = images[i];
+    for (var i = 0; i < contents.length; i++) {
+      var item = contents[i];
 
-      var x = image.x() + image.offsetX();
-      var y = image.y() + image.offsetY();
+      var pos = item.absolutePosition();
 
-      if (x > boundaryBox.x + boundaryBox.width ||
-          y > boundaryBox.y + boundaryBox.height) {
-        continue;
-      }
-
-      var newX = x;
-      var newY = y;
-
-      if (boundaryBox.x > x) {
-        newX = boundaryBox.x;
-      }
-
-      if (boundaryBox.y > y) {
-        newY = boundaryBox.y;
-      }
-
-      var width = image.width() * image.getScale().x;
-      var height = image.height() * image.getScale().y;
-
-      var newWidth = width;
-      var newHeight = height;
-
-      if (boundaryBox.x > x) {
-        if (boundaryBox.x + boundaryBox.width <= x + width) {
-          console.log("image width cuts from middle")
-          newWidth = boundaryBox.width;
-        }
-        if (boundaryBox.x + boundaryBox.width >= x + width) {
-          console.log("image width cuts from left")
-          newWidth = x + width - boundaryBox.x;
-        }
-      }
-
-      if (boundaryBox.x < x) {
-        if (boundaryBox.x + boundaryBox.width > x) {
-          if (boundaryBox.x + boundaryBox.width < x + width) {
-            console.log("image width cuts from right")
-            newWidth = boundaryBox.x + boundaryBox.width - x;
-          }
-        }
-      }
-
-      if (boundaryBox.y > y) {
-        if (boundaryBox.y + boundaryBox.height <= y + height) {
-          console.log("image height cuts from middle")
-          newHeight = boundaryBox.height;
-        }
-        if (boundaryBox.y + boundaryBox.height >= y + height) {
-          console.log("image height cuts from top")
-          newHeight = y + height - boundaryBox.y;
-        }
-      }
-
-      if (boundaryBox.y < y) {
-        if (boundaryBox.y + boundaryBox.height > y) {
-          if (boundaryBox.y + boundaryBox.height < y + height) {
-            console.log("image height cuts from bottom")
-            newHeight = boundaryBox.y + boundaryBox.height - y;
-          }
-        }
-      }
-
-      console.log(newX - x, newY - y, newWidth, newHeight)
-
-      var scale = image.scale();
-
-      var existingCrop = image.crop();
-
-      var canvas = image.getCanvas();
-      var imageData = canvas.getContext().getImageData(
-        existingCrop.x + (newX - x) / image.getScale().x,
-        existingCrop.y + (newY - y) / image.getScale().y,
-        newWidth / image.getScale().x,
-        newHeight / image.getScale().y);
-
-      document.getElementById("drawingCanvas").getContext("2d").putImageData(imageData, 0, 0)
-
-      image.crop({
-        x: existingCrop.x + (newX - x) / image.getScale().x,
-        y: existingCrop.y + (newY - y) / image.getScale().y,
-        width: newWidth / image.getScale().x,
-        height: newHeight / image.getScale().y
-      });
-
-      var relativeX = Math.abs(boundaryBox.x - newX);
-      var relativeY = Math.abs(boundaryBox.y - newY);
-
-      image.x(relativeX);
-      image.y(relativeY);
-
-      image.size({
-        width: newWidth / image.getScale().x,
-        height: newHeight / image.getScale().y
-      })
-
+      item.x(pos.x);
+      item.y(pos.y);
     }
+
+    layer.offsetX(0);
+    layer.offsetY(0);
+    layer.x(0);
+    layer.y(0);
 
   }
 
-  cropImagesTest(boundaryBox) {
+  cropImages(boundaryBox) {
 
     var images = this.imagesLayer.getChildren();
 
@@ -673,6 +608,8 @@ class KonvaLib {
       if (!node.nodes().includes(image)) return;
       node.hide();
     });
+    var overlayTransformer = this.getImageTransformer(image, this.transformersStageMainLayer);
+    if (overlayTransformer) overlayTransformer.hide();
   }
 
   showImageTransformer(image) {
@@ -681,6 +618,8 @@ class KonvaLib {
       if (!node.nodes().includes(image)) return;
       node.show();
     });
+    var overlayTransformer = this.getImageTransformer(image, this.transformersStageMainLayer);
+    if (overlayTransformer) overlayTransformer.show();
   }
 
   getImageTransformer(image, layer) {

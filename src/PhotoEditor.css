@@ -42,20 +42,25 @@ h1 {
   position: absolute;
   right: 35%;
   bottom: 10px;
-  margin-right: 69px;
+  margin-right: 110px;
+}
+
+.clearCanvasButton > div > img {
+  margin-right: 0px;
 }
 
 .undoRedoButton {
   transition: opacity 0.3s;
   cursor: pointer;
   right: 35%;
+  margin-right: 34px;
   filter: invert() brightness(0.85);
 }
 
 .undoButton {
   position: absolute;
   bottom: 10px;
-  margin-right: 45px;
+  margin-right: 58px;
   transform: scaleX(-1);
 }
 
@@ -63,7 +68,7 @@ h1 {
   right: 35%;
   position: absolute;
   bottom: 10px;
-  margin-right: 21px;
+  margin-right: 28px;
 }
 
 .undoRedoButton:hover {
@@ -111,15 +116,15 @@ h1 {
 }
 
 .toolIconContainer {
-  width: 24px;
-  height: 24px;
+  width: 34px;
+  height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
 .toolIcons {
-  width: 24px;
+  width: 32px;
   height: 100%;
   display: flex;
   flex-flow: column nowrap;
@@ -129,7 +134,12 @@ h1 {
 }
 
 .toolIcon {
+  height: 24px;
+}
 
+.addTextToolIcon, .cropToolIcon {
+  height: 32px;
+  width: 32px;
 }
 
 .toolIconContainer:hover, .toolIconContainerSelected {

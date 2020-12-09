@@ -1574,7 +1574,7 @@ class PhotoEditorLib {
 
     this.layer.draw();
 
-    this.konvaLib.cropImagesTest(cropData);
+    this.konvaLib.cropImages(cropData);
 
     /*
     this.konvaLib.transformersStageMainLayer.x(this.konvaLib.transformersStageMainLayer.x() + cropData.x * -1);
@@ -1623,6 +1623,21 @@ class PhotoEditorLib {
     this.konvaLib.imagesLayer.x(this.konvaLib.imagesLayer.x() + diffX);
     this.konvaLib.imagesLayer.y(this.konvaLib.imagesLayer.y() + diffY);
 
+    this.konvaLib.fixLayerContentsPositioning(this.konvaLib.imagesLayer);
+
+    if (this.konvaLib.imagesLayerRotation === 90 || this.konvaLib.imagesLayerRotation === 270) {
+      this.konvaLib.imagesLayer.offsetX(cropData.height / 2);
+      this.konvaLib.imagesLayer.offsetY(cropData.width / 2);
+
+      this.konvaLib.imagesLayer.x(cropData.height / 2);
+      this.konvaLib.imagesLayer.y(cropData.width / 2);
+    } else {
+      this.konvaLib.imagesLayer.offsetX(cropData.width / 2);
+      this.konvaLib.imagesLayer.offsetY(cropData.height / 2);
+
+      this.konvaLib.imagesLayer.x(cropData.width / 2);
+      this.konvaLib.imagesLayer.y(cropData.height / 2);
+    }
 
 /*    this.konvaLib.imagesCroppingLayer.size({
       width: Math.floor(cropData.width),
