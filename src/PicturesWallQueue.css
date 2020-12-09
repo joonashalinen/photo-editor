@@ -13,6 +13,8 @@
   border: 3px solid #434343;
   padding: 20px;
   border-radius: 5px;
+  justify-content: center;
+  align-items: center;
 }
 
 .picturesWallQueuePicture {

@@ -1,5 +1,4 @@
 
-import Jimp from "jimp/es";
 import Cropper from "cropperjs";
 import Konva from "konva";
 import Colors from "./Colors.js";
@@ -12,12 +11,15 @@ import ImageLib from "./ImageLib.js";
 import PixiLib from "./PixiLib.js";
 import KonvaLib from "./KonvaLib.js";
 import * as imageConversion from 'image-conversion';
+import { readAndCompressImage } from 'browser-image-resizer';
 
 class PhotoEditorLib {
 
   constructor(options) {
 
     this.originalOptions = options;
+
+    this.options = options;
 
     var { selectableFilters, adjustableFilters, adjustments, selectedTool, defaultBrushSize, defaultBrushHardness } = options;
 
@@ -78,11 +80,11 @@ class PhotoEditorLib {
     }
   }
 
-  initKonva() {
+  initKonva(image) {
     var stage = new Konva.Stage({
       container: 'overlayCanvasContainer',
-      width: this.canvas.width,
-      height: this.canvas.height
+      width: image.width,
+      height: image.height
     });
 
     var layer = new Konva.Layer();
@@ -433,8 +435,8 @@ class PhotoEditorLib {
     this.konvaImagesContainer.firstElementChild.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
     this.konvaTransformersContainer.firstElementChild.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
 
-    var scaleOffsetX = this.originalImageData.width * (this.scale - this.nativeScale) / 2;
-    var scaleOffsetY = this.originalImageData.height * (this.scale - this.nativeScale) / 2;
+    var scaleOffsetX = this.originalImage.width * (this.scale - this.nativeScale) / 2;
+    var scaleOffsetY = this.originalImage.height * (this.scale - this.nativeScale) / 2;
 
     //this.drawingCanvasCursor.setCanvasScale(this.scale);
     //this.drawingCanvasCursor.setCursorSize(this.softBrush.getSize() * this.scale);
@@ -496,231 +498,251 @@ class PhotoEditorLib {
 
   async loadImage(file) {
 
-    var buffer = await file.arrayBuffer();
+    if (this.imageInstanced) return;
 
-    if (!this.imageInstanced) {
+    this.dispatchEvent("loadingImage", [file]);
 
-      document.getElementById("canvasesContainer").addEventListener("wheel", this.zoom);
+    document.getElementById("canvasesContainer").addEventListener("wheel", this.zoom);
 
-      document.getElementById("canvasesContainer").addEventListener("mousedown", () => {
-        this.beginDragMode();
-      });
+    document.getElementById("canvasesContainer").addEventListener("mousedown", () => {
+      this.beginDragMode();
+    });
 
-      this.canvas = document.getElementById("canvas");
-      this.drawingCanvas = document.getElementById("drawingCanvas");
-      this.cursorCanvas = document.getElementById("cursorCanvas");
-      this.konvaImagesContainer = document.getElementById("konvaImagesContainer");
-      this.konvaTransformersContainer = document.getElementById("konvaTransformersContainer");
-      this.colorPickerCanvas = document.getElementById("colorPickerCanvas");
-      this.canvasesContainer = document.getElementById("canvasesContainer");
+    this.drawingCanvas = document.getElementById("drawingCanvas");
+    this.cursorCanvas = document.getElementById("cursorCanvas");
+    this.konvaImagesContainer = document.getElementById("konvaImagesContainer");
+    this.konvaTransformersContainer = document.getElementById("konvaTransformersContainer");
+    this.colorPickerCanvas = document.getElementById("colorPickerCanvas");
+    this.canvasesContainer = document.getElementById("canvasesContainer");
 
+    var image;
+
+    if (file instanceof HTMLImageElement) {
+      image = file;
+      file = await imageConversion.imagetoCanvas(file);
+      file = await imageConversion.canvastoFile(file);
+
+    } else if (file instanceof File) {
+
+      var url = await imageConversion.filetoDataURL(file);
+      image = await imageConversion.dataURLtoImage(url);
     }
 
-    var image = await Jimp.read(buffer);
+    if (this.options.downscaleImage) {
+      if (image.width > this.options.maxImageSize || image.height > this.options.maxImageSize) {
+        console.log(this.options.maxImageSize / Math.max(image.width, image.height))
 
-    var canvas = document.getElementById("canvas");
+        file = await readAndCompressImage(file, {
+          quality: 1,
+          maxWidth: this.options.maxImageSize,
+          maxHeight: this.options.maxImageSize
+        });
 
-    canvas.height = image.bitmap.height;
-    canvas.width = image.bitmap.width;
+        let url = await imageConversion.filetoDataURL(file);
+        image = await imageConversion.dataURLtoImage(url);
+      }
+    }
 
-    this.colorPickerCanvas.height = image.bitmap.height;
-    this.colorPickerCanvas.width = image.bitmap.width;
+    if (!image) return;
 
-    var ctx = canvas.getContext("2d");
+    this.colorPickerCanvas.height = image.height;
+    this.colorPickerCanvas.width = image.width;
 
-    var canvasContainer = canvas.parentElement;
-
-    var imageRatio = image.bitmap.width / image.bitmap.height;
-    var canvasRatio = canvasContainer.clientWidth / canvasContainer.clientHeight;
+    var imageRatio = image.width / image.height;
+    var canvasRatio = this.canvasesContainer.clientWidth / this.canvasesContainer.clientHeight;
 
     var scale = imageRatio > canvasRatio ?
-      (canvasContainer.clientWidth / image.bitmap.width) : canvasContainer.clientHeight / image.bitmap.height;
+      (this.canvasesContainer.clientWidth / image.width) : this.canvasesContainer.clientHeight / image.height;
 
-    if (canvasContainer.clientWidth >= image.bitmap.width && canvasContainer.clientHeight >= image.bitmap.height) {
+    if (this.canvasesContainer.clientWidth >= image.width && this.canvasesContainer.clientHeight >= image.height) {
       scale = 1;
     }
 
     this.scale = scale;
     this.nativeScale = scale;
 
-    canvas.style.transform = `scale(${scale})`;
-
-    var imageData = new ImageData(Uint8ClampedArray.from(image.bitmap.data), image.bitmap.width);
-    ctx.putImageData(imageData, 0, 0);
-
-    this.image = image.clone();
     this.originalImage = image;
 
-    var canvasWithNoFilters = CanvasLib.cloneCanvas(this.canvas);
-    this.canvasWithNoFilters = canvasWithNoFilters;
+    image.id = this.runningImageId++;
 
-    this.originalImageData = CanvasLib.cloneImageData(imageData);
-    this.currentImageData = imageData;
-
-    if (!this.imageInstanced) {
+    var initKonvaLib = new Promise((resolve) => {
 
       this.konvaLib = new KonvaLib({
         containerId: "konvaImagesContainer",
         transformersContainerId: "konvaTransformersContainer",
-        width: this.canvas.width,
-        height: this.canvas.height,
-        initialScale: this.scale
+        width: image.width,
+        height: image.height,
+        initialScale: this.nativeScale
+      }, () => {
+        resolve();
       });
 
-      /*this.konvaLib.stage.scale({
-        x: this.scale,
-        y: this.scale
-      }); */
+    });
 
-      this.canvas.style.display = "none";
-      document.getElementById("konvaImagesContainer").style.pointerEvents = "auto";
+    await initKonvaLib;
 
-      var first = true;
-      var timeout;
+    var konvaImage = this.konvaLib.addImage(image, {
+      targetable: true
+    });
 
-      this.konvaLib.stage.on("mousemove", (e) => {
+    this.rotateOriginOffsetX = konvaImage.width() / 2;
+    this.rotateOriginOffsetY = konvaImage.height() / 2;
 
-        if (timeout) {
-          window.cancelAnimationFrame(timeout);
-        }
+    this.undoRedoLib.addKonvaImageUndoRedoEvents(konvaImage, this.konvaLib);
 
-        timeout = window.requestAnimationFrame(() => {
+    document.getElementById("konvaImagesContainer").style.pointerEvents = "auto";
 
-          this.konvaTarget = e.target;
-          if (this.konvaTarget instanceof Konva.Image) {
-            this.konvaLib.previewTargetImage(e.target);
-          }
-        });
+    var first = true;
+    var timeout;
 
-      });
+    this.konvaLib.stage.on("mousemove", (e) => {
 
-      this.konvaLib.stage.on("click", (e) => {
-        if (e.target instanceof Konva.Image) {
-          console.log("targeting")
-          var targeted = this.konvaLib.targetImage(e.target);
-          if (targeted) this.dispatchEvent("imageTargetChange", [e.target]);
-        }
-      });
-
-      this.initKonva();
-
-      CanvasLib.copyCanvasProperties(this.canvas, this.drawingCanvas);
-      CanvasLib.copyCanvasProperties(this.canvas, this.cursorCanvas);
-
-      this.colorPickerCanvas.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
-
-      this.konvaImagesContainer.firstElementChild.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
-      this.konvaImagesContainer.firstElementChild.style.position = `absolute`;
-      this.konvaImagesContainer.style.overflow = "hidden";
-
-      this.konvaTransformersContainer.firstElementChild.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
-      this.konvaTransformersContainer.firstElementChild.style.position = `absolute`;
-      this.konvaTransformersContainer.style.overflow = "hidden";
-
-      var tempCanvas = CanvasLib.canvasFromImageData(imageData);
-      var imageObj = await this.imageLib.canvasToImage(tempCanvas);
-
-      imageObj.id = this.runningImageId++;
-
-      var konvaImage = this.konvaLib.addImage(imageObj, {
-        targetable: true
-      });
-
-      this.rotateOriginOffsetX = konvaImage.width() / 2;
-      this.rotateOriginOffsetY = konvaImage.height() / 2;
-
-      this.undoRedoLib.addKonvaImageUndoRedoEvents(konvaImage, this.konvaLib);
-
-      this.imagesWithNoFilters = [imageObj];
-
-      this.pixiApps = [PixiLib.appFromImage(tempCanvas.toDataURL())];
-
-      this.pixiApp = PixiLib.appFromImage(tempCanvas.toDataURL());
-
-      var konvaDrawingCanvas = CanvasLib.cloneCanvas(this.drawingCanvas);
-      var konvaCursorCanvas = CanvasLib.cloneCanvas(this.drawingCanvas);
-
-      let options = {
-        draggable: false,
-        enableTransformer: false,
-        zIndex: 10,
-        addToMainLayer: true,
-        preventTarget: true
+      if (timeout) {
+        window.cancelAnimationFrame(timeout);
       }
 
-      this.konvaDrawingCanvas = konvaDrawingCanvas;
-      this.konvaDrawingCanvasNode = this.konvaLib.addImage(konvaDrawingCanvas, options);
-      this.konvaCursorCanvas = konvaCursorCanvas;
-      this.konvaCursorCanvasNode = this.konvaLib.addImage(konvaCursorCanvas, options);
+      timeout = window.requestAnimationFrame(() => {
 
-      this.softBrush = new SoftBrush(this.drawingCanvas, {
-        size: this.defaultBrushSize / this.scale,
-        hardness: this.defaultBrushHardness,
-        cursorCanvas: this.cursorCanvas,
-        color: [255, 255, 255, 1],
-        brushPreviewEnabled: true,
-        canvasScale: this.scale,
-        enabled: false
-      });
-
-      var redrawCounter = 0;
-
-      this.softBrush.on("draw", () => {
-
-        if (redrawCounter++ >= 100) {
-          console.log("draw")
-          redrawCounter = 0;
-          this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getDrawingUndoRedo());
+        this.konvaTarget = e.target;
+        if (this.konvaTarget instanceof Konva.Image) {
+          this.konvaLib.previewTargetImage(e.target);
         }
-
       });
 
-      this.softBrush.on("drawbegin", () => {
-        console.log("drawbegin")
-        this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getDrawingUndoRedo());
-      });
+    });
 
-      this.imageInstanced = true;
+    this.konvaLib.stage.on("click", (e) => {
+      if (e.evt.button === 2) return;
+      if (e.target instanceof Konva.Image) {
+        console.log("targeting")
+        var targeted = this.konvaLib.targetImage(e.target);
+        if (targeted) this.dispatchEvent("imageTargetChange", [e.target]);
+      }
+    });
 
-      this.enableDrawingColorPicker();
-      this.enableBackgroundColorPicker();
-      this.enableDrawing();
+    this.initKonva(image);
 
-      this.konvaDrawingCanvasNode.listening(false);
-      this.konvaCursorCanvasNode.listening(false);
+    this.drawingCanvas.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
+    this.drawingCanvas.width = image.width;
+    this.drawingCanvas.height = image.height;
 
-      document.getElementById("move-tool-icon").click();
+    CanvasLib.copyCanvasProperties(this.drawingCanvas, this.cursorCanvas);
+    CanvasLib.copyCanvasProperties(this.drawingCanvas, this.colorPickerCanvas);
 
-      var thumbnailImageFile = await imageConversion.compress(file, {
-        quality: 0.8,
-        width: 150,
-        height: 100,
-        scale: 150 / this.canvas.width,
-      });
+    this.konvaImagesContainer.firstElementChild.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
+    this.konvaImagesContainer.firstElementChild.style.position = `absolute`;
+    this.konvaImagesContainer.style.overflow = "hidden";
 
-      var thumbnailImageURL = await imageConversion.filetoDataURL(thumbnailImageFile);
+    this.konvaTransformersContainer.firstElementChild.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
+    this.konvaTransformersContainer.firstElementChild.style.position = `absolute`;
+    this.konvaTransformersContainer.style.overflow = "hidden";
 
-      var thumbnailImage = await imageConversion.urltoImage(thumbnailImageURL);
+    this.imagesWithNoFilters = [image];
 
-      this.filterPreviews.push([
-        konvaImage,
-        this.generateFilterPreviewImages(thumbnailImage)
-      ]);
+    var imageAsCanvas = await imageConversion.imagetoCanvas(image);
 
+    this.pixiApp = PixiLib.appFromImage(imageAsCanvas.toDataURL());
+
+    var konvaDrawingCanvas = CanvasLib.cloneCanvas(this.drawingCanvas);
+    var konvaCursorCanvas = CanvasLib.cloneCanvas(this.drawingCanvas);
+
+    let options = {
+      draggable: false,
+      enableTransformer: false,
+      zIndex: 10,
+      addToMainLayer: true,
+      preventTarget: true
     }
+
+    this.konvaDrawingCanvas = konvaDrawingCanvas;
+    this.konvaDrawingCanvasNode = this.konvaLib.addImage(konvaDrawingCanvas, options);
+    this.konvaCursorCanvas = konvaCursorCanvas;
+    this.konvaCursorCanvasNode = this.konvaLib.addImage(konvaCursorCanvas, options);
+
+    this.softBrush = new SoftBrush(this.drawingCanvas, {
+      size: this.defaultBrushSize / this.scale,
+      hardness: this.defaultBrushHardness,
+      cursorCanvas: this.cursorCanvas,
+      color: [255, 255, 255, 1],
+      brushPreviewEnabled: true,
+      canvasScale: this.scale,
+      enabled: false
+    });
+
+    var redrawCounter = 0;
+
+    this.softBrush.on("draw", () => {
+
+      if (redrawCounter++ >= 100) {
+        console.log("draw")
+        redrawCounter = 0;
+        this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getDrawingUndoRedo());
+      }
+
+    });
+
+    this.softBrush.on("drawbegin", () => {
+      console.log("drawbegin")
+      this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getDrawingUndoRedo());
+    });
+
+    this.imageInstanced = true;
+
+    this.enableDrawingColorPicker();
+    this.enableBackgroundColorPicker();
+    this.enableDrawing();
+
+    this.konvaDrawingCanvasNode.listening(false);
+    this.konvaCursorCanvasNode.listening(false);
+
+    var thumbnailImageFile = await readAndCompressImage(file, {
+      quality: 1,
+      maxWidth: 150,
+      maxHeight: 150
+    });
+
+    var thumbnailImageURL = await imageConversion.filetoDataURL(thumbnailImageFile);
+
+    var thumbnailImage = await imageConversion.urltoImage(thumbnailImageURL);
+
+    this.filterPreviews.push([
+      konvaImage,
+      this.generateFilterPreviewImages(thumbnailImage)
+    ]);
 
     setTimeout(() => {
       document.getElementById("move-tool-icon").click();
     }, 50)
 
-    this.dispatchEvent("imageTargetChange", [konvaImage]);
+    this.dispatchEvent("loadImage", [{
+      konvaImage: konvaImage,
+      imageObj: image
+    }]);
 
+    this.dispatchEvent("imageTargetChange", [konvaImage]);
 
   }
 
-  async importImage(buffer) {
+  async importImage(file) {
+
+    var buffer = await file.arrayBuffer();
 
     var imageObj = await this.imageLib.bufferToImage(buffer);
+
+    if (this.options.downscaleImage) {
+      if (imageObj.width > this.options.maxImageSize || imageObj.height > this.options.maxImageSize) {
+        console.log(this.options.maxImageSize / Math.max(imageObj.width, imageObj.height))
+
+        file = await readAndCompressImage(file, {
+          quality: 1,
+          maxWidth: this.options.maxImageSize,
+          maxHeight: this.options.maxImageSize
+        });
+
+        let url = await imageConversion.filetoDataURL(file);
+        imageObj = await imageConversion.dataURLtoImage(url);
+      }
+    }
 
     imageObj.id = this.runningImageId++;
 
@@ -737,12 +759,26 @@ class PhotoEditorLib {
     // this.konvaLib.bringTransformersToFront();
 
     this.imagesWithNoFilters.push(imageObj);
-    this.pixiApps.push(PixiLib.appFromImage(imageObj.src));
+
+    var thumbnailImageFile = await readAndCompressImage(file, {
+      quality: 1,
+      maxWidth: 150,
+      maxHeight: 150
+    });
+
+    var thumbnailImageURL = await imageConversion.filetoDataURL(thumbnailImageFile);
+
+    var thumbnailImage = await imageConversion.urltoImage(thumbnailImageURL);
 
     this.filterPreviews.push([
       konvaImage,
-      this.generateFilterPreviewImages(imageObj)
+      this.generateFilterPreviewImages(thumbnailImage)
     ]);
+
+    this.dispatchEvent("importImage", [{
+      konvaImage: konvaImage,
+      imageObj: imageObj
+    }]);
 
     this.dispatchEvent("imageTargetChange", [konvaImage]);
 
@@ -805,8 +841,8 @@ class PhotoEditorLib {
 
     var layer = this.layer;
 
-    var scaleOffsetX = this.originalImageData.width * (this.scale - this.nativeScale) / this.scale / 2;
-    var scaleOffsetY = this.originalImageData.height * (this.scale - this.nativeScale) / this.scale / 2;
+    var scaleOffsetX = this.originalImage.width * (this.scale - this.nativeScale) / this.scale / 2;
+    var scaleOffsetY = this.originalImage.height * (this.scale - this.nativeScale) / this.scale / 2;
 
     var zoomOffsetLeftOriginX = this.offsetLeftOriginX / this.scale * -1;
     var zoomOffsetLeftOriginY = this.offsetLeftOriginY / this.scale * -1;
@@ -850,8 +886,13 @@ class PhotoEditorLib {
       nodes: [text],
       rotateAnchorOffset: 60,
       enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
-      anchorSize: Math.max(5, 10 / this.scale),
-      rotationSnaps: [0, 90, 180, 270]
+      anchorSize: Math.max(5, this.nativeScale ? 15 / this.nativeScale : 15),
+      rotationSnaps: [0, 90, 180, 270],
+      borderStroke: "rgb(0 149 255)",
+      anchorStroke: "rgb(0 149 255)",
+      anchorCornerRadius: this.nativeScale ? 30 / this.nativeScale : 30,
+      anchorStrokeWidth: this.nativeScale ? 1 / this.nativeScale : 1,
+      anchorFill: "rgba(255, 255, 255, 0.5)"
     })
 
     transformer.on("mousedown", (e) => {
@@ -1118,9 +1159,14 @@ class PhotoEditorLib {
 
         var textCanvasColor = konvaAsCanvas.getContext("2d").getImageData(pos.x, pos.y, 1, 1).data;
         var konvaImagesColor = konvaImagesAsCanvas.getContext("2d").getImageData(pos.x, pos.y, 1, 1).data;
+        var drawingCanvasColor = this.drawingCanvas.getContext("2d").getImageData(pos.x, pos.y, 1, 1).data;
 
         if (konvaImagesColor[3] > 0) {
           var color = konvaImagesColor;
+        }
+
+        if (drawingCanvasColor[3] > 0) {
+          var color = drawingCanvasColor;
         }
 
         if (textCanvasColor[3] > 0) {
@@ -1289,6 +1335,7 @@ class PhotoEditorLib {
     var width = this.konvaLib.imagesLayer.width();
     var height = this.konvaLib.imagesLayer.height();
 
+    /*
     var x = this.konvaLib.imagesLayer.width() / 2;
     var y = this.konvaLib.imagesLayer.height() / 2;
 
@@ -1298,13 +1345,26 @@ class PhotoEditorLib {
     this.konvaLib.imagesLayer.y(x);
 
 
+    this.konvaLib.imagesLayer.rotate(90); */
 
-    this.konvaLib.imagesLayer.rotate(90);
+    this.konvaLib.rotateLayerContents(this.konvaLib.imagesLayer);
 
     this.konvaLib.stage.size({
       width: this.konvaLib.stage.height(),
       height: this.konvaLib.stage.width(),
     })
+
+    //if (this.konvaLib.count === 2) return;
+
+    /*
+    this.konvaLib.imagesLayer.add(new Konva.Rect({
+      width: this.konvaLib.imagesLayer.width(),
+      height: this.konvaLib.imagesLayer.height(),
+      x: 0,
+      y: 0,
+      fill: "grey",
+      draggable: true
+    })) */
 
     //this.konvaLib.imagesLayer.rotate(90);
 
@@ -1369,7 +1429,7 @@ class PhotoEditorLib {
     this.stage.width(this.konvaLib.stage.width());
     this.stage.height(this.konvaLib.stage.height());
 
-    var canvasContainer = this.canvas.parentElement;
+    var canvasContainer = this.canvasesContainer;
 
     var imageRatio = this.konvaLib.stage.width() / this.konvaLib.stage.height();
     var canvasRatio = canvasContainer.clientWidth / canvasContainer.clientHeight;
@@ -1514,7 +1574,7 @@ class PhotoEditorLib {
 
     this.layer.draw();
 
-    this.konvaLib.cropImages(cropData);
+    this.konvaLib.cropImagesTest(cropData);
 
     /*
     this.konvaLib.transformersStageMainLayer.x(this.konvaLib.transformersStageMainLayer.x() + cropData.x * -1);
@@ -1598,6 +1658,16 @@ class PhotoEditorLib {
 
     document.getElementById("move-tool-icon").click();
 
+    /*
+    this.konvaLib.imagesLayer.add(new Konva.Rect({
+      width: this.konvaLib.imagesLayer.width(),
+      height: this.konvaLib.imagesLayer.height(),
+      x: 0,
+      y: 0,
+      fill: "gray",
+      draggable: true
+    })); */
+
   }
 
   enableDrawing() {
@@ -1638,17 +1708,17 @@ class PhotoEditorLib {
   }
 
   disableDrawingCanvas() {
-    this.konvaDrawingCanvasNode.listening(false);
-    this.konvaCursorCanvasNode.listening(false);
+    //this.konvaDrawingCanvasNode.listening(false);
+    //this.konvaCursorCanvasNode.listening(false);
     this.softBrush.enabled = false;
-    this.konvaLib.stage.draw();
+    //this.konvaLib.stage.draw();
   }
 
   enableDrawingCanvas() {
-    this.konvaDrawingCanvasNode.listening(true);
-    this.konvaCursorCanvasNode.listening(true);
+    //this.konvaDrawingCanvasNode.listening(true);
+    //this.konvaCursorCanvasNode.listening(true);
     this.softBrush.enabled = true;
-    this.konvaLib.stage.draw();
+    //this.konvaLib.stage.draw();
   }
 
   changeDrawingColor(color) {
@@ -1822,6 +1892,8 @@ class PhotoEditorLib {
     this.konvaLib.targetImage(selectedImage);
     this.konvaLib.previewTargetImage(previewedImage);
     if (this.konvaLib.backgroundImageColor === "transparent") this.konvaLib.showImage(this.konvaLib.backgroundImage);
+
+    this.dispatchEvent("imageExport", [downloadCanvas])
 
     function download(canvas, filename) {
 

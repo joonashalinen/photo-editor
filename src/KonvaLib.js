@@ -1,9 +1,10 @@
 
 import Konva from "konva";
+import ImageCropLib from "./ImageCropLib.js";
 
 class KonvaLib {
 
-  constructor(options) {
+  constructor(options, callback) {
 
     this.initialScale = options.initialScale;
 
@@ -63,6 +64,8 @@ class KonvaLib {
       this.imagesLayer.x(options.width / 2);
       this.imagesLayer.y(options.height / 2);
 
+      this.imagesLayerRotation = 0;
+
       var mainLayer = new Konva.Layer();
 
       this.stage.add(mainLayer);
@@ -113,6 +116,8 @@ class KonvaLib {
           this.transformersStage.batchDraw();
         })
       });
+
+      callback();
 
     }
 
@@ -173,8 +178,12 @@ class KonvaLib {
         enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
         borderStroke: "rgb(0 149 255)",
         anchorStroke: "rgb(0 149 255)",
+        borderStrokeWidth: 1,
         rotationSnaps: [0, 90, 180, 270],
-        anchorSize: this.initialScale ? 15 / this.initialScale : 15
+        anchorSize: this.initialScale ? 30 / this.initialScale : 30,
+        anchorCornerRadius: this.initialScale ? 30 / this.initialScale : 30,
+        anchorStrokeWidth: this.initialScale ? 1 / this.initialScale : 1,
+        anchorFill: "rgba(255, 255, 255, 0.5)"
       });
       this.mainLayer.add(transformer);
       transformer.forceUpdate();
@@ -187,6 +196,109 @@ class KonvaLib {
     this.stage.draw();
 
     return image;
+
+  }
+
+  rotateLayerContents(layer) {
+
+    if (!this.count) this.count = 0;
+
+    this.count += 1;
+
+    var tempRotationLayer = new Konva.Layer();
+    this.stage.add(tempRotationLayer);
+    this.cloneLayerProperties(tempRotationLayer, layer);
+    this.moveLayerContents(layer, tempRotationLayer);
+
+    console.log(tempRotationLayer.width(), tempRotationLayer.height())
+
+    var x = tempRotationLayer.width() / 2;
+    var y = tempRotationLayer.height() / 2;
+
+    tempRotationLayer.x(y);
+    tempRotationLayer.y(x);
+
+    if (this.imagesLayerRotation === 90 || this.imagesLayerRotation === 270) {
+
+      tempRotationLayer.offsetX(x);
+      tempRotationLayer.offsetY(y);
+
+      tempRotationLayer.x(x);
+      tempRotationLayer.y(y);
+
+      //console.log(this.stage.offsetX(), this.stage.offsetY(), this.stage.x(), this.stage.y())
+
+      tempRotationLayer.rotate(90);
+
+      /*
+      tempRotationLayer.add(new Konva.Rect({
+        width: tempRotationLayer.width(),
+        height: tempRotationLayer.height(),
+        x: 0,
+        y: 0,
+        fill: "grey",
+        draggable: true
+      })) */
+
+      console.log(tempRotationLayer.width(), this.stage.height(), y)
+
+      tempRotationLayer.x(tempRotationLayer.x() + ((tempRotationLayer.height() - this.stage.width()) / 2));
+      tempRotationLayer.y(tempRotationLayer.y() - ((this.stage.height() - tempRotationLayer.width()) / 2));
+
+      this.moveLayerContents(tempRotationLayer, layer, true);
+
+      //console.log(tempRotationLayer.offsetX(), tempRotationLayer.offsetY(), tempRotationLayer.x(), tempRotationLayer.y())
+      this.stage.draw();
+
+      this.imagesLayerRotation += 90;
+      if (this.imagesLayerRotation === 360) this.imagesLayerRotation = 0;
+
+      return;
+    }
+
+    tempRotationLayer.rotate(90);
+
+    this.moveLayerContents(tempRotationLayer, layer, true);
+
+    this.stage.draw();
+
+    this.imagesLayerRotation += 90;
+    if (this.imagesLayerRotation === 360) this.imagesLayerRotation = 0;
+
+  }
+
+  moveLayerContents(fromLayer, toLayer, useAbsolutePosition) {
+
+    var contents = fromLayer.getChildren();
+
+    for (var i = 0; i < contents.length; i++) {
+      var item = contents[i];
+      var zIndex = item.zIndex();
+      if (useAbsolutePosition) {
+        var absolutePosition = item.absolutePosition();
+        console.log(absolutePosition)
+        item.x(absolutePosition.x);
+        item.y(absolutePosition.y);
+        item.rotation(item.rotation() + fromLayer.rotation());
+      }
+      item.remove();
+      toLayer.add(item);
+      this.getNodeTransformer(item).forceUpdate();
+      item.zIndex(zIndex);
+    }
+
+  }
+
+  cloneLayerProperties(layer, layerToClone) {
+
+    layer.x(layerToClone.x());
+    layer.y(layerToClone.y());
+    layer.offsetX(layerToClone.offsetX());
+    layer.offsetY(layerToClone.offsetY());
+
+    layer.rotation(layerToClone.rotation());
+    layer.scale(layerToClone.scale());
+    layer.size(layerToClone.size());
 
   }
 
@@ -268,6 +380,15 @@ class KonvaLib {
 
       var existingCrop = image.crop();
 
+      var canvas = image.getCanvas();
+      var imageData = canvas.getContext().getImageData(
+        existingCrop.x + (newX - x) / image.getScale().x,
+        existingCrop.y + (newY - y) / image.getScale().y,
+        newWidth / image.getScale().x,
+        newHeight / image.getScale().y);
+
+      document.getElementById("drawingCanvas").getContext("2d").putImageData(imageData, 0, 0)
+
       image.crop({
         x: existingCrop.x + (newX - x) / image.getScale().x,
         y: existingCrop.y + (newY - y) / image.getScale().y,
@@ -288,6 +409,94 @@ class KonvaLib {
 
     }
 
+  }
+
+  cropImagesTest(boundaryBox) {
+
+    var images = this.imagesLayer.getChildren();
+
+    for (var i = 0; i < images.length; i++) {
+      var image = images[i];
+
+      this.hideAllImages();
+      image.show();
+      this.disableBackground();
+      if (this.selectedTargetImage) this.unTargetImage(this.selectedTargetImage);
+      if (this.previewedTargetImage) this.unPreviewTargetImage(this.previewedTargetImage);
+
+      console.log(image.getAbsolutePosition())
+      console.log(this.imagesLayer.getAbsolutePosition())
+
+      this.stage.batchDraw();
+
+      var canvas = this.stage.toCanvas();
+
+      var cropResult = ImageCropLib.cropImageInLayer(canvas, boundaryBox);
+
+      //console.log(cropResult); return;
+
+      if (!cropResult) continue;
+
+      var croppedImage = cropResult.croppedImage;
+
+      croppedImage.id = image.photoEditorId;
+
+      var [newImage] = this.replaceImage(image, croppedImage);
+
+      newImage.rotation(0);
+      newImage.scale({
+        x: 1,
+        y: 1
+      });
+      newImage.width(cropResult.afterCropBoundingBox.width);
+      newImage.height(cropResult.afterCropBoundingBox.height)
+
+      newImage.x(Math.max(cropResult.beforeCropBoundingBox.x - boundaryBox.x, boundaryBox.x - boundaryBox.x));
+      newImage.y(Math.max(cropResult.beforeCropBoundingBox.y - boundaryBox.y, boundaryBox.y - boundaryBox.y));
+
+      this.showAllImages();
+      this.enableBackground();
+
+      this.stage.batchDraw();
+
+    }
+
+    /*
+    this.imagesLayer.add(new Konva.Rect({
+      width: this.imagesLayer.height(),
+      height: this.imagesLayer.width(),
+      fill: "gray",
+      draggable: true
+    })) */
+
+    this.stage.draw();
+
+  }
+
+  hideAllImages() {
+    var images = this.imagesLayer.getChildren();
+    for (var i = 0; i < images.length; i++) {
+      var image = images[i];
+      image.hide();
+    }
+  }
+
+  showAllImages() {
+    var images = this.imagesLayer.getChildren();
+    for (var i = 0; i < images.length; i++) {
+      var image = images[i];
+      image.show();
+    }
+  }
+
+  enableBackground() {
+    this.backgroundImage.show();
+    this.colorBackgroundImage.show();
+  }
+
+  disableBackground() {
+    this.backgroundImage.hide();
+    this.colorBackgroundImage.hide();
   }
 
   cloneAllImages() {
@@ -361,14 +570,14 @@ class KonvaLib {
 
       target.shadowEnabled(true);
       target.shadowColor("black");
-      target.shadowOffsetY(20);
+      target.shadowOffsetY(this.initialScale ? 30 / this.initialScale : 30);
       target.shadowOffsetX(0);
       target.shadowOpacity(0.8);
-      target.shadowBlur(30);
+      target.shadowBlur(this.initialScale ? 50 / this.initialScale : 50);
 
       target.strokeEnabled(true);
       target.stroke("rgb(0 149 255)");
-      target.strokeWidth(5);
+      target.strokeWidth(1);
       target.strokeScaleEnabled(false);
 
       this.stage.batchDraw();
@@ -409,14 +618,14 @@ class KonvaLib {
 
       target.shadowEnabled(true);
       target.shadowColor("black");
-      target.shadowOffsetY(20);
+      target.shadowOffsetY(this.initialScale ? 30 / this.initialScale : 30);
       target.shadowOffsetX(0);
       target.shadowOpacity(0.8);
-      target.shadowBlur(30);
+      target.shadowBlur(this.initialScale ? 50 / this.initialScale : 50);
 
       target.strokeEnabled(true);
       target.stroke("rgb(0 149 255)");
-      target.strokeWidth(5);
+      target.strokeWidth(1);
       target.strokeScaleEnabled(false);
 
       this.stage.batchDraw();

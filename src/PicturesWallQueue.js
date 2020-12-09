@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Upload, Modal, Image} from 'antd';
+import { Upload, Modal, Image, Tooltip } from 'antd';
 import { PlusOutlined, ToolOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import "./PicturesWallQueue.css";
 
@@ -38,6 +38,7 @@ class PicturesWallQueue extends React.Component {
   handleChange = ({ fileList }) => this.setState({ fileList });
 
   render() {
+    console.log("rerendering..")
     const { previewVisible, previewImage, fileList, previewTitle } = this.state;
     const uploadButton = (
       <div>
@@ -50,19 +51,38 @@ class PicturesWallQueue extends React.Component {
         {
           this.state.images.map((image) => {
             return (
-              <div style={{width: this.props.width + 40, height: this.props.height + 40}} className="picturesWallQueueContainer">
-                <Image className="picturesWallQueuePicture" width={this.props.width} src={image.url}/>
+              <div key={image.uid} style={{width: this.props.width + 40, height: this.props.height + 40}} className="picturesWallQueueContainer">
+                <Image preview={{visible: this.state.imageShowing === image.uid ? true: false}} className="picturesWallQueuePicture" width={this.props.width} src={image.url}/>
                 <div className="picturesWallQueueIconsContainer">
                   <div className="picturesWallQueueIcons">
-                    <EyeOutlined className="picturesWallQueueIcon" onClick={() => {
-                      this.props.onClickDelete();
-                    }}/>
-                    <DeleteOutlined className="picturesWallQueueIcon" onClick={() => {
-                      this.props.onClickDelete();
-                    }}/>
-                    <ToolOutlined className="picturesWallQueueIcon" onClick={() => {
-                      this.props.onClickDelete();
-                    }}/>
+                    <Tooltip title="View">
+                      <EyeOutlined className="picturesWallQueueIcon" onClick={() => {
+                        this.setState({
+                          imageShowing: image.uid
+                        });
+                        var clickHandler = () => {
+                          this.setState({
+                            imageShowing: ""
+                          });
+                          document.body.removeEventListener("click", clickHandler);
+                          document.body.removeEventListener("touch", clickHandler);
+                        }
+                        setTimeout(() => {
+                          document.body.addEventListener("click", clickHandler);
+                          document.body.addEventListener("touch", clickHandler);
+                        })
+                      }}/>
+                    </Tooltip>
+                    <Tooltip title="Delete">
+                      <DeleteOutlined className="picturesWallQueueIcon" onClick={() => {
+                        if (this.props.onClickDelete) this.props.onClickDelete();
+                      }}/>
+                    </Tooltip>
+                    <Tooltip title="Edit in photo editor">
+                      <ToolOutlined className="picturesWallQueueIcon" onClick={() => {
+                        this.props.onClickEdit(image);
+                      }}/>
+                    </Tooltip>
                   </div>
                 </div>
               </div>

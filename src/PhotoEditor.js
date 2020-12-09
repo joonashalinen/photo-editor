@@ -96,8 +96,12 @@ class PhotoEditor extends React.Component {
       adjustments: this.adjustments,
       selectedTool: selectedTool,
       defaultBrushSize: this.state.drawingLineWidth,
-      defaultBrushHardness: this.state.brushHardness / 100
+      defaultBrushHardness: this.state.brushHardness / 100,
+      downscaleImage: true,
+      maxImageSize: 2000
     });
+
+    window.photoEditorLib = this.photoEditorLib;
 
     /*
     this.photoEditorLib.on("load", () => {
@@ -140,6 +144,22 @@ class PhotoEditor extends React.Component {
 
     this.photoEditorLib.on("removeImageInstance", () => {
       this.setState(this.defaultState);
+    });
+
+    this.photoEditorLib.on("loadingImage", () => {
+      this.setState({
+        canvasesContainerLoading: true,
+        imageFilterPreviewsLoading: true
+      });
+    });
+
+    this.photoEditorLib.on("loadImage", () => {
+      this.setState({
+        uploadFileList: [],
+        canvasesContainerLoading: false,
+        imageFilterPreviewsLoading: false,
+        imageInstanced: true
+      });
     });
 
   }
@@ -282,7 +302,7 @@ class PhotoEditor extends React.Component {
         </div>
         <div className="canvasTools">
           <div id="canvasesContainer" className="canvasesContainer">
-            <div style={{position: "absolute", top: "190px", width:"100%"}}>
+            <div className="emptyCanvasImage">
               {
                 !this.state.imageInstanced && !this.state.canvasesContainerLoading ?
                   <Empty
@@ -399,7 +419,7 @@ class PhotoEditor extends React.Component {
                 this.photoEditorLib.selectedTool = "crop";
                 this.photoEditorLib.beginCrop();
               }}>
-                <img className="toolIcon" src="crop-alt.svg" width="24px"></img>
+                <img className="cropToolIcon toolIcon" src="crop-alt.svg" width="24px"></img>
               </div>
             </Tooltip>
             <Tooltip placement="right" title="Add Text [T]">
@@ -419,7 +439,7 @@ class PhotoEditor extends React.Component {
                 this.photoEditorLib.selectedTool = "addText";
                 this.photoEditorLib.enableTextColorPicker();
               }}>
-                <img className="toolIcon" src="text.svg" width="24px"></img>
+                <img className="addTextToolIcon toolIcon" src="text.svg" width="24px"></img>
               </div>
             </Tooltip>
             <Tooltip placement="right" title="Paint [B]">
@@ -542,7 +562,7 @@ class PhotoEditor extends React.Component {
               });
             }}>
               <Tabs.TabPane tab="Filters" key="1">
-                <div style={{width: "96%", margin: "auto", height: "400px", overflowY: "auto"}}>
+                <div className="filtersTabContainer">
                   <Collapse ghost={true} className="site-collapse-custom-collapse">
                     <Collapse.Panel header="Blur" key="1" className="site-collapse-custom-panel">
                       <EffectSlider name="blur" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={100} updateState={updateState} value={this.state.blur} defaultValue={this.state.blur} title="Blur" onAfterChange={(value) => {
@@ -690,9 +710,18 @@ class PhotoEditor extends React.Component {
                   if (!this.acceptedImageTypes.includes(file.type)) return;
 
                   if (this.state.imageInstanced) {
-                    file.arrayBuffer().then(buffer => {
-                      this.photoEditorLib.importImage(buffer);
+
+                    this.setState({
+                      canvasesContainerLoading: true,
+                      imageFilterPreviewsLoading: true
+                    })
+
+                    await this.photoEditorLib.importImage(file);
+
+                    this.setState({
+                      canvasesContainerLoading: false
                     });
+
                     return;
                   }
 
