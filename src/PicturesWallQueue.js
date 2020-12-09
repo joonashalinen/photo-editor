@@ -66,11 +66,23 @@ class PicturesWallQueue extends React.Component {
                           });
                           document.body.removeEventListener("click", clickHandler);
                           document.body.removeEventListener("touch", clickHandler);
+                          setTimeout(() => {
+                            var imagePreviewOperationsBars = document.getElementsByClassName("ant-image-preview-operations");
+                            for (var i = 0; i < imagePreviewOperationsBars.length; i++) {
+                              var bar = imagePreviewOperationsBars[i];
+                              bar.style.visibility = "visible";
+                            }
+                          }, 350)
                         }
                         setTimeout(() => {
+                          var imagePreviewOperationsBars = document.getElementsByClassName("ant-image-preview-operations");
+                          for (var i = 0; i < imagePreviewOperationsBars.length; i++) {
+                            var bar = imagePreviewOperationsBars[i];
+                            bar.style.visibility = "hidden";
+                          }
                           document.body.addEventListener("click", clickHandler);
                           document.body.addEventListener("touch", clickHandler);
-                        })
+                        }, 10);
                       }}/>
                     </Tooltip>
                     <Tooltip title="Delete">
