@@ -53,7 +53,7 @@ class SoftBrush {
   }
 
   setSize(value) {
-    this.size = value;
+    this.size = Math.floor(value);
   }
 
   setHardness(value) {
@@ -328,11 +328,6 @@ class SoftBrush {
 
     var points = [];
 
-    el.onmousedown = (e) => {
-      isDrawing = true;
-      lastPoint = { x: e.offsetX, y: e.offsetY };
-    };
-
     var initialized = false;
     var stoppedCursor = true;
 
@@ -430,44 +425,28 @@ class SoftBrush {
       return;
     }
 
-    this.canvas.addEventListener('mousedown', (e) => {
+    this.onMouseDown = (e) => {
       if (this.enabled){
         this.dispatchEvent("drawbegin");
         isDrawing = true;
         var pos = {x: e.offsetX, y: e.offsetY}
 
-        /*
-        var x = pos.x;
-        var y = pos.y;
-
-        if (this.konvaStage.rotation() === 90) {
-          pos.y = this.konvaStage.width() - x;
-          pos.x = y;
-        } else if (this.konvaStage.rotation() === 180) {
-          pos.y = this.konvaStage.height() - y;
-          pos.x = this.konvaStage.width() - x;
-        } else if (this.konvaStage.rotation() === 270) {
-          pos.y = x;
-          pos.x = this.konvaStage.height() - y;
-        } */
-
         lastPoint = { x: pos.x, y: pos.y };
         points.push(lastPoint);
       }
-    });
+    }
 
-    this.canvas.addEventListener('mouseup', (e) => {
+    this.onMouseUp = (e) => {
       if (this.enabled) {
         points = [];
         isDrawing = false;
         this.dispatchEvent("drawend");
       }
-    });
+    }
 
     var timeout;
 
-    this.canvas.addEventListener('mousemove', (e) => {
-
+    this.onMouseMove = (e) => {
 
       if (timeout) {
         window.cancelAnimationFrame(timeout);
@@ -478,22 +457,6 @@ class SoftBrush {
         if (this.enabled) {
           var pos = {x: e.offsetX, y: e.offsetY}
 
-          /*
-          var x = pos.x;
-          var y = pos.y;
-
-          if (this.konvaStage.rotation() === 90) {
-            pos.y = this.konvaLayer.width() - x + this.konvaLayer.y();
-            pos.x = y - this.konvaLayer.x();
-          } else if (this.konvaStage.rotation() === 180) {
-            pos.y = this.konvaStage.height() - y;
-            pos.x = this.konvaStage.width() - x;
-          } else if (this.konvaStage.rotation() === 270) {
-            pos.y = x;
-            pos.x = this.konvaStage.height() - y;
-          } */
-
-
           handleMousemove(pos.x, pos.y);
 
           this.dispatchEvent("draw");
@@ -501,35 +464,31 @@ class SoftBrush {
 
       });
 
-    });
+    }
 
-    this.canvas.addEventListener('mouseleave', (e) => {
+    this.onMouseLeave = (e) => {
       if (this.enabled) {
         this.clearCanvas(cursorCtx);
         points = [];
         mouseLeft = true;
         isDrawing = false;
       }
-    });
+    }
 
-    /*
-    el.onmousemove = (e) => {
-      if (!this.enabled) return;
-      handleMousemove(e.offsetX, e.offsetY);
-    };
+    console.log("adding event listeners")
 
-    el.onmouseup = () => {
-      if (!this.enabled) return;
-      isDrawing = false;
-      stoppedCursor = true;
-    };
+    this.canvas.addEventListener('mousedown', this.onMouseDown);
+    this.canvas.addEventListener('mouseup', this.onMouseUp);
+    this.canvas.addEventListener('mousemove', this.onMouseMove);
+    this.canvas.addEventListener('mouseleave', this.onMouseLeave);
 
-    el.onmouseleave = () => {
-      if (!this.enabled) return;
-      this.clearCanvas(cursorCtx);
-      mouseLeft = true;
-    }; */
+  }
 
+  removeInstance() {
+    this.canvas.removeEventListener('mousedown', this.onMouseDown);
+    this.canvas.removeEventListener('mouseup', this.onMouseUp);
+    this.canvas.removeEventListener('mousemove', this.onMouseMove);
+    this.canvas.removeEventListener('mouseleave', this.onMouseLeave);
   }
 
 }

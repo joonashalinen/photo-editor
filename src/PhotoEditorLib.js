@@ -360,6 +360,25 @@ class PhotoEditorLib {
     return imageObj;
   }
 
+  replaceImagesWithNoFilters(newImages) {
+
+    this.imagesWithNoFilters = newImages;
+
+  }
+
+  reapplyImageFilters() {
+
+    for (var i = 0; i < this.imagesWithNoFilters.length; i++) {
+      var imageWithNoFilters = this.imagesWithNoFilters[i];
+
+      var imageObj = this.getImageWithFilters(imageWithNoFilters);
+
+      var [newImageNode, oldImageNode] = this.konvaLib.replaceImageWithSameId(imageObj);
+
+    }
+
+  }
+
   setSelectedImageFilter(filterName, values) {
 
     if (!this.konvaLib.selectedTargetImage) return;
@@ -1391,14 +1410,17 @@ class PhotoEditorLib {
       height: this.konvaLib.colorBackgroundImage.width(),
     });
 
+    /*
     var ctx = this.konvaDrawingCanvas.getContext("2d");
     var drawingImageData = ctx.getImageData(0, 0, this.konvaDrawingCanvas.width, this.konvaDrawingCanvas.height);
 
-    console.log(this.konvaDrawingCanvasNode.width())
+    console.log(this.konvaDrawingCanvasNode.width()) */
 
+    /*
     this.konvaDrawingCanvas.width = this.konvaDrawingCanvasNode.height();
-    this.konvaDrawingCanvas.height = this.konvaDrawingCanvasNode.width();
+    this.konvaDrawingCanvas.height = this.konvaDrawingCanvasNode.width(); */
 
+    /*
     this.konvaDrawingCanvasNode.size({
       width: this.konvaDrawingCanvasNode.height(),
       height: this.konvaDrawingCanvasNode.width(),
@@ -1410,16 +1432,30 @@ class PhotoEditorLib {
     this.konvaCursorCanvasNode.size({
       width: this.konvaCursorCanvasNode.height(),
       height: this.konvaCursorCanvasNode.width(),
-    });
+    }); */
 
-    ctx.putImageData(drawingImageData, 0, 0);
+    //ctx.putImageData(drawingImageData, 0, 0);
 
     this.konvaLib.mainLayer.size({
       width: this.konvaLib.stage.width(),
       height: this.konvaLib.stage.height(),
     });
 
+    this.konvaLib.transformersStage.size({
+      width: this.konvaLib.stage.width(),
+      height: this.konvaLib.stage.height(),
+    });
+
+    this.konvaLib.transformersStageMainLayer.size({
+      width: this.konvaLib.stage.width(),
+      height: this.konvaLib.stage.height(),
+    });
+
+    this.konvaLib.updateTransformers(this.konvaLib.transformersStageMainLayer);
+    //this.konvaLib.recreateTransformersStageTransformers();
+
     this.konvaLib.stage.draw();
+    this.konvaLib.transformersStage.draw();
 
     CanvasLib.rotateCanvas(this.drawingCanvas);
     CanvasLib.rotateCanvasSize(this.cursorCanvas);
@@ -1446,6 +1482,7 @@ class PhotoEditorLib {
     var transformString = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
 
     this.konvaImagesContainer.firstElementChild.style.transform = transformString;
+    this.konvaTransformersContainer.firstElementChild.style.transform = transformString;
     this.drawingCanvas.style.transform = transformString;
     this.cursorCanvas.style.transform = transformString;
     this.colorPickerCanvas.style.transform = transformString;
@@ -1574,7 +1611,13 @@ class PhotoEditorLib {
 
     this.layer.draw();
 
+    this.konvaLib.replaceImages(this.imagesWithNoFilters, 0);
+
     this.konvaLib.cropImages(cropData);
+
+    this.replaceImagesWithNoFilters(await this.konvaLib.getImageObjects(this.konvaLib.imagesLayer));
+
+    this.reapplyImageFilters();
 
     /*
     this.konvaLib.transformersStageMainLayer.x(this.konvaLib.transformersStageMainLayer.x() + cropData.x * -1);
@@ -1743,6 +1786,7 @@ class PhotoEditorLib {
   }
 
   setBrushSize(value) {
+    console.log(value, this.scale)
     this.softBrush.setSize(value / this.scale);
   }
 
@@ -1954,12 +1998,13 @@ class PhotoEditorLib {
     this.konvaLib.stage.destroyChildren();
     this.konvaLib.stage.listening(false);
     this.konvaLib.stage.remove();
-
     document.getElementById("konvaImagesContainer").firstElementChild.remove();
     document.getElementById("konvaTransformersContainer").firstElementChild.remove();
+    this.konvaLib = false;
 
-    delete this.konvaLib;
-    delete this.softBrush;
+    this.softBrush.removeInstance();
+    this.softBrush = false;
+    this.drawingEnabled = false;
 
     this.appliedPixiFilters = {};
 

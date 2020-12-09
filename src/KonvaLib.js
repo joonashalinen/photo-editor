@@ -132,6 +132,22 @@ class KonvaLib {
     this.stage.batchDraw();
   }
 
+  createImageTransformer(image) {
+    return new Konva.Transformer({
+      nodes: [image],
+      rotateAnchorOffset: 60,
+      enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
+      borderStroke: "rgb(0 149 255)",
+      anchorStroke: "rgb(0 149 255)",
+      borderStrokeWidth: 1,
+      rotationSnaps: [0, 90, 180, 270],
+      anchorSize: this.initialScale ? 30 / this.initialScale : 30,
+      anchorCornerRadius: this.initialScale ? 30 / this.initialScale : 30,
+      anchorStrokeWidth: this.initialScale ? 1 / this.initialScale : 1,
+      anchorFill: "rgba(255, 255, 255, 0.5)"
+    });
+  }
+
   addImage(imageObj, options) {
 
     /*
@@ -163,34 +179,10 @@ class KonvaLib {
     image.zIndex(1);
 
     if (!options || options.enableTransformer !== false) {
-      var transformer = new Konva.Transformer({
-        nodes: [image],
-        rotateAnchorOffset: 60,
-        enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
-        borderStroke: "rgb(0 149 255)",
-        anchorStroke: "rgb(0 149 255)",
-        borderStrokeWidth: 1,
-        rotationSnaps: [0, 90, 180, 270],
-        anchorSize: this.initialScale ? 30 / this.initialScale : 30,
-        anchorCornerRadius: this.initialScale ? 30 / this.initialScale : 30,
-        anchorStrokeWidth: this.initialScale ? 1 / this.initialScale : 1,
-        anchorFill: "rgba(255, 255, 255, 0.5)"
-      });
+      var transformer = this.createImageTransformer(image);
       this.transformersStageMainLayer.add(transformer);
       transformer.forceUpdate();
-      var transformer = new Konva.Transformer({
-        nodes: [image],
-        rotateAnchorOffset: 60,
-        enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
-        borderStroke: "rgb(0 149 255)",
-        anchorStroke: "rgb(0 149 255)",
-        borderStrokeWidth: 1,
-        rotationSnaps: [0, 90, 180, 270],
-        anchorSize: this.initialScale ? 30 / this.initialScale : 30,
-        anchorCornerRadius: this.initialScale ? 30 / this.initialScale : 30,
-        anchorStrokeWidth: this.initialScale ? 1 / this.initialScale : 1,
-        anchorFill: "rgba(255, 255, 255, 0.5)"
-      });
+      transformer = this.createImageTransformer(image);
       this.mainLayer.add(transformer);
       transformer.forceUpdate();
     }
@@ -359,10 +351,15 @@ class KonvaLib {
       if (this.selectedTargetImage) this.unTargetImage(this.selectedTargetImage);
       if (this.previewedTargetImage) this.unPreviewTargetImage(this.previewedTargetImage);
 
+      var transformer = this.getImageTransformer(image);
+      transformer.hide();
+      transformer.forceUpdate();
+
+      this.transformersStageMainLayer.hide();
       console.log(image.getAbsolutePosition())
       console.log(this.imagesLayer.getAbsolutePosition())
 
-      this.stage.batchDraw();
+      this.stage.draw();
 
       var canvas = this.stage.toCanvas();
 
@@ -392,7 +389,14 @@ class KonvaLib {
       this.showAllImages();
       this.enableBackground();
 
+      this.transformersStageMainLayer.show();
+
+      transformer.forceUpdate();
+      transformer = this.getImageTransformer(image, this.transformersStageMainLayer);
+      if (transformer) transformer.forceUpdate();
+
       this.stage.batchDraw();
+      this.transformersStage.batchDraw();
 
     }
 
@@ -626,6 +630,38 @@ class KonvaLib {
     return this.getNodeTransformer(image, layer);
   }
 
+  getImageTransformersWithId(id) {
+
+    var returnObj = {
+      mainLayer: false,
+      transformersStageMainLayer: false
+    }
+
+    var mainTransformers = this.mainLayer.getChildren();
+    var overlayTransformers = this.transformersStageMainLayer.getChildren();
+
+    for (let i = 0; i < mainTransformers.length; i++) {
+      let transformer = overlayTransformers[i];
+      if ((!transformer instanceof Konva.Transformer)) return;
+      let node = transformer.nodes()[0];
+      if (node.photoEditorId === id) {
+        returnObj.transformersStageMainLayer = node;
+      }
+    }
+
+    for (let i = 0; i < overlayTransformers.length; i++) {
+      let transformer = overlayTransformers[i];
+      if ((!transformer instanceof Konva.Transformer)) return;
+      let node = transformer.nodes()[0];
+      if (node.photoEditorId === id) {
+        returnObj.mainLayer = node;
+      }
+    }
+
+    return returnObj;
+
+  }
+
   getNodeTransformer(node, layer) {
     var transformer;
     layer = layer ? layer : this.mainLayer;
@@ -635,6 +671,52 @@ class KonvaLib {
       transformer = nodeTransformer;
     });
     return transformer;
+  }
+
+  updateTransformers(layer) {
+    var nodes = layer.getChildren();
+    for (var i = 0; i < nodes.length; i++) {
+      var node = nodes[i];
+      if (node instanceof Konva.Transformer) node.forceUpdate();
+    }
+  }
+
+  updateImageTransformerConnections(id) {
+
+    var image = this.getImageWithId(id);
+
+    var transformers = this.getImageTransformersWithId(id);
+
+    if (transformers.mainLayer) {
+      if (!transformers.mainLayer.nodes().includes(image)) {
+        transformers.mainLayer.nodes([image]);
+        transformers.mainLayer.forceUpdate();
+      }
+    }
+
+    if (transformers.transformersStageMainLayer) {
+      if (!transformers.transformersStageMainLayer.nodes().includes(image)) {
+        transformers.transformersStageMainLayer.nodes([image]);
+        transformers.transformersStageMainLayer.forceUpdate();
+      }
+    }
+
+  }
+
+  recreateTransformersStageTransformers() {
+    var nodes = this.transformersStageMainLayer.getChildren();
+    for (var i = 0; i < nodes.length; i++) {
+      var node = nodes[i];
+      if (node instanceof Konva.Transformer) {
+        var originalTransformer = this.getNodeTransformer(node.nodes()[0]);
+        var newTransformer = this.createImageTransformer(originalTransformer.nodes()[0]);
+        newTransformer.zIndex(node.zIndex());
+        node.remove();
+        this.transformersStageMainLayer.add(newTransformer);
+        node.forceUpdate();
+        newTransformer.forceUpdate();
+      }
+    }
   }
 
   hideImage(image) {
@@ -655,7 +737,11 @@ class KonvaLib {
       var image = images[i];
       var transformer = this.getImageTransformer(image);
 
-      if (image.photoEditorId !== newImages[i].photoEditorId) return;
+      if (newImages[i] instanceof Konva.Image){
+        if (image.photoEditorId !== newImages[i].photoEditorId) return;
+      }
+
+      if (image.photoEditorId !== newImages[i].id) return;
 
       var newImage = newImages[i] instanceof Konva.Image ? newImages[i] : new Konva.Image({
         image: newImages[i],
@@ -673,15 +759,22 @@ class KonvaLib {
       newImage.zIndex(image.zIndex());
 
       transformer.nodes([newImage]);
+      transformer.forceUpdate();
+
+      /*
+      transformer = this.getImageTransformer(image, this.transformersStageMainLayer);
+
+      if (transformer) transformer.nodes([newImage]);
+      transformer.forceUpdate(); */
 
       image.remove();
 
       this.imagesLayer.add(newImage);
-      transformer.forceUpdate();
 
     }
 
     this.stage.batchDraw();
+    this.transformersStageMainLayer.batchDraw();
 
     return images;
 
@@ -740,6 +833,8 @@ class KonvaLib {
 
   deleteImage(image) {
     image.remove();
+    var transformer = this.getImageTransformer(image, this.transformersStageMainLayer);
+    if (transformer) transformer.hide();
     this.stage.draw();
   }
 
@@ -757,6 +852,34 @@ class KonvaLib {
         return image;
       }
     }
+  }
+
+  async getImageObjects(layer) {
+
+    var imageObjects = [];
+    var imageNodes = layer.getChildren();
+
+    for (var i = 0; i < imageNodes.length; i++) {
+      var node = imageNodes[i];
+      if (node instanceof Konva.Image) {
+        await new Promise((resolve) => {
+          var transformer = this.getImageTransformer(node);
+          if (transformer) transformer.hide();
+          node.toImage({
+            callback: (image) => {
+              image.id = node.photoEditorId;
+              imageObjects.push(image);
+              if (transformer) transformer.show();
+              resolve();
+            }
+          })
+
+        })
+      }
+    }
+
+    return imageObjects;
+
   }
 
   bringImageToFront(image) {
