@@ -15,7 +15,8 @@ class PixiLib {
     "negative": "negative",
     "polaroid": "polaroid",
     "sepia": "sepia",
-    "vintage": "vintage"
+    "vintage": "vintage",
+    "predator": "predator"
   }
 
   static generalFilters = {

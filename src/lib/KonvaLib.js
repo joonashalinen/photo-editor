@@ -123,8 +123,6 @@ class KonvaLib {
 
     }
 
-    this.topZIndex = 1;
-
   }
 
   setBackgroundColor(rgbaString) {
@@ -175,7 +173,6 @@ class KonvaLib {
       this.imagesLayer.add(image);
     }
 
-    var zIndex = options && typeof options.zIndex === "number" ? options.zIndex : this.topZIndex++;
     image.zIndex(1);
 
     if (!options || options.enableTransformer !== false) {
@@ -186,8 +183,6 @@ class KonvaLib {
       this.mainLayer.add(transformer);
       transformer.forceUpdate();
     }
-
-    this.bringTransformersToFront();
 
     if (!options.preventTarget) this.targetImage(image);
 
@@ -286,6 +281,7 @@ class KonvaLib {
   moveLayerContents(fromLayer, toLayer, useAbsolutePosition) {
 
     var contents = fromLayer.getChildren();
+    var toMove = [];
 
     for (var i = 0; i < contents.length; i++) {
       var item = contents[i];
@@ -297,6 +293,11 @@ class KonvaLib {
         item.y(absolutePosition.y);
         item.rotation(item.rotation() + fromLayer.rotation());
       }
+      toMove.push(item);
+    }
+
+    for (var i = 0; i < toMove.length; i++) {
+      var item = toMove[i];
       item.remove();
       toLayer.add(item);
       this.getNodeTransformer(item).forceUpdate();
@@ -342,10 +343,13 @@ class KonvaLib {
 
     var images = this.imagesLayer.getChildren();
 
+    var cropResults = [];
+
     for (var i = 0; i < images.length; i++) {
       var image = images[i];
 
       this.hideAllImages();
+      this.hideAllImageTransformers();
       image.show();
       this.disableBackground();
       if (this.selectedTargetImage) this.unTargetImage(this.selectedTargetImage);
@@ -354,6 +358,10 @@ class KonvaLib {
       var transformer = this.getImageTransformer(image);
       transformer.hide();
       transformer.forceUpdate();
+
+      var overlayTransformer = this.getImageTransformer(image, this.transformersStageMainLayer);
+      overlayTransformer.hide();
+      overlayTransformer.forceUpdate();
 
       this.transformersStageMainLayer.hide();
       console.log(image.getAbsolutePosition())
@@ -365,13 +373,31 @@ class KonvaLib {
 
       var cropResult = ImageCropLib.cropImageInLayer(canvas, boundaryBox);
 
-      //console.log(cropResult); return;
+      cropResults.push([image, cropResult]);
+
+      this.showAllImages();
+      this.enableBackground();
+
+      this.transformersStageMainLayer.show();
+
+      this.stage.batchDraw();
+      this.transformersStage.batchDraw();
+
+    }
+
+    for (var i = 0; i < cropResults.length; i++) {
+
+      var image = cropResults[i][0];
+      var cropResult = cropResults[i][1];
 
       if (!cropResult) continue;
 
       var croppedImage = cropResult.croppedImage;
 
       croppedImage.id = image.photoEditorId;
+
+      transformer = this.getImageTransformer(image);
+      var overlayTransformer = this.getImageTransformer(image, this.transformersStageMainLayer);
 
       var [newImage] = this.replaceImage(image, croppedImage);
 
@@ -386,17 +412,8 @@ class KonvaLib {
       newImage.x(Math.max(cropResult.beforeCropBoundingBox.x - boundaryBox.x, boundaryBox.x - boundaryBox.x));
       newImage.y(Math.max(cropResult.beforeCropBoundingBox.y - boundaryBox.y, boundaryBox.y - boundaryBox.y));
 
-      this.showAllImages();
-      this.enableBackground();
-
-      this.transformersStageMainLayer.show();
-
       transformer.forceUpdate();
-      transformer = this.getImageTransformer(image, this.transformersStageMainLayer);
-      if (transformer) transformer.forceUpdate();
-
-      this.stage.batchDraw();
-      this.transformersStage.batchDraw();
+      if (overlayTransformer) overlayTransformer.forceUpdate();
 
     }
 
@@ -459,22 +476,23 @@ class KonvaLib {
 
   bringToFront(konvaNode) {
     konvaNode.moveToTop();
-    this.bringTransformersToFront();
     this.stage.draw();
   }
 
+  // #deprecated
   bringTransformersToFront() {
     for (var i = 0; i < this.mainLayer.getChildren().length; i++) {
       var node = this.mainLayer.getChildren()[i];
       if (node instanceof Konva.Transformer) {
         node.moveToTop();
-        node.zIndex(110)
+        node.zIndex(this.mainLayer.getChildren().length)
         node.forceUpdate();
       }
     }
     this.stage.draw();
   }
 
+  // #deprecated
   rearrangeImagesWithNodeLast(nodeToBeLast) {
 
     var images = [];
@@ -551,6 +569,16 @@ class KonvaLib {
 
   }
 
+  unTargetImage(image) {
+    if (!image) return;
+    if (this.selectedTargetImage !== image) return;
+    image.shadowEnabled(false);
+    image.strokeEnabled(false);
+    image.draggable(false);
+    this.hideImageTransformer(image);
+    this.selectedTargetImage = false;
+  }
+
   previewTargetImage(image) {
 
     var setPreviewTargetStyles = (target) => {
@@ -586,16 +614,6 @@ class KonvaLib {
 
   }
 
-  unTargetImage(image) {
-    if (!image) return;
-    if (this.selectedTargetImage !== image) return;
-    image.shadowEnabled(false);
-    image.strokeEnabled(false);
-    image.draggable(false);
-    this.hideImageTransformer(image);
-    this.selectedTargetImage = false;
-  }
-
   unPreviewTargetImage(image) {
     if (!image) return;
     if (this.previewedTargetImage !== image) return;
@@ -604,6 +622,17 @@ class KonvaLib {
     image.strokeEnabled(false);
     this.hideImageTransformer(image);
     this.previewedTargetImage = false;
+  }
+
+  hideAllImageTransformers() {
+
+    var transformers = this.mainLayer.getChildren();
+
+    for (var i = 0; i < transformers.length; i++) {
+      var transformer = transformers[i];
+      transformer.hide();
+    }
+
   }
 
   hideImageTransformer(image) {
@@ -630,6 +659,7 @@ class KonvaLib {
     return this.getNodeTransformer(image, layer);
   }
 
+  // #deprecated
   getImageTransformersWithId(id) {
 
     var returnObj = {
@@ -665,12 +695,13 @@ class KonvaLib {
   getNodeTransformer(node, layer) {
     var transformer;
     layer = layer ? layer : this.mainLayer;
-    layer.getChildren().forEach((nodeTransformer) => {
-      if (!(nodeTransformer instanceof Konva.Transformer)) return;
-      if (!nodeTransformer.nodes().includes(node)) return;
-      transformer = nodeTransformer;
-    });
-    return transformer;
+    var transformers = layer.getChildren();
+    for (var i = 0; i < transformers.length; i++) {
+      var transformer = transformers[i];
+      if (!(transformer instanceof Konva.Transformer)) continue;
+      if (!transformer.nodes().includes(node)) continue;
+      return transformer;
+    }
   }
 
   updateTransformers(layer) {
@@ -681,6 +712,7 @@ class KonvaLib {
     }
   }
 
+  // #deprecated
   updateImageTransformerConnections(id) {
 
     var image = this.getImageWithId(id);
@@ -703,6 +735,7 @@ class KonvaLib {
 
   }
 
+  // #deprecated
   recreateTransformersStageTransformers() {
     var nodes = this.transformersStageMainLayer.getChildren();
     for (var i = 0; i < nodes.length; i++) {
@@ -733,15 +766,10 @@ class KonvaLib {
 
     var images = this.imagesLayer.getChildren();
 
-    for (var i = startIndex; i < images.length; i++) {
-      var image = images[i];
-      var transformer = this.getImageTransformer(image);
+    var toReplace = [];
 
-      if (newImages[i] instanceof Konva.Image){
-        if (image.photoEditorId !== newImages[i].photoEditorId) return;
-      }
-
-      if (image.photoEditorId !== newImages[i].id) return;
+    for (var i = 0; i < newImages.length; i++) {
+      var image = this.getImageWithId(newImages[i].id);
 
       var newImage = newImages[i] instanceof Konva.Image ? newImages[i] : new Konva.Image({
         image: newImages[i],
@@ -758,23 +786,63 @@ class KonvaLib {
       newImage.photoEditorId = image.photoEditorId;
       newImage.zIndex(image.zIndex());
 
+      toReplace.push([newImage, image]);
+    }
+
+    /*
+    for (var i = startIndex; i < images.length; i++) {
+      var image = images[i];
+
+      if (newImages[i] instanceof Konva.Image){
+        if (image.photoEditorId !== newImages[i].photoEditorId) return;
+      }
+
+      console.log(image.photoEditorId, newImages[i].id)
+
+      if (newImages[i] instanceof HTMLImageElement) {
+        if (image.photoEditorId !== newImages[i].id) return;
+      }
+
+      var newImage = newImages[i] instanceof Konva.Image ? newImages[i] : new Konva.Image({
+        image: newImages[i],
+        x: image.x(),
+        y: image.y(),
+        scale: image.scale(),
+        width: image.width(),
+        height: image.height(),
+        rotation: image.rotation(),
+        draggable: image.draggable()
+      });
+
+      newImage.targetable = image.targetable;
+      newImage.photoEditorId = image.photoEditorId;
+      newImage.zIndex(image.zIndex());
+
+      toReplace.push([newImage, image]);
+
+    } */
+
+    for (var i = 0; i < toReplace.length; i++) {
+      var newImage = toReplace[i][0];
+      var oldImage = toReplace[i][1];
+
+      var transformer = this.getImageTransformer(oldImage);
+      var overlayTransformer = this.getImageTransformer(oldImage, this.transformersStageMainLayer);
+
       transformer.nodes([newImage]);
       transformer.forceUpdate();
 
-      /*
-      transformer = this.getImageTransformer(image, this.transformersStageMainLayer);
+      overlayTransformer.nodes([newImage]);
+      overlayTransformer.forceUpdate();
 
-      if (transformer) transformer.nodes([newImage]);
-      transformer.forceUpdate(); */
-
-      image.remove();
+      oldImage.remove();
 
       this.imagesLayer.add(newImage);
 
     }
 
-    this.stage.batchDraw();
-    this.transformersStageMainLayer.batchDraw();
+    this.stage.draw();
+    this.transformersStageMainLayer.draw();
 
     return images;
 
@@ -783,6 +851,7 @@ class KonvaLib {
   replaceImage(oldImage, newImageObj) {
 
     var transformer = this.getImageTransformer(oldImage);
+    var overlayTransformer = this.getImageTransformer(oldImage, this.transformersStageMainLayer);
 
     var newImage = newImageObj instanceof Konva.Image ? newImageObj : new Konva.Image({
       image: newImageObj,
@@ -802,11 +871,13 @@ class KonvaLib {
     console.log(oldImage.photoEditorId)
 
     transformer.nodes([newImage]);
+    overlayTransformer.nodes([newImage]);
 
     oldImage.remove();
 
     this.imagesLayer.add(newImage);
     transformer.forceUpdate();
+    overlayTransformer.forceUpdate();
 
     if (this.selectedTargetImage === oldImage) this.targetImage(newImage);
 
@@ -836,6 +907,7 @@ class KonvaLib {
     var transformer = this.getImageTransformer(image, this.transformersStageMainLayer);
     if (transformer) transformer.hide();
     this.stage.draw();
+    return image;
   }
 
   deleteImageWithId(id) {
@@ -887,6 +959,7 @@ class KonvaLib {
     this.stage.draw();
   }
 
+  // #deprecated
   getBackgroundImage() {
     return this.backgroundImage;
   }

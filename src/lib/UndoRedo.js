@@ -1,5 +1,4 @@
 
-import UndoRedoObject from "./UndoRedoObject.js";
 import UndoRedoTypesLib from "./UndoRedoTypesLib.js";
 import CanvasLib from "./CanvasLib.js";
 

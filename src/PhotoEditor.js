@@ -14,7 +14,7 @@ import ContextMenu from "./ContextMenu.js";
 import ImageGridMenu from "./ImageGridMenu.js";
 import ConfirmPopupButton from "./ConfirmPopupButton.js";
 import { Tabs } from 'antd';
-import PhotoEditorLib from "./PhotoEditorLib";
+import PhotoEditorLib from "./lib/PhotoEditorLib";
 
 class PhotoEditor extends React.Component {
 
@@ -63,7 +63,8 @@ class PhotoEditor extends React.Component {
       "Negative",
       "Polaroid",
       "Sepia",
-      "Vintage"
+      "Vintage",
+      "Predator"
     ];
 
     this.adjustableFilters = [
@@ -165,6 +166,8 @@ class PhotoEditor extends React.Component {
   }
 
   render() {
+
+    console.log("react is rerendering PhotoEditor.js")
 
     var arrInLowerCase = (arr) => {
       var array = [];

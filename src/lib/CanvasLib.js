@@ -13,6 +13,7 @@ class CanvasLib {
     return canvas;
   }
 
+  // #deprecated
   static cloneImageData(originalImageData) {
     return new ImageData(
       new Uint8ClampedArray(originalImageData.data),
@@ -27,6 +28,7 @@ class CanvasLib {
     targetCanvas.style.transform = originalCanvas.style.transform;
   }
 
+  // #deprecated
   static canvasFromImageData(imageData) {
     var canvas = document.createElement("canvas");
     canvas.width = imageData.width;
@@ -75,6 +77,7 @@ class CanvasLib {
 
   }
 
+  // #deprecated
   static getCroppedCanvas(cropData, canvas) {
 
     var ctx = canvas.getContext("2d");

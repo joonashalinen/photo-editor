@@ -1,11 +1,9 @@
 
 import Cropper from "cropperjs";
 import Konva from "konva";
-import Colors from "./Colors.js";
 import iro from '@jaames/iro';
 import UndoRedo from "./UndoRedo.js";
 import SoftBrush from "./SoftBrush.js";
-import CanvasCursor from "./CanvasCursor.js";
 import CanvasLib from "./CanvasLib.js";
 import ImageLib from "./ImageLib.js";
 import PixiLib from "./PixiLib.js";
@@ -380,6 +378,8 @@ class PhotoEditorLib {
   }
 
   setSelectedImageFilter(filterName, values) {
+
+    console.log(this.konvaLib.selectedTargetImage)
 
     if (!this.konvaLib.selectedTargetImage) return;
 
@@ -1611,13 +1611,19 @@ class PhotoEditorLib {
 
     this.layer.draw();
 
+    var selectedTargetImage = this.konvaLib.selectedTargetImage;
+
     this.konvaLib.replaceImages(this.imagesWithNoFilters, 0);
 
     this.konvaLib.cropImages(cropData);
 
-    this.replaceImagesWithNoFilters(await this.konvaLib.getImageObjects(this.konvaLib.imagesLayer));
+    var newImagesWithNoFilters = await this.konvaLib.getImageObjects(this.konvaLib.imagesLayer);
+
+    this.replaceImagesWithNoFilters(newImagesWithNoFilters);
 
     this.reapplyImageFilters();
+
+    if (selectedTargetImage) this.konvaLib.targetImage(selectedTargetImage);
 
     /*
     this.konvaLib.transformersStageMainLayer.x(this.konvaLib.transformersStageMainLayer.x() + cropData.x * -1);
@@ -1648,6 +1654,10 @@ class PhotoEditorLib {
     this.konvaLib.stage.y(this.konvaLib.stage.y() + cropData.y * -1); */
 
     this.konvaLib.stage.size({
+      width: Math.floor(cropData.width),
+      height: Math.floor(cropData.height)
+    });
+    this.konvaLib.transformersStage.size({
       width: Math.floor(cropData.width),
       height: Math.floor(cropData.height)
     });
@@ -1693,7 +1703,7 @@ class PhotoEditorLib {
       height: Math.floor(cropData.height)
     }); */
 
-    //this.konvaLib.transformersStage.batchDraw();
+    this.konvaLib.transformersStage.batchDraw();
     this.konvaLib.stage.batchDraw();
 
     var ctx = this.drawingCanvas.getContext("2d");
@@ -1750,16 +1760,6 @@ class PhotoEditorLib {
     document.getElementById("drawingCanvas").style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
 
     this.softBrush.enableSoftBrush();
-
-    var canvasCursor = new CanvasCursor(this.konvaImagesContainer.firstElementChild, document.getElementById("drawingCanvasCursor"), {
-      canvasScale: 1,
-      cursorSize: this.softBrush.getSize() * this.scale,
-      cursorParent: this.canvasesContainer
-    });
-
-    canvasCursor.setCursorColor([0, 0, 0, 1])
-
-    this.drawingCanvasCursor = canvasCursor;
 
     this.drawingEnabled = true;
 
