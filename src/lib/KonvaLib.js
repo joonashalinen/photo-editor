@@ -769,7 +769,8 @@ class KonvaLib {
     var toReplace = [];
 
     for (var i = 0; i < newImages.length; i++) {
-      var image = this.getImageWithId(newImages[i].id);
+      var id = newImages[i] instanceof HTMLImageElement ? newImages[i].id : newImages[i].photoEditorId;
+      var image = this.getImageWithId(id);
 
       var newImage = newImages[i] instanceof Konva.Image ? newImages[i] : new Konva.Image({
         image: newImages[i],
@@ -905,16 +906,17 @@ class KonvaLib {
   deleteImage(image) {
     if (image === this.selectedTargetImage) this.unTargetImage(image);
     image.remove();
-    var transformer = this.getImageTransformer(image, this.transformersStageMainLayer);
-    if (transformer) transformer.hide();
+    var transformer = this.getImageTransformer(image);
+    if (transformer) transformer.remove();
+    var overlayTransformer = this.getImageTransformer(image, this.transformersStageMainLayer);
+    if (overlayTransformer) overlayTransformer.remove();
     this.stage.draw();
-    return image;
+    return [image, transformer, overlayTransformer];
   }
 
   deleteImageWithId(id) {
     var image = this.getImageWithId(id);
-    if (image) this.deleteImage(image);
-    return image;
+    if (image) return this.deleteImage(image);
   }
 
   getImageWithId(id) {

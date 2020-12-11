@@ -100,10 +100,11 @@ class UndoRedoTypesLib {
     return undoRedoItem;
   }
 
-  getImageAddUndoRedo(imageNode, imageTransformer) {
+  getImageAddUndoRedo(imageNode, imageTransformer, imageOverlayTransformer) {
     var undoRedoItem = this.getImageTransformUndoRedo(imageNode);
     undoRedoItem.data.zIndex = imageNode.zIndex();
     undoRedoItem.data.transformer = imageTransformer ? imageTransformer : this.parent.konvaLib.getImageTransformer(imageNode);
+    undoRedoItem.data.overlayTransformer =  imageOverlayTransformer ? imageOverlayTransformer : this.parent.konvaLib.getImageTransformer(imageNode, this.parent.konvaLib.transformersStageMainLayer);
     undoRedoItem.type = "image-add";
     return undoRedoItem;
   }
@@ -113,6 +114,7 @@ class UndoRedoTypesLib {
     undoRedoItem.type = "image-delete";
     undoRedoItem.data.zIndex = imageNode.zIndex();
     undoRedoItem.data.transformer = this.parent.konvaLib.getImageTransformer(imageNode);
+    undoRedoItem.data.overlayTransformer = this.parent.konvaLib.getImageTransformer(imageNode, this.parent.konvaLib.transformersStageMainLayer);
     return undoRedoItem;
   }
 
