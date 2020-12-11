@@ -1847,12 +1847,6 @@ class PhotoEditorLib {
       this.selectedDrawingColor = color;
       this.softBrush.setColor([color.red, color.green, color.blue, color.alpha]);
 
-      if (color.red > 200 && color.green > 200 && color.blue > 200) {
-        this.drawingCanvasCursor.setCursorColor([11, 11, 11]);
-      } else {
-        this.drawingCanvasCursor.setCursorColor([255, 255, 255]);
-      }
-
       document.getElementById("drawing-color-picker-button").style.backgroundColor = color.rgbaString;
       this.changeDrawingColor(color)
     })

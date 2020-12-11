@@ -903,6 +903,7 @@ class KonvaLib {
   }
 
   deleteImage(image) {
+    if (image === this.selectedTargetImage) this.unTargetImage(image);
     image.remove();
     var transformer = this.getImageTransformer(image, this.transformersStageMainLayer);
     if (transformer) transformer.hide();
@@ -912,8 +913,7 @@ class KonvaLib {
 
   deleteImageWithId(id) {
     var image = this.getImageWithId(id);
-    if (image) image.remove();
-    this.stage.draw();
+    if (image) this.deleteImage(image);
     return image;
   }
 
