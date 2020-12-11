@@ -823,6 +823,7 @@ class PhotoEditorLib {
     if (!this.konvaTarget instanceof this.Konva.Image) return;
     this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getImageDeleteUndoRedo(this.konvaTarget));
     this.konvaLib.deleteImage(this.konvaTarget);
+    this.dispatchEvent("imageTargetChange", [false]);
     //this.imagesWithNoFilters.splice(this.imagesWithNoFilters.indexOf(this.getImageWithNoFiltersById(this.konvaTarget.photoEditorId)), 1);
   }
 
