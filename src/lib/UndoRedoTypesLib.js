@@ -43,7 +43,8 @@ class UndoRedoTypesLib {
 
     return {
       data: {
-        images: this.parent.konvaLib.cloneAllImages(),
+        images: this.parent.konvaLib.getImageNodes(),
+        imagesWithNoFilters: this.parent.imagesWithNoFilters,
         width: this.parent.konvaLib.stage.width(),
         height: this.parent.konvaLib.stage.height(),
         transform: this.parent.konvaImagesContainer.firstElementChild.style.transform,

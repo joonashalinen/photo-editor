@@ -68,7 +68,7 @@ h1 {
   right: 35%;
   position: absolute;
   bottom: 10px;
-  margin-right: 28px;
+  margin-right: 29px;
 }
 
 .undoRedoButton:hover {
@@ -190,7 +190,7 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 5px;
+  padding: 20px;
   border-radius: 2px;
   cursor: pointer;
 }
@@ -200,8 +200,16 @@ h1 {
 }
 
 .cropCancel {
-  right: 38px;
-  color: #111;
+  right: 69px;
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid transparent;
+  background-color: rgb(31, 31, 31);
+}
+
+.cropCancel:hover {
+  border: 1px solid #0e71b8;
+  color: 1px solid #0e71b8;
+  background-color: rgb(31, 31, 31);
 }
 
 .whiteCheckmark {

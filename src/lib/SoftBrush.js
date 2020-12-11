@@ -477,18 +477,32 @@ class SoftBrush {
 
     console.log("adding event listeners")
 
+    this.canvas.onpointerdown = this.onMouseDown;
+    this.canvas.onpointerup = this.onMouseUp;
+    this.canvas.onpointermove = this.onMouseMove;
+    this.canvas.onpointerleave = this.onMouseLeave;
+
+    /*
     this.canvas.addEventListener('mousedown', this.onMouseDown);
     this.canvas.addEventListener('mouseup', this.onMouseUp);
     this.canvas.addEventListener('mousemove', this.onMouseMove);
-    this.canvas.addEventListener('mouseleave', this.onMouseLeave);
+    this.canvas.addEventListener('mouseleave', this.onMouseLeave); */
 
   }
 
   removeInstance() {
+
+    this.canvas.onpointerdown = false;
+    this.canvas.onpointerup = false;
+    this.canvas.onpointermove = false;
+    this.canvas.onpointerleave = false;
+
+    /*
+
     this.canvas.removeEventListener('mousedown', this.onMouseDown);
     this.canvas.removeEventListener('mouseup', this.onMouseUp);
     this.canvas.removeEventListener('mousemove', this.onMouseMove);
-    this.canvas.removeEventListener('mouseleave', this.onMouseLeave);
+    this.canvas.removeEventListener('mouseleave', this.onMouseLeave); */
   }
 
 }

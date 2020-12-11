@@ -87,17 +87,17 @@ class PixiLib {
 
   static setImageFilters(app, filters) {
 
-    console.log(filters)
+    //console.log(filters)
 
     for (var i = 0; i < filters.length; i++) {
 
-      console.log(i)
+      //console.log(i)
 
       var filterName = filters[i][0];
       var values = filters[i][1];
       var properties = filters[i][2];
 
-      console.log(filterName, values)
+      //console.log(filterName, values)
 
       this.setImageFilter(app, filterName, values, properties);
 
@@ -180,8 +180,8 @@ class PixiLib {
 
     function handleFilter(filterName, type, container) {
 
-      console.log(filterName)
-      console.log(values)
+      //console.log(filterName)
+      //console.log(values)
 
       if (type === "colorMatrix") {
         var colorMatrix = new PIXI.filters.ColorMatrixFilter(...values);
@@ -191,9 +191,10 @@ class PixiLib {
       }
 
       if (type === "general") {
+          /*
         console.log(filterName)
         console.log(values)
-        console.log(properties)
+        console.log(properties) */
 
         /*
         if (filterName === "TwistFilter") {

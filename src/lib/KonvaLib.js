@@ -146,6 +146,14 @@ class KonvaLib {
     });
   }
 
+  getImageNodes() {
+    var imageNodes = [];
+    for (var i = 0; i < this.imagesLayer.getChildren().length; i++) {
+      imageNodes.push(this.imagesLayer.getChildren()[i]);
+    }
+    return imageNodes;
+  }
+
   addImage(imageObj, options) {
 
     /*
@@ -767,6 +775,7 @@ class KonvaLib {
     var images = this.imagesLayer.getChildren();
 
     var toReplace = [];
+    var replaced = [];
 
     for (var i = 0; i < newImages.length; i++) {
       var id = newImages[i] instanceof HTMLImageElement ? newImages[i].id : newImages[i].photoEditorId;
@@ -840,12 +849,14 @@ class KonvaLib {
 
       this.imagesLayer.add(newImage);
 
+      replaced.push(oldImage);
+
     }
 
     this.stage.draw();
     this.transformersStageMainLayer.draw();
 
-    return images;
+    return replaced;
 
   }
 
@@ -875,6 +886,8 @@ class KonvaLib {
     overlayTransformer.nodes([newImage]);
 
     oldImage.remove();
+
+    console.log(newImage)
 
     this.imagesLayer.add(newImage);
     transformer.forceUpdate();
