@@ -25,6 +25,8 @@ class PhotoEditor extends React.Component {
 
     this.defaultState = {
       image: props.image ? props.image : "",
+      canvasWidth: 0,
+      canvasHeight: 0,
       selectedTargetImage: false,
       numberOfTextFields: 0,
       showAcceptCancelMenu: false,
@@ -40,8 +42,18 @@ class PhotoEditor extends React.Component {
       bulgePinchStrength: 0,
       bulgePinchCenterX: 0,
       bulgePinchCenterY: 0,
-      tiltShiftBlur: 0,
-      tiltShiftGradient: 0,
+      twistRadius: 0,
+      twistAngle: 0,
+      twistX: 0,
+      twistY: 0,
+      zoomBlurStrength: 0,
+      zoomBlurCenterX: 0,
+      zoomBlurCenterY: 0,
+      zoomBlurInnerRadius: 0,
+      zoomBlurOuterRadius: 0,
+      motionBlurVelocityX: 0,
+      motionBlurVelocityY: 0,
+      motionBlurQuality: 5,
       contrast: 0,
       brightness: 0,
       gamma: 0,
@@ -63,14 +75,15 @@ class PhotoEditor extends React.Component {
       "Negative",
       "Polaroid",
       "Sepia",
-      "Vintage",
-      "Predator"
+      "Vintage"
     ];
 
     this.adjustableFilters = [
       "blur",
-      "tilt/shift",
-      "bulge/pinch"
+      "twist",
+      "zoomblur",
+      "bulge/pinch",
+      "motionblur"
     ];
 
     this.adjustments = [
@@ -159,7 +172,9 @@ class PhotoEditor extends React.Component {
         uploadFileList: [],
         canvasesContainerLoading: false,
         imageFilterPreviewsLoading: false,
-        imageInstanced: true
+        imageInstanced: true,
+        canvasHeight: this.photoEditorLib.canvasHeight,
+        canvasWidth: this.photoEditorLib.canvasWidth
       });
     });
 
@@ -589,7 +604,7 @@ class PhotoEditor extends React.Component {
                           strength: value / 100
                         }]);
                       }}/>
-                      <EffectSlider name="bulgePinchCenterX" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={100} updateState={updateState} value={this.state.bulgePinchCenterX} defaultValue={this.state.bulgePinchCenterX} title="Bulge/Pinch Center X" onAfterChange={(value) => {
+                      <EffectSlider name="bulgePinchCenterX" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={100} updateState={updateState} value={this.state.bulgePinchCenterX} defaultValue={Math.floor(this.state.canvasWidth / 2)} title="Bulge/Pinch Center X" onAfterChange={(value) => {
 
 
 
@@ -606,7 +621,7 @@ class PhotoEditor extends React.Component {
 
 
                       }}/>
-                      <EffectSlider name="bulgePinchCenterY" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={100} updateState={updateState} value={this.state.bulgePinchCenterY} defaultValue={this.state.bulgePinchCenterY} title="Bulge/Pinch Center Y" onAfterChange={(value) => {
+                      <EffectSlider name="bulgePinchCenterY" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={100} updateState={updateState} value={this.state.bulgePinchCenterY} defaultValue={Math.floor(this.state.canvasHeight / 2)} title="Bulge/Pinch Center Y" onAfterChange={(value) => {
                         this.photoEditorLib.setSelectedImageFilter("bulge/pinch", [{
                           center: [this.state.bulgePinchCenterX / 100, value / 100],
                           radius: this.state.bulgePinchRadius,
@@ -616,12 +631,88 @@ class PhotoEditor extends React.Component {
                     </Collapse.Panel>
                   </Collapse>
                   <Collapse ghost={true} className="site-collapse-custom-collapse">
-                    <Collapse.Panel header="Tilt/Shift" key="1" className="site-collapse-custom-panel">
-                      <EffectSlider name="tiltShiftBlur" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={200} updateState={updateState} value={this.state.tiltShiftBlur} defaultValue={this.state.tiltShiftBlur} title="Tilt/Shift Blur" onAfterChange={(value) => {
-                        this.photoEditorLib.setSelectedImageFilter("tilt/shift", [value, this.state.tiltShiftGradient, new this.photoEditorLib.PixiLib.PIXI.Point(0.5, 0) , new this.photoEditorLib.PixiLib.PIXI.Point(0.5, 1)]);
+                    <Collapse.Panel header="Twist" key="2" className="site-collapse-custom-panel">
+                      <EffectSlider name="twistRadius" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={this.state.canvasWidth} updateState={updateState} value={this.state.twistRadius} defaultValue={this.state.twistRadius} title="Twist Radius" onAfterChange={(value) => {
+                        this.photoEditorLib.setSelectedImageFilter("twist", [value, this.state.twistAngle]);
                       }}/>
-                      <EffectSlider name="tiltShiftGradient" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={1000} updateState={updateState} value={this.state.tiltShiftGradient} defaultValue={this.state.tiltShiftGradient} title="Tilt/Shift Gradient" onAfterChange={(value) => {
-                        this.photoEditorLib.setSelectedImageFilter("tilt/shift", [this.state.tiltShiftBlur, value, new this.photoEditorLib.PixiLib.PIXI.Point(0.5, 0) ,  new this.photoEditorLib.PixiLib.PIXI.Point(0.5, 1)]);
+                      <EffectSlider name="twistAngle" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={-10} max={10} updateState={updateState} value={this.state.twistAngle} defaultValue={this.state.twistAngle} title="Twist Angle" onAfterChange={(value) => {
+                        this.photoEditorLib.setSelectedImageFilter("twist", [this.state.twistRadius, value]);
+                      }}/>
+                      <EffectSlider name="twistX" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={this.state.canvasWidth} updateState={updateState} value={this.state.twistX} defaultValue={this.state.twistX} title="Twist X" onAfterChange={(value) => {
+                        this.photoEditorLib.setSelectedImageFilter("twist", [this.state.twistRadius, this.state.twistAngle], {
+                          offset: this.photoEditorLib.PixiLib.getPoint(value, this.state.twistY)
+                        });
+                      }}/>
+                      <EffectSlider name="twistY" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={this.state.canvasHeight} updateState={updateState} value={this.state.twistY} defaultValue={this.state.twistY} title="Twist Y" onAfterChange={(value) => {
+                        this.photoEditorLib.setSelectedImageFilter("twist", [this.state.twistRadius, this.state.twistAngle], {
+                          offset: this.photoEditorLib.PixiLib.getPoint(this.state.twistX, value)
+                        });
+                      }}/>
+                    </Collapse.Panel>
+                  </Collapse>
+                  <Collapse ghost={true} className="site-collapse-custom-collapse">
+                    <Collapse.Panel header="Zoom Blur" key="3" className="site-collapse-custom-panel">
+                      <EffectSlider name="zoomBlurStrength" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={100} updateState={updateState} value={this.state.zoomBlurStrength} defaultValue={this.state.zoomBlurStrength} title="Zoom Blur Strength" onAfterChange={(value) => {
+                        this.photoEditorLib.setSelectedImageFilter("zoomblur", [{
+                          strength: value / 100,
+                          center: [this.state.zoomBlurCenterX, this.state.zoomBlurCenterY],
+                          innerRadius: this.state.zoomBlurInnerRadius,
+                          radius: this.state.zoomBlurOuterRadius
+                        }]);
+                      }}/>
+                      <EffectSlider name="zoomBlurCenterX" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={this.state.canvasWidth} updateState={updateState} value={this.state.zoomBlurCenterX} defaultValue={Math.floor(this.state.canvasWidth / 2)} title="Zoom Blur Center X" onAfterChange={(value) => {
+                        this.photoEditorLib.setSelectedImageFilter("zoomblur", [{
+                          strength: this.state.zoomBlurStrength / 100,
+                          center: [value, this.state.zoomBlurCenterY],
+                          innerRadius: this.state.zoomBlurInnerRadius,
+                          radius: this.state.zoomBlurOuterRadius
+                        }]);
+                      }}/>
+                      <EffectSlider name="zoomBlurCenterY" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={this.state.canvasWidth} updateState={updateState} value={this.state.zoomBlurCenterY} defaultValue={Math.floor(this.state.canvasHeight / 2)} title="Zoom Blur Center Y" onAfterChange={(value) => {
+                        this.photoEditorLib.setSelectedImageFilter("zoomblur", [{
+                          strength: this.state.zoomBlurStrength / 100,
+                          center: [this.state.zoomBlurCenterX, value],
+                          innerRadius: this.state.zoomBlurInnerRadius,
+                          radius: this.state.zoomBlurOuterRadius
+                        }]);
+                      }}/>
+                      <EffectSlider name="zoomBlurInnerRadius" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={Math.max(this.state.canvasWidth, this.state.canvasHeight)} updateState={updateState} value={this.state.zoomBlurInnerRadius} defaultValue={0} title="Zoom Blur Inner Radius" onAfterChange={(value) => {
+                        this.photoEditorLib.setSelectedImageFilter("zoomblur", [{
+                          strength: this.state.zoomBlurStrength / 100,
+                          center: [this.state.zoomBlurCenterX, this.state.zoomBlurCenterY],
+                          innerRadius: value,
+                          radius: this.state.zoomBlurOuterRadius
+                        }]);
+                      }}/>
+                      <EffectSlider name="zoomBlurOuterRadius" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={Math.max(this.state.canvasWidth, this.state.canvasHeight)} updateState={updateState} value={this.state.zoomBlurOuterRadius} defaultValue={Math.max(this.state.canvasWidth, this.state.canvasHeight)} title="Zoom Blur Outer Radius" onAfterChange={(value) => {
+                        this.photoEditorLib.setSelectedImageFilter("zoomblur", [{
+                          strength: this.state.zoomBlurStrength / 100,
+                          center: [this.state.zoomBlurCenterX, this.state.zoomBlurCenterY],
+                          innerRadius: this.state.zoomBlurInnerRadius,
+                          radius: value
+                        }]);
+                      }}/>
+                    </Collapse.Panel>
+                  </Collapse>
+                  <Collapse ghost={true} className="site-collapse-custom-collapse">
+                    <Collapse.Panel header="Motion Blur" key="4" className="site-collapse-custom-panel">
+                      <EffectSlider name="motionBlurVelocityX" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={-90} max={90} updateState={updateState} value={this.state.motionBlurVelocityX} defaultValue={this.state.motionBlurVelocityX} title="Motion Blur Velocity X" onAfterChange={(value) => {
+                        this.photoEditorLib.setSelectedImageFilter("motionblur", [
+                          [value, this.state.motionBlurVelocityY],
+                          (2 * Math.round(this.state.motionBlurQuality / 2) + 1)
+                        ]);
+                      }}/>
+                      <EffectSlider name="motionBlurVelocityY" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={-90} max={90} updateState={updateState} value={this.state.motionBlurVelocityY} defaultValue={this.state.motionBlurVelocityY} title="Motion Blur Velocity Y" onAfterChange={(value) => {
+                        this.photoEditorLib.setSelectedImageFilter("motionblur", [
+                          [this.state.motionBlurVelocityX, value],
+                          (2 * Math.round(this.state.motionBlurQuality / 2) + 1)
+                        ]);
+                      }}/>
+                      <EffectSlider name="motionBlurQuality" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={5} max={50} updateState={updateState} value={this.state.motionBlurQuality} defaultValue={this.state.motionBlurQuality} title="Motion Blur Quality" onAfterChange={(value) => {
+                        this.photoEditorLib.setSelectedImageFilter("motionblur", [
+                          [this.state.motionBlurVelocityX, this.state.motionBlurVelocityY],
+                          (2 * Math.round(value / 2) + 1)
+                        ]);
                       }}/>
                     </Collapse.Panel>
                   </Collapse>

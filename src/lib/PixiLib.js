@@ -20,7 +20,9 @@ class PixiLib {
   }
 
   static generalFilters = {
-    "tilt/shift": "TiltShiftFilter",
+    "twist": "TwistFilter",
+    "zoomblur": "ZoomBlurFilter",
+    "motionblur": "MotionBlurFilter",
     "bulge/pinch": "BulgePinchFilter"
   }
 
@@ -79,6 +81,10 @@ class PixiLib {
     return app.renderer.extract.image(app.stage);
   }
 
+  static getPoint(x, y) {
+    return new PIXI.Point(x, y);
+  }
+
   static setImageFilters(app, filters) {
 
     console.log(filters)
@@ -89,16 +95,17 @@ class PixiLib {
 
       var filterName = filters[i][0];
       var values = filters[i][1];
+      var properties = filters[i][2];
 
       console.log(filterName, values)
 
-      this.setImageFilter(app, filterName, values);
+      this.setImageFilter(app, filterName, values, properties);
 
     }
 
   }
 
-  static setImageFilter(app, filterName, values) {
+  static setImageFilter(app, filterName, values, properties) {
 
     filterName = filterName.toLowerCase();
     if (filterName === "none") return;
@@ -125,7 +132,7 @@ class PixiLib {
 
     if (!filterFunctionName) return;
 
-    this.addFilter(app, filterFunctionName, values, type);
+    this.addFilter(app, filterFunctionName, values, type, properties);
 
   }
 
@@ -160,9 +167,21 @@ class PixiLib {
 
   }
 
-  static addFilter(app, filterName, values, type) {
+  static addFilter(app, filterName, values, type, properties) {
+
+    var setProperties = (filter, properties) => {
+
+      for (var property in properties) {
+        var propertyValue = properties[property];
+        filter[property] = propertyValue;
+      }
+
+    }
 
     function handleFilter(filterName, type, container) {
+
+      console.log(filterName)
+      console.log(values)
 
       if (type === "colorMatrix") {
         var colorMatrix = new PIXI.filters.ColorMatrixFilter(...values);
@@ -174,18 +193,19 @@ class PixiLib {
       if (type === "general") {
         console.log(filterName)
         console.log(values)
+        console.log(properties)
 
-        if (filterName === "TiltShiftFilter") {
-          console.log("adding tilt shift filter")
-          console.log(container.width, container.height)
-          var filter = new PixiFilters.TiltShiftFilter(1000, 1000);
-          filter.start = new PIXI.Point(0, 533 / 2);
-          filter.end = new PIXI.Point(400, 533 / 2);
+        /*
+        if (filterName === "TwistFilter") {
+          console.log("adding twist filter")
+          var filter = new PixiFilters.TwistFilter(400, 4, 10);
+          filter.offset = new PIXI.Point(500, 500);
           container.filters.push(filter);
           return;
-        }
+        } */
 
         var filter = new PixiFilters[filterName](...values);
+        if (properties) setProperties(filter, properties);
         container.filters.push(filter);
         return;
       }

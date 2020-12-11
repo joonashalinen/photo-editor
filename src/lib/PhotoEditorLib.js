@@ -281,11 +281,11 @@ class PhotoEditorLib {
     return settings;
   }
 
-  addAppliedFilter(filterName, values, imageId) {
+  addAppliedFilter(filterName, values, imageId, properties) {
 
     var appliedFilters = this.removeAppliedFilter(filterName, imageId);
 
-    appliedFilters.push([filterName, values])
+    appliedFilters.push([filterName, values, properties])
 
     return appliedFilters;
   }
@@ -347,6 +347,8 @@ class PhotoEditorLib {
 
     var appliedFilters = this.appliedPixiFilters[image.id] ? this.appliedPixiFilters[image.id] : [];
 
+    console.log(appliedFilters)
+
     PixiLib.reuseAppWithImage(this.pixiApp, image);
     PixiLib.resetImageFilters(this.pixiApp.stage.children[0]);
     PixiLib.setImageFilters(this.pixiApp, appliedFilters);
@@ -377,9 +379,11 @@ class PhotoEditorLib {
 
   }
 
-  setSelectedImageFilter(filterName, values) {
+  setSelectedImageFilter(filterName, values, properties) {
 
     console.log(this.konvaLib.selectedTargetImage)
+
+    console.log(filterName, values)
 
     if (!this.konvaLib.selectedTargetImage) return;
 
@@ -396,7 +400,7 @@ class PhotoEditorLib {
 
     this.undoRedoLib.addToUndoCache(undoRedoItem);
 
-    this.addAppliedFilter(filterName, values, image.id);
+    this.addAppliedFilter(filterName, values, image.id, properties);
 
     var imageObj = this.getImageWithFilters(image);
 
@@ -566,6 +570,9 @@ class PhotoEditorLib {
 
     this.colorPickerCanvas.height = image.height;
     this.colorPickerCanvas.width = image.width;
+
+    this.canvasWidth = image.width;
+    this.canvasHeight = image.height;
 
     var imageRatio = image.width / image.height;
     var canvasRatio = this.canvasesContainer.clientWidth / this.canvasesContainer.clientHeight;
