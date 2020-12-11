@@ -184,6 +184,7 @@ class PhotoEditorLib {
 
   getSelectedTargetImageSettings() {
     var settings = {};
+    settings.properties = {};
 
     if (!this.konvaLib.selectedTargetImage) {
       return {
@@ -234,7 +235,15 @@ class PhotoEditorLib {
       var appliedFilter = false;
       for (let j = 0; j < appliedFilters.length; j++) {
         if (appliedFilters[j][0] === this.adjustableFilters[i]) {
-          settings[this.adjustableFilters[i]] = appliedFilters[j][1][0];
+          console.log(appliedFilters[j])
+
+          if (appliedFilters[j][1].length > 1) {
+            settings[this.adjustableFilters[i]] = appliedFilters[j][1];
+          } else {
+            settings[this.adjustableFilters[i]] = appliedFilters[j][1][0];
+          }
+
+          settings.properties[this.adjustableFilters[i]] = appliedFilters[j][2];
           appliedFilter = true;
           break;
         }

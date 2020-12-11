@@ -126,6 +126,7 @@ class PhotoEditor extends React.Component {
     }); */
 
     var setFiltersState = (imageSettings, filterPreviewImages) => {
+      console.log(imageSettings)
       this.setState({
         selectedTargetImage: imageSettings.selectedTarget,
         filterPreviewImages: filterPreviewImages,
@@ -134,7 +135,18 @@ class PhotoEditor extends React.Component {
         bulgePinchStrength: imageSettings["bulge/pinch"].strength * 100,
         bulgePinchCenterX: imageSettings["bulge/pinch"].center[0] * 100,
         bulgePinchCenterY: imageSettings["bulge/pinch"].center[1] * 100,
-        tiltShift: imageSettings["tilt/shift"][0],
+        twistRadius: imageSettings.twist ? imageSettings.twist[0] : 0,
+        twistAngle: imageSettings.twist ? imageSettings.twist[1] : 0,
+        twistX: imageSettings.twist && imageSettings.properties.twist ? imageSettings.properties.twist.offset.x : 0,
+        twistY: imageSettings.twist && imageSettings.properties.twist ? imageSettings.properties.twist.offset.y : 0,
+        zoomBlurStrength: imageSettings.zoomblur ? imageSettings.zoomblur.strength * 100 :  0,
+        zoomBlurCenterX: imageSettings.zoomblur ? imageSettings.zoomblur.center[0] : 0,
+        zoomBlurCenterY: imageSettings.zoomblur ? imageSettings.zoomblur.center[1] : 0,
+        zoomBlurInnerRadius: imageSettings.zoomblur ? imageSettings.zoomblur.innerRadius : 0,
+        zoomBlurOuterRadius: imageSettings.zoomblur ? imageSettings.zoomblur.radius : 0,
+        motionBlurVelocityX: imageSettings.motionblur ? imageSettings.motionblur[0][0] : 0,
+        motionBlurVelocityY: imageSettings.motionblur ? imageSettings.motionblur[0][1] : 0,
+        motionBlurQuality: imageSettings.motionblur ? imageSettings.motionblur[1] : 5,
         contrast: Math.floor((imageSettings.contrast - 1) * 100),
         brightness: Math.floor((imageSettings.brightness - 1) * 100),
         gamma: Math.floor((imageSettings.gamma - 1) * 100),
