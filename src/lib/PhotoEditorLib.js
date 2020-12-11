@@ -1104,10 +1104,12 @@ class PhotoEditorLib {
 
     this.dragModeMouseupEventHandler = (e) => {
       this.endDragMode();
+      this.konvaImagesContainer.style.cursor = "grab";
     }
 
     this.dragModeMouseoutEventHandler = (e) => {
       this.endDragMode();
+      this.konvaImagesContainer.style.cursor = "grab";
     }
 
     this.canvasesContainer.addEventListener("mousemove", this.dragModeEventHandler);
