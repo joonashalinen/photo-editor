@@ -181,8 +181,6 @@ class KonvaLib {
       this.imagesLayer.add(image);
     }
 
-    image.zIndex(1);
-
     if (!options || options.enableTransformer !== false) {
       var transformer = this.createImageTransformer(image);
       this.transformersStageMainLayer.add(transformer);
@@ -780,6 +778,7 @@ class KonvaLib {
     for (var i = 0; i < newImages.length; i++) {
       var id = newImages[i] instanceof HTMLImageElement ? newImages[i].id : newImages[i].photoEditorId;
       var image = this.getImageWithId(id);
+      if (!image) continue;
 
       var newImage = newImages[i] instanceof Konva.Image ? newImages[i] : new Konva.Image({
         image: newImages[i],
@@ -839,15 +838,21 @@ class KonvaLib {
       var transformer = this.getImageTransformer(oldImage);
       var overlayTransformer = this.getImageTransformer(oldImage, this.transformersStageMainLayer);
 
-      transformer.nodes([newImage]);
-      transformer.forceUpdate();
+      if (transformer) {
+        transformer.nodes([newImage]);
+        transformer.forceUpdate();
+      }
 
-      overlayTransformer.nodes([newImage]);
-      overlayTransformer.forceUpdate();
+      if (overlayTransformer) {
+        overlayTransformer.nodes([newImage]);
+        overlayTransformer.forceUpdate();
+      }
 
       oldImage.remove();
 
       this.imagesLayer.add(newImage);
+
+      newImage.zIndex(oldImage.zIndex());
 
       replaced.push(oldImage);
 
@@ -878,9 +883,6 @@ class KonvaLib {
 
     newImage.targetable = oldImage.targetable;
     newImage.photoEditorId = oldImage.photoEditorId;
-    newImage.zIndex(oldImage.zIndex());
-
-    console.log(oldImage.photoEditorId)
 
     transformer.nodes([newImage]);
     overlayTransformer.nodes([newImage]);
@@ -892,6 +894,8 @@ class KonvaLib {
     this.imagesLayer.add(newImage);
     transformer.forceUpdate();
     overlayTransformer.forceUpdate();
+
+    newImage.zIndex(oldImage.zIndex());
 
     if (this.selectedTargetImage === oldImage) this.targetImage(newImage);
 

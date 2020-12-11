@@ -124,6 +124,9 @@ class UndoRedoTypesLib {
     undoRedoItem.type = "text-transform";
     undoRedoItem.data.textNode = textNode;
     undoRedoItem.data.text = textNode.text();
+    undoRedoItem.data.fill = textNode.fill();
+    undoRedoItem.data.fontFamily = textNode.fontFamily();
+    undoRedoItem.data.stroke = textNode.stroke();
     console.log(undoRedoItem.data.text)
     return undoRedoItem;
   }

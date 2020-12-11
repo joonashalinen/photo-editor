@@ -375,6 +375,9 @@ class UndoRedo {
         text.x(latestUndoRedo.data.x);
         text.y(latestUndoRedo.data.y);
         text.text(latestUndoRedo.data.text);
+        text.fill(latestUndoRedo.data.fill);
+        text.fontFamily(latestUndoRedo.data.fontFamily);
+        text.stroke(latestUndoRedo.data.stroke);
 
         this.parent.stage.batchDraw();
 

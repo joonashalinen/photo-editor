@@ -814,6 +814,14 @@ class PhotoEditorLib {
     if (!this.konvaTarget instanceof this.Konva.Image) return;
     this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getImageDeleteUndoRedo(this.konvaTarget));
     this.konvaLib.deleteImage(this.konvaTarget);
+    //this.imagesWithNoFilters.splice(this.imagesWithNoFilters.indexOf(this.getImageWithNoFiltersById(this.konvaTarget.photoEditorId)), 1);
+  }
+
+  getImageWithNoFiltersById(id) {
+    for (var i = 0; i < this.imagesWithNoFilters.length; i++) {
+      var image = this.imagesWithNoFilters[i];
+      if (image.id === id) return image;
+    }
   }
 
   bringSelectedImageToFront() {
