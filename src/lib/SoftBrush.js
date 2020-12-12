@@ -106,13 +106,53 @@ class SoftBrush {
       return Math.atan2( point2.x - point1.x, point2.y - point1.y );
     }
 
+    var drawn = 0;
+
     var drawPoints = (x, y, ctx) => {
+
+      //if (drawn) return;
 
       var currentPoint = { x: x, y: y };
       var dist = distanceBetween(lastPoint, currentPoint);
       var angle = angleBetween(lastPoint, currentPoint);
 
 
+      for (var i = 0; i < dist; i+= this.size < 35 ? 1 : 5) {
+
+        x = lastPoint.x + (Math.sin(angle) * i);
+        y = lastPoint.y + (Math.cos(angle) * i);
+
+        if (this.size < 5) { // hardness no longer applied for brush sizes below 5
+
+          var radgrad = ctx.createRadialGradient(x,y,0,x,y,1);
+
+          radgrad.addColorStop(0, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, 1)`);
+          radgrad.addColorStop(0.5, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, 1)`);
+          radgrad.addColorStop(1, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, 1)`);
+
+          ctx.fillStyle = radgrad;
+          ctx.fillRect(x-this.size / 2, y-this.size / 2, this.size, this.size);
+
+        } else {
+
+          var radgrad = ctx.createRadialGradient(x,y, this.size < 40 ? Math.max(this.size / 2 / 2, 1) : 10,x,y,this.size / 2);
+
+          console.log(this.color)
+
+          var opacity = this.color[3] === 1 ? this.color[3] : Math.pow(this.color[3], 3);
+
+          radgrad.addColorStop(0, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, ${opacity})`);
+          // brush hardness settings on the UI as of the time of writing start from 0.1 and go up to 1
+          radgrad.addColorStop(0.5 + ((this.hardness - 0.1) / 2), `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, ${Math.min(opacity, 0.5 + ( this.hardness - 0.1) / 2)})`);
+          radgrad.addColorStop(1, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, 0)`);
+
+          ctx.fillStyle = radgrad;
+          ctx.fillRect(x-this.size / 2, y-this.size / 2, this.size, this.size);
+        }
+
+      }
+
+      lastPoint = currentPoint;
       /*
       var bezier = new Bezier(points[0].x, points[0].y, points[1].x, points[1].y, points[2].x, points[2].y);
 
@@ -158,6 +198,8 @@ class SoftBrush {
 
       return; */
 
+      return;
+
 
       for (var i = 0; i < dist; i += Math.max(1, this.size / 10) ) {
 
@@ -180,6 +222,7 @@ class SoftBrush {
 
         if (this.hardness > 0.8) opacity = (this.hardness - 0.8) * 5;
 
+        /*
         for (let i = 0; i < Math.max(1, this.size / 2 + (this.size / 2 / 2 * this.hardness)); i++) {
 
           ctx.beginPath();
@@ -190,7 +233,7 @@ class SoftBrush {
           opacity += (1 / this.size);
           ctx.closePath();
 
-        }
+        } */
 
         opacity = 0;
 
@@ -230,9 +273,8 @@ class SoftBrush {
         ctx.fillRect(x - (this.size / 2), y - (this.size / 2), Math.max(1, this.size), Math.max(1, this.size));
         */
 
-      }
+      };
 
-        lastPoint = currentPoint;
     }
 
     var checkColorAtMousePos = (x, y) => {
