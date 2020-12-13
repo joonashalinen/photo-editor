@@ -336,6 +336,9 @@ class PhotoEditor extends React.Component {
                 }
               </Select>
             </div>
+            <Button id="addTextEmojiButton" className="addTextEmojiButton" style={{display: this.state.selectedTool === "addText" ? "inline-block" : "none"}} onClick={(e) => {
+              this.photoEditorLib.emojiPicker.showPicker(e.target);
+            }}>😀</Button>
             <div style={{height:"24px", position: "relative", display: this.state.selectedTool === "eyedrop" ? "block" : "none"}}>
               <Tooltip title="Color">
                 <button id="eyedrop-color-picker-button" className="colorPickerButton" onClick={() => {

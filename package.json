@@ -5,6 +5,7 @@
   "dependencies": {
     "@craco/craco": "^5.8.0",
     "@jaames/iro": "^5.2.3",
+    "@joeattardi/emoji-button": "^4.6.0",
     "@simonwep/pickr": "^1.7.4",
     "@testing-library/jest-dom": "^5.11.5",
     "@testing-library/react": "^11.1.1",

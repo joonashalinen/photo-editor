@@ -8,6 +8,7 @@ import CanvasLib from "./CanvasLib.js";
 import ImageLib from "./ImageLib.js";
 import PixiLib from "./PixiLib.js";
 import KonvaLib from "./KonvaLib.js";
+import { EmojiButton } from '@joeattardi/emoji-button';
 import * as imageConversion from 'image-conversion';
 import { readAndCompressImage } from 'browser-image-resizer';
 
@@ -62,6 +63,20 @@ class PhotoEditorLib {
     this.eventListeners= [];
 
     this.runningImageId = 1;
+
+    this.emojiPicker = new EmojiButton({
+      theme: "dark"
+    });
+
+    this.emojiPicker.on("emoji", (emojiSelection) => {
+      this.targetKonvaText(this.addText({
+        evt: {
+          offsetX: this.stage.width() / 2,
+          offsetY: this.stage.height() / 2,
+        }
+      }, emojiSelection.emoji));
+      //document.getElementById("addTextEmojiButton").textContent = emojiSelection.emoji;
+    });
 
   }
 
@@ -1018,7 +1033,7 @@ class PhotoEditorLib {
 
   }
 
-  addText(e) {
+  addText(e, initialText) {
 
     this.focusCanvasContainer("overlayCanvasContainer")
 
@@ -1039,8 +1054,6 @@ class PhotoEditorLib {
 
     var textPositionX = this.layer.offsetX() + scaleOffsetX + zoomOffsetLeftOriginX + zoomOffsetX;
     var textPositionY = this.layer.offsetY() + scaleOffsetY + zoomOffsetLeftOriginY + zoomOffsetY;
-
-    console.log(this.layer.offsetX(), e.evt.offsetX)
 
     var text = new Konva.Text({
       x: this.layer.offsetX() + e.evt.offsetX,
@@ -1087,7 +1100,7 @@ class PhotoEditorLib {
 
     this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getTextAddUndoRedo(text, transformer));
 
-    text.text("Add text")
+    text.text(initialText ? initialText : "Add text")
 
     layer.draw();
 
@@ -1967,9 +1980,20 @@ class PhotoEditorLib {
 
     document.getElementById("drawingCanvas").style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
 
+    this.softBrush.setSamplingCanvas(this.konvaLib.stage.toCanvas())
     this.softBrush.enableSoftBrush();
 
     this.drawingEnabled = true;
+
+    var refreshSamplingCanvasTimer = () => {
+      setTimeout(() => {
+        this.softBrush.setSamplingCanvas(this.konvaLib.stage.toCanvas());
+        refreshSamplingCanvasTimer();
+      }, 1000)
+    }
+
+    refreshSamplingCanvasTimer();
+
 
   }
 

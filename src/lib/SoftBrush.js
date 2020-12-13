@@ -65,6 +65,11 @@ class SoftBrush {
     this.color = rgba;
   }
 
+  setSamplingCanvas(canvas) {
+    this.samplingCanvas = canvas;
+    this.samplingCtx = canvas.getContext("2d");
+  }
+
   setCanvasHeight(value) {
     this.canvas.height = value;
     if (this.cursorCanvas) this.cursorCanvas.height = this.canvas.height;
@@ -278,19 +283,25 @@ class SoftBrush {
 
     }
 
-    var checkColorAtMousePos = (x, y) => {
+    var checkColorAtMousePos = (x, y, ctx) => {
       var colorAtMousePos = ctx.getImageData(x, y, 1, 1).data;
+      console.log(colorAtMousePos)
       if (colorAtMousePos[0] < 200 && colorAtMousePos[1] < 200 && colorAtMousePos[2] < 200 && colorAtMousePos[3] > 100) {
         this.cursorColor = [255, 255, 255, 255];
       }
+      if (colorAtMousePos[0] > 200 && colorAtMousePos[1] > 200 && colorAtMousePos[2] > 200 && colorAtMousePos[3] > 100) {
+        this.cursorColor = [0, 0, 0, 255];
+      }
     }
 
-    var drawCursor = (x, y, ctx) => {
-      ctx.beginPath();
-      ctx.arc(x, y, this.size / 2, 0, 2 * Math.PI);
-      ctx.lineWidth = 1 / this.canvasScale;
-      ctx.strokeStyle = `rgba(${this.cursorColor[0]}, ${this.cursorColor[1]}, ${this.cursorColor[2]}, ${this.cursorColor[3]})`;
-      ctx.stroke();
+    var drawCursor = (x, y, cursorCtx) => {
+      checkColorAtMousePos(x, y, this.samplingCtx);
+      checkColorAtMousePos(x, y, ctx);
+      cursorCtx.beginPath();
+      cursorCtx.arc(x, y, this.size / 2, 0, 2 * Math.PI);
+      cursorCtx.lineWidth = 1 / this.canvasScale;
+      cursorCtx.strokeStyle = `rgba(${this.cursorColor[0]}, ${this.cursorColor[1]}, ${this.cursorColor[2]}, ${this.cursorColor[3]})`;
+      cursorCtx.stroke();
     }
 
     var handleMousemove = (x, y) => {
