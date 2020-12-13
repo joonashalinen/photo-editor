@@ -758,7 +758,8 @@ class PhotoEditorLib {
     await initKonvaLib;
 
     var konvaImage = this.konvaLib.addImage(image, {
-      targetable: true
+      targetable: true,
+      alignCenter: true
     });
 
     this.rotateOriginOffsetX = konvaImage.width() / 2;
@@ -828,21 +829,24 @@ class PhotoEditorLib {
 
     this.pixiApp = PixiLib.appFromImage(imageAsCanvas.toDataURL());
 
+    /*
     var konvaDrawingCanvas = CanvasLib.cloneCanvas(this.drawingCanvas);
-    var konvaCursorCanvas = CanvasLib.cloneCanvas(this.drawingCanvas);
+    var konvaCursorCanvas = CanvasLib.cloneCanvas(this.drawingCanvas); */
 
+    /*
     let options = {
       draggable: false,
       enableTransformer: false,
       zIndex: 10,
       addToMainLayer: true,
       preventTarget: true
-    }
+    } */
 
+    /*
     this.konvaDrawingCanvas = konvaDrawingCanvas;
     this.konvaDrawingCanvasNode = this.konvaLib.addImage(konvaDrawingCanvas, options);
     this.konvaCursorCanvas = konvaCursorCanvas;
-    this.konvaCursorCanvasNode = this.konvaLib.addImage(konvaCursorCanvas, options);
+    this.konvaCursorCanvasNode = this.konvaLib.addImage(konvaCursorCanvas, options); */
 
     this.softBrush = new SoftBrush(this.drawingCanvas, {
       size: this.defaultBrushSize / this.scale,
@@ -877,8 +881,9 @@ class PhotoEditorLib {
     this.enableBackgroundColorPicker();
     this.enableDrawing();
 
+    /*
     this.konvaDrawingCanvasNode.listening(false);
-    this.konvaCursorCanvasNode.listening(false);
+    this.konvaCursorCanvasNode.listening(false); */
 
     var thumbnailImageFile = await readAndCompressImage(file, {
       quality: 1,
@@ -910,9 +915,17 @@ class PhotoEditorLib {
 
   async importImage(file) {
 
-    var buffer = await file.arrayBuffer();
+    if (file instanceof HTMLImageElement) {
+      var imageObj = file;
+      file = await imageConversion.imagetoCanvas(file);
+      file = await imageConversion.canvastoFile(file);
+      var buffer = await file.arrayBuffer();
+    } else {
+      var buffer = await file.arrayBuffer();
+      var imageObj = await this.imageLib.bufferToImage(buffer);
+    }
 
-    var imageObj = await this.imageLib.bufferToImage(buffer);
+
 
     if (this.options.downscaleImage) {
       if (imageObj.width > this.options.maxImageSize || imageObj.height > this.options.maxImageSize) {
@@ -932,7 +945,8 @@ class PhotoEditorLib {
     imageObj.id = this.runningImageId++;
 
     var konvaImage = this.konvaLib.addImage(imageObj, {
-      targetable: true
+      targetable: true,
+      alignCenter: true
     });
 
     this.undoRedoLib.addKonvaImageUndoRedoEvents(konvaImage, this.konvaLib);
@@ -1987,7 +2001,9 @@ class PhotoEditorLib {
 
     var refreshSamplingCanvasTimer = () => {
       setTimeout(() => {
-        this.softBrush.setSamplingCanvas(this.konvaLib.stage.toCanvas());
+        if (this.imageInstanced) {
+          this.softBrush.setSamplingCanvas(this.konvaLib.stage.toCanvas());
+        }
         refreshSamplingCanvasTimer();
       }, 1000)
     }

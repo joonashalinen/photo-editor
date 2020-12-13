@@ -239,59 +239,6 @@ class UndoRedo {
 
         handleUndoRedoCache(latestUndoRedo, undoOrRedo);
 
-        return;
-
-        this.parent.scale = latestUndoRedo.data.scale;
-
-        this.parent.konvaLib.imagesLayer.offsetX(latestUndoRedo.data.offsetX);
-        this.parent.konvaLib.imagesLayer.offsetY(latestUndoRedo.data.offsetY);
-
-        this.parent.konvaLib.imagesLayer.rotation(90);
-
-        this.parent.konvaLib.imagesLayer.x(latestUndoRedo.data.x);
-        this.parent.konvaLib.imagesLayer.y(latestUndoRedo.data.y);
-
-        this.parent.konvaLib.imagesLayer.size({
-          width: latestUndoRedo.data.width,
-          height: latestUndoRedo.data.height,
-        })
-
-        this.parent.konvaLib.stage.size({
-          width: latestUndoRedo.data.width,
-          height: latestUndoRedo.data.height,
-        })
-
-        this.parent.konvaLib.mainLayer.size({
-          width: latestUndoRedo.data.width,
-          height: latestUndoRedo.data.height,
-        });
-
-        this.parent.konvaLib.backgroundImage.size({
-          width: latestUndoRedo.data.width,
-          height: latestUndoRedo.data.height,
-        });
-
-        this.parent.konvaLib.colorBackgroundImage.size({
-          width: latestUndoRedo.data.width,
-          height: latestUndoRedo.data.height,
-        });
-
-        this.parent.konvaDrawingCanvas.width = latestUndoRedo.data.width;
-        this.parent.konvaDrawingCanvas.height = latestUndoRedo.data.height;
-
-        this.parent.konvaDrawingCanvasNode.size({
-          width: latestUndoRedo.data.width,
-          height: latestUndoRedo.data.height,
-        });
-
-        this.parent.konvaDrawingCanvas.getContext("2d").putImageData(latestUndoRedo.data.drawingImageData, 0, 0);
-
-        this.parent.stage.width(latestUndoRedo.data.width);
-        this.parent.stage.height(latestUndoRedo.data.height);
-
-        this.parent.konvaImagesContainer.firstElementChild.style.transform = latestUndoRedo.data.transform;
-        document.getElementById("overlayCanvasContainer").firstElementChild.style.transform = latestUndoRedo.data.transform;
-
         break;
       }
 

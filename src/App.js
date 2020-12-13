@@ -60,29 +60,14 @@ class App extends React.Component {
                 img.src = image.url;
 
                 img.onload = () => {
-                  window.photoEditorLib.removeImageInstance();
-                  window.photoEditorLib.loadImage(img);
+                  if (window.photoEditorLib.imageInstanced) {
+                    window.photoEditorLib.importImage(img);
+                  } else {
+                    window.photoEditorLib.loadImage(img);
+                  }
                 }
 
                 document.getElementById("mainContainer").parentElement.scrollTop = 0;
-              }
-
-              if (window.photoEditorLib.imageInstanced) {
-                Modal.confirm({
-                  title: 'Delete the whole canvas?',
-                  icon: <ExclamationCircleOutlined />,
-                  content: 'Reset and delete the whole canvas?',
-                  okText: 'Yes',
-                  okType: 'danger',
-                  cancelText: 'No',
-                  onOk() {
-                    loadImage();
-                  },
-                  onCancel() {
-
-                  },
-                });
-                return;
               }
 
               loadImage();

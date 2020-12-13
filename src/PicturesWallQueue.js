@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Upload, Modal, Image, Tooltip } from 'antd';
-import { PlusOutlined, ToolOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { PlusOutlined, ToolOutlined, DeleteOutlined, EyeOutlined, UploadOutlined, PictureOutlined } from '@ant-design/icons';
 import "./PicturesWallQueue.css";
 
 function getBase64(file) {
@@ -90,8 +90,8 @@ class PicturesWallQueue extends React.Component {
                         if (this.props.onClickDelete) this.props.onClickDelete();
                       }}/>
                     </Tooltip>
-                    <Tooltip title="Edit in photo editor">
-                      <ToolOutlined className="picturesWallQueueIcon" onClick={() => {
+                    <Tooltip title="Import">
+                      <UploadOutlined className="picturesWallQueueIcon" onClick={() => {
                         this.props.onClickEdit(image);
                       }}/>
                     </Tooltip>

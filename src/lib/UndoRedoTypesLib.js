@@ -72,8 +72,7 @@ class UndoRedoTypesLib {
         offsetX: this.parent.konvaLib.imagesLayer.offsetX(),
         offsetY: this.parent.konvaLib.imagesLayer.offsetY(),
         x: this.parent.konvaLib.imagesLayer.x(),
-        y: this.parent.konvaLib.imagesLayer.y(),
-        drawingImageData: this.parent.konvaDrawingCanvas.getContext("2d").getImageData(0, 0, this.parent.konvaDrawingCanvas.width, this.parent.konvaDrawingCanvas.height)
+        y: this.parent.konvaLib.imagesLayer.y()
       },
       type: "rotate"
     }
