@@ -131,10 +131,9 @@ class KonvaLib {
   }
 
   createImageTransformer(image) {
-    return new Konva.Transformer({
+    var transformer = new Konva.Transformer({
       nodes: [image],
       rotateAnchorOffset: 60,
-      enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
       borderStroke: "rgb(0 149 255)",
       anchorStroke: "rgb(0 149 255)",
       borderStrokeWidth: 1,
@@ -144,6 +143,49 @@ class KonvaLib {
       anchorStrokeWidth: this.initialScale ? 1 / this.initialScale : 1,
       anchorFill: "rgba(255, 255, 255, 0.5)"
     });
+
+
+    transformer.boundBoxFunc((oldBox, newBox) => {
+      if (newBox.x + newBox.width * image.getAbsoluteScale().x + 10 > this.stage.width() &&
+          newBox.x + newBox.width * image.getAbsoluteScale().x - 10 < this.stage.width()) {
+        let newX = this.stage.width() - image.width() * image.getAbsoluteScale().x;
+        newBox.width = this.stage.width() - newBox.x + 1;
+        //newBox.x = newX;
+      }
+      if (newBox.y + newBox.height * image.getAbsoluteScale().y + 10 > this.stage.height() &&
+          newBox.y + newBox.height * image.getAbsoluteScale().y - 10 < this.stage.height()) {
+        let newY = this.stage.height() - image.height() * image.getAbsoluteScale().y;
+        newBox.height = this.stage.height() - newBox.y + 1;
+      }
+      if (newBox.x < 10 && newBox.x > -10) {
+        newBox.width += newBox.x + 1;
+        newBox.x = -1;
+      }
+      if (newBox.y < 10 && newBox.y > -10) {
+        newBox.height += newBox.y + 1;
+        newBox.y = -1;
+      }
+      if (newBox.width < 10) {
+        newBox.width = 10;
+      }
+      if (newBox.height < 10) {
+        newBox.height = 10;
+      }
+      if (newBox.x + newBox.width > this.stage.width() + newBox.width - 10) {
+        newBox.x = this.stage.width() - 10;
+      }
+      if (newBox.y + newBox.height > this.stage.height() + newBox.height - 10) {
+        newBox.y = this.stage.height() - 10;
+      }
+      if (newBox.x < newBox.width * -1 + 10) {
+        newBox.x = newBox.width * -1 + 10;
+      }
+      if (newBox.y < newBox.height * -1 + 10) {
+        newBox.y = newBox.height * -1 + 10;
+      }
+      return newBox;
+    });
+    return transformer;
   }
 
   getImageNodes() {
@@ -175,6 +217,35 @@ class KonvaLib {
     image.photoEditorId = imageObj.id;
     image.targetable = options.targetable ? options.targetable : false;
 
+    image.dragBoundFunc((pos) => {
+      if (pos.x < 10 && pos.x > -10) {
+        pos.x = 0;
+      }
+      if (pos.y < 10 && pos.y > -10) {
+        pos.y = 0;
+      }
+      if (pos.x + image.width() * image.getAbsoluteScale().x + 10 > this.stage.width() &&
+          pos.x + image.width() * image.getAbsoluteScale().x - 10 < this.stage.width()) {
+        pos.x = this.stage.width() - image.width() * image.getAbsoluteScale().x;
+      }
+      if (pos.y + image.height() * image.getAbsoluteScale().y + 10 > this.stage.height() &&
+          pos.y + image.height() * image.getAbsoluteScale().y - 10 < this.stage.height()) {
+        pos.y = this.stage.height() - image.height() * image.getAbsoluteScale().y;
+      }
+      if (pos.x + image.width() * image.getAbsoluteScale().x > this.stage.width() + image.width() * image.getAbsoluteScale().x - 10) {
+        pos.x = this.stage.width() - 10;
+      }
+      if (pos.y + image.height() * image.getAbsoluteScale().y > this.stage.height() + image.height() * image.getAbsoluteScale().y - 10) {
+        pos.y = this.stage.height() - 10;
+      }
+      if (pos.x < image.width() * image.getAbsoluteScale().x * -1 + 10) {
+        pos.x = image.width() * image.getAbsoluteScale().x * -1 + 10;
+      }
+      if (pos.y < image.height() * image.getAbsoluteScale().y * -1 + 10) {
+        pos.y = image.height() * image.getAbsoluteScale().y * -1 + 10;
+      }
+    });
+
     if (options.addToMainLayer) {
       this.mainLayer.add(image);
     } else {
@@ -182,10 +253,30 @@ class KonvaLib {
     }
 
     if (!options || options.enableTransformer !== false) {
+      var overlayTransformer = this.createImageTransformer(image);
+
+      var initialImageSize = image.width() * image.getAbsoluteScale().x;
+      var initialAnchorSize = overlayTransformer.anchorSize();
+
+      var currentOverlayBoundFunc = overlayTransformer.boundBoxFunc();
+      overlayTransformer.boundBoxFunc((oldBox, newBox) => {
+        transformer.anchorSize(Math.max(10 / this.initialScale, newBox.width / initialImageSize * initialAnchorSize));
+        overlayTransformer.anchorSize(Math.max(10 / this.initialScale, newBox.width / initialImageSize * initialAnchorSize));
+        return currentOverlayBoundFunc(oldBox, newBox)
+      })
+
+      this.transformersStageMainLayer.add(overlayTransformer);
+      overlayTransformer.forceUpdate();
+
       var transformer = this.createImageTransformer(image);
-      this.transformersStageMainLayer.add(transformer);
-      transformer.forceUpdate();
-      transformer = this.createImageTransformer(image);
+      var currentBoundFunc = transformer.boundBoxFunc();
+      transformer.boundBoxFunc((oldBox, newBox) => {
+        console.log(newBox.width, oldBox.width, transformer.anchorSize())
+        transformer.anchorSize(Math.max(10 / this.initialScale, newBox.width / initialImageSize * initialAnchorSize));
+        overlayTransformer.anchorSize(Math.max(10 / this.initialScale, newBox.width / initialImageSize * initialAnchorSize));
+        return currentBoundFunc(oldBox, newBox)
+      });
+
       this.mainLayer.add(transformer);
       transformer.forceUpdate();
     }
@@ -193,6 +284,7 @@ class KonvaLib {
     if (!options.preventTarget) this.targetImage(image);
 
     this.stage.draw();
+    this.transformersStage.draw();
 
     return image;
 
@@ -841,16 +933,20 @@ class KonvaLib {
       if (transformer) {
         transformer.nodes([newImage]);
         transformer.forceUpdate();
+        transformer.hide();
       }
 
       if (overlayTransformer) {
         overlayTransformer.nodes([newImage]);
         overlayTransformer.forceUpdate();
+        overlayTransformer.hide();
       }
 
       oldImage.remove();
 
       this.imagesLayer.add(newImage);
+
+      if (this.selectedTargetImage === oldImage) this.targetImage(newImage);
 
       newImage.zIndex(oldImage.zIndex());
 
@@ -894,6 +990,9 @@ class KonvaLib {
     this.imagesLayer.add(newImage);
     transformer.forceUpdate();
     overlayTransformer.forceUpdate();
+
+    transformer.hide();
+    overlayTransformer.hide();
 
     newImage.zIndex(oldImage.zIndex());
 

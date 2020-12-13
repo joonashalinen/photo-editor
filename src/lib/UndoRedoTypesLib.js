@@ -134,7 +134,7 @@ class UndoRedoTypesLib {
   getTextAddUndoRedo(textNode, transformer) {
     var undoRedoItem = this.getTextTransformUndoRedo(textNode);
     undoRedoItem.data.zIndex = textNode.zIndex();
-    undoRedoItem.data.transformer = transformer ? transformer : this.parent.konvaLib.getImageTransformer(textNode);
+    undoRedoItem.data.transformer = transformer ? transformer : this.parent.konvaLib.getNodeTransformer(textNode, this.parent.layer);
     undoRedoItem.type = "text-add";
     return undoRedoItem;
   }
@@ -142,7 +142,7 @@ class UndoRedoTypesLib {
   getTextDeleteUndoRedo(textNode, transformer) {
     var undoRedoItem = this.getTextTransformUndoRedo(textNode);
     undoRedoItem.data.zIndex = textNode.zIndex();
-    undoRedoItem.data.transformer = transformer ? transformer : this.parent.konvaLib.getImageTransformer(textNode);
+    undoRedoItem.data.transformer = transformer ? transformer : this.parent.konvaLib.getNodeTransformer(textNode, this.parent.layer);
     undoRedoItem.type = "text-delete";
     return undoRedoItem;
   }

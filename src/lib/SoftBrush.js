@@ -11,6 +11,7 @@ class SoftBrush {
     this.hardness = 1;
     this.hardness = options.hardness ? options.hardness : 0.7;
     this.size = options.size ? options.size : 40;
+    this.size *= 1.15;
     this.color = options.color ? options.color : [0, 0, 0, 1];
     this.konvaStage = options.konvaStage ? options.konvaStage : false;
     this.konvaLayer = options.konvaLayer ? options.konvaLayer : false;
@@ -53,7 +54,7 @@ class SoftBrush {
   }
 
   setSize(value) {
-    this.size = Math.floor(value);
+    this.size = Math.floor(value * 1.15);
   }
 
   setHardness(value) {

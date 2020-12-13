@@ -60,10 +60,26 @@ class PhotoEditor extends React.Component {
       saturation: 0,
       filter: "None",
       canvasesContainerLoading: false,
-      imageFilterPreviewsLoading: false
+      imageFilterPreviewsLoading: false,
+      contextMenuVisible: false
     }
 
     this.state = this.defaultState;
+
+    this.fonts = [
+      "Impact",
+      "Calibri",
+      "Comic Sans MS",
+      "Arial",
+      "Arial Black",
+      "Times New Roman",
+      "Courier New",
+      "Helvetica",
+      "Verdana",
+      "Tahoma",
+      "Trebuchet MS",
+      "Georgia"
+    ]
 
     this.selectableFilters = [
       "None",
@@ -112,7 +128,10 @@ class PhotoEditor extends React.Component {
       defaultBrushSize: this.state.drawingLineWidth,
       defaultBrushHardness: this.state.brushHardness / 100,
       downscaleImage: true,
-      maxImageSize: 2000
+      maxImageSize: 2000,
+      shortCutsEnabled: true,
+      fonts: this.fonts,
+      selectedFont: "Impact"
     });
 
     window.photoEditorLib = this.photoEditorLib;
@@ -162,6 +181,13 @@ class PhotoEditor extends React.Component {
       setFiltersState(imageSettings, filterPreviewImages);
     });
 
+    this.photoEditorLib.on("konvaTargetChange", (newTarget) => {
+      console.log("new target change")
+      this.setState({
+        contextMenuVisible: false,
+      })
+    });
+
     this.photoEditorLib.on("selectedImageFilterChange", (imageNode) => {
       var filterPreviewImages = this.photoEditorLib.getFilterPreviewImages(imageNode);
       var imageSettings = this.photoEditorLib.getSelectedTargetImageSettings();
@@ -189,6 +215,20 @@ class PhotoEditor extends React.Component {
         canvasWidth: this.photoEditorLib.canvasWidth
       });
     });
+
+    this.photoEditorLib.on("croppingSelectionChange", (cropBox) => {
+      this.setState({
+        cropBoxWidth: Math.floor(cropBox.width),
+        cropBoxHeight: Math.floor(cropBox.height)
+      })
+    });
+
+    this.photoEditorLib.on("cropped", (cropBox) => {
+      this.setState({
+        canvasWidth: cropBox.width,
+        canvasHeight: cropBox.height
+      })
+    })
 
   }
 
@@ -289,11 +329,11 @@ class PhotoEditor extends React.Component {
               <Select size="small" defaultValue="Impact" onChange={(fontName) => {
                 this.photoEditorLib.setSelectedFont(fontName);
               }}>
-                <Select.Option value="Impact"><span style={{fontFamily: "Impact"}}>Impact</span></Select.Option>
-                <Select.Option value="Calibri"><span style={{fontFamily: "Calibri"}}>Calibri</span></Select.Option>
-                <Select.Option value="Arial"><span style={{fontFamily: "Arial"}}>Arial</span></Select.Option>
-                <Select.Option value="Helvetica"><span style={{fontFamily: "Helvetica"}}>Helvetica</span></Select.Option>
-                <Select.Option value="Comic Sans MS"><span style={{fontFamily: "Comic Sans MS"}}>Comic Sans MS</span></Select.Option>
+                {
+                  this.fonts.map((fontName, index) => (
+                    <Select.Option key={index} value={fontName}><span style={{fontFamily: fontName}}>{fontName}</span></Select.Option>
+                  ))
+                }
               </Select>
             </div>
             <div style={{height:"24px", position: "relative", display: this.state.selectedTool === "eyedrop" ? "block" : "none"}}>
@@ -353,8 +393,12 @@ class PhotoEditor extends React.Component {
               }
             </div>
             <Canvas id="canvas" containerId="canvasContainer"/>
-            <ContextMenu onVisibleChange={(visible, setOptions) => {
+            <ContextMenu visible={this.state.contextMenuVisible} onVisibleChange={(visible, setOptions, setMenuVisible) => {
               var target = this.photoEditorLib.getKonvaTarget();
+
+              this.setState({
+                contextMenuVisible: visible
+              });
 
               if (target === this.photoEditorLib.konvaLib.getBackgroundImage() || !target) {
                 setOptions([]);
@@ -372,6 +416,9 @@ class PhotoEditor extends React.Component {
               }
 
             }} onClick={(target) => {
+              this.setState({
+                contextMenuVisible: false
+              });
               if (target.key === "Delete Image Layer") {
                 this.photoEditorLib.deleteSelectedImage();
                 return;
@@ -403,20 +450,23 @@ class PhotoEditor extends React.Component {
             {
               this.state.selectedTool === "crop" ?
                 ( <>
+                    <div className="resolutionTag">
+                      {this.state.cropBoxWidth} px x {this.state.cropBoxHeight} px
+                    </div>
                     <Button onClick={(e) => {
                       this.photoEditorLib.acceptCrop();
                       this.setState({
                         showAcceptCancelMenu: false
                       });
                       this.photoEditorLib.inCropMode = false;
-                    }} type="primary" className="cropAccept"><img className="whiteCheckmark" src="check.svg" height="18px"></img></Button>
+                    }} id="cropAccept" type="primary" className="cropAccept"><img className="whiteCheckmark" src="check.svg" height="18px"></img></Button>
                     <Button onClick={() => {
                       this.photoEditorLib.endCrop();
                       this.setState({
                         showAcceptCancelMenu: false
                       });
                       this.photoEditorLib.inCropMode = false;
-                    }} className="cropCancel">Cancel</Button>
+                    }} id="cropCancel" className="cropCancel">Cancel</Button>
                   </>
                 )
               :
@@ -434,7 +484,7 @@ class PhotoEditor extends React.Component {
           </div>
           <div className="toolIcons">
             <Tooltip placement="right" title="Crop [C]">
-              <div className={`toolIconContainer${this.state.selectedTool === "crop" ? " toolIconContainerSelected" : ""}`} onClick={(e) => {
+              <div id="cropToolButton" className={`toolIconContainer${this.state.selectedTool === "crop" ? " toolIconContainerSelected" : ""}`} onClick={(e) => {
                 if (!this.state.imageInstanced) return;
                 if (this.state.selectedTool === "crop") return;
                 if (this.state.selectedTool === "drag") this.photoEditorLib.konvaLib.stage.listening(true);
@@ -453,7 +503,7 @@ class PhotoEditor extends React.Component {
               </div>
             </Tooltip>
             <Tooltip placement="right" title="Add Text [T]">
-              <div className={`toolIconContainer${this.state.selectedTool === "addText" ? " toolIconContainerSelected" : ""}`} onClick={(e) => {
+              <div id="addTextToolButton" className={`toolIconContainer${this.state.selectedTool === "addText" ? " toolIconContainerSelected" : ""}`} onClick={(e) => {
                 if (!this.state.imageInstanced) return;
                 if (this.state.selectedTool === "addText") return;
                 if (this.state.selectedTool === "drag") this.photoEditorLib.konvaLib.stage.listening(true);
@@ -473,7 +523,7 @@ class PhotoEditor extends React.Component {
               </div>
             </Tooltip>
             <Tooltip placement="right" title="Paint [B]">
-              <div className={`toolIconContainer${this.state.selectedTool === "draw" ? " toolIconContainerSelected" : ""}`} onClick={(e) => {
+              <div id="paintToolButton" className={`toolIconContainer${this.state.selectedTool === "draw" ? " toolIconContainerSelected" : ""}`} onClick={(e) => {
                 if (!this.state.imageInstanced) return;
                 if (this.state.selectedTool === "draw") return;
                 if (this.state.selectedTool === "drag") this.photoEditorLib.konvaLib.stage.listening(true);
@@ -495,7 +545,7 @@ class PhotoEditor extends React.Component {
               </div>
             </Tooltip>
             <Tooltip placement="right" title="Erase [E]">
-              <div className={`toolIconContainer${this.state.selectedTool === "erase" ? " toolIconContainerSelected" : ""}`} onClick={(e) => {
+              <div  id="eraseToolButton" className={`toolIconContainer${this.state.selectedTool === "erase" ? " toolIconContainerSelected" : ""}`} onClick={(e) => {
                 if (!this.state.imageInstanced) return;
                 if (this.state.selectedTool === "erase") return;
                 if (this.state.selectedTool === "drag") this.photoEditorLib.konvaLib.stage.listening(true);
@@ -516,7 +566,7 @@ class PhotoEditor extends React.Component {
               </div>
             </Tooltip>
             <Tooltip placement="right" title="Pick Color [P]">
-              <div className={`toolIconContainer${this.state.selectedTool === "eyedrop" ? " toolIconContainerSelected" : ""}`} onClick={(e) => {
+              <div id="eyedropToolButton" className={`toolIconContainer${this.state.selectedTool === "eyedrop" ? " toolIconContainerSelected" : ""}`} onClick={(e) => {
                 if (!this.state.imageInstanced) return;
                 if (this.state.selectedTool === "eyedrop") return;
                 if (this.state.selectedTool === "drag") this.photoEditorLib.konvaLib.stage.listening(true);
@@ -535,13 +585,13 @@ class PhotoEditor extends React.Component {
             </Tooltip>
             <Tooltip placement="right" title="Rotate [R]">
               <div className="toolIconContainer">
-                <img className="toolIcon" src="refresh.svg" height="18px" style={{transform: "scaleX(-1)"}} onClick={() => {
+                <img  id="rotateToolButton" className="toolIcon" src="refresh.svg" height="18px" style={{transform: "scaleX(-1)"}} onClick={() => {
                   if (!this.state.imageInstanced) return;
                   this.photoEditorLib.rotate();
                 }}></img>
               </div>
             </Tooltip>
-            <Tooltip placement="right" title="Manage Image Layers [M]">
+            <Tooltip placement="right" title="Select [S]">
               <div id="move-tool-icon" className={`toolIconContainer${this.state.selectedTool === "move" ? " toolIconContainerSelected" : ""}`} onClick={() => {
                 if (!this.state.imageInstanced) return;
                 if (this.state.selectedTool === "move") return;
@@ -566,7 +616,7 @@ class PhotoEditor extends React.Component {
             </Tooltip>
             <Tooltip placement="right" title="Drag [G]">
               <div className={`toolIconContainer${this.state.selectedTool === "drag" ? " toolIconContainerSelected" : ""}`}>
-                <img className="toolIcon" src="hand-right.svg" height="18px" onClick={() => {
+                <img id="dragToolButton" className="toolIcon" src="hand-right.svg" height="18px" onClick={() => {
                   if (!this.state.imageInstanced) return;
                   if (this.state.selectedTool === "drag") return;
                   if (this.state.selectedTool === "crop") this.photoEditorLib.endCrop();
@@ -799,13 +849,48 @@ class PhotoEditor extends React.Component {
                 <div style={{display: "flex", alignItems: "center", position: "relative", marginTop: "10px"}}>
                   <h5>Canvas Width: </h5>
                   <div style={{marginLeft: "10px"}}>
-                    <InputNumber size="small"/>
+                    <InputNumber min={100} max={3000} value={this.state.canvasWidth} onFocus={(e) => {
+                      this.photoEditorLib.shortCutsTempDisabled = true;
+                    }} onBlur={(e) => {
+                      if (isNaN(parseFloat(e.target.value))) return;
+                      if (e.target.value === this.state.canvasWidth) return;
+                      this.setState({
+                        canvasWidth: e.target.value
+                      });
+                      this.photoEditorLib.shortCutsTempDisabled = false;
+                      this.photoEditorLib.setCanvasSize(e.target.value, this.state.canvasHeight);
+                    }} onPressEnter={(value) => {
+                      if (isNaN(parseFloat(value))) return;
+                      if (value === this.state.canvasWidth) return;
+                      this.setState({
+                        canvasWidth: value
+                      });
+                      this.photoEditorLib.setCanvasSize(value, this.state.canvasHeight);
+                    }} size="small"/>
                   </div>
                 </div>
                 <div style={{display: "flex", alignItems: "center", position: "relative", marginTop: "10px"}}>
                   <h5>Canvas Height: </h5>
                   <div style={{marginLeft: "10px"}}>
-                    <InputNumber size="small"/>
+                    <InputNumber min={100} max={3000} value={this.state.canvasHeight} onFocus={(e) => {
+                      this.photoEditorLib.shortCutsTempDisabled = true;
+                    }} onBlur={(e) => {
+                      if (isNaN(parseFloat(e.target.value))) return;
+                      if (e.target.value === this.state.canvasHeight) return;
+                      this.setState({
+                        canvasHeight: e.target.value
+                      });
+                      this.photoEditorLib.shortCutsTempDisabled = false;
+                      this.photoEditorLib.setCanvasSize(this.state.canvasWidth, e.target.value);
+                    }} onPressEnter={(value) => {
+                      console.log(value)
+                      if (isNaN(parseFloat(value))) return;
+                      if (value === this.state.canvasHeight) return;
+                      this.setState({
+                        canvasHeight: value
+                      });
+                      this.photoEditorLib.setCanvasSize(this.state.canvasWidth, value);
+                    }} size="small"/>
                   </div>
                 </div>
               </div>

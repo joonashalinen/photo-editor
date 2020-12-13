@@ -6,6 +6,7 @@
 
 .imageGridMenuImage {
   border-radius: 5px;
+  border: 2px solid transparent;
   filter: brightness(0.7);
 }
 

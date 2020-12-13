@@ -26,12 +26,15 @@ class PhotoEditorLib {
     this.activeTransformers = [];
     this.reattachTextAnchorList = [];
     this.imageInstanced = false;
+    this.hasLoadedOnce = false;
+
+    this.shortCutsTempDisabled = false;
 
     this.inCropMode = false;
     this.texts = [];
 
-    this.selectedFont = "Impact";
-    this.fonts = ["Impact", "Calibri", "Arial"];
+    this.selectedFont = options.selectedFont;
+    this.fonts = options.fonts;
 
     this.offsetX = 0;
     this.offsetY = 0;
@@ -158,12 +161,15 @@ class PhotoEditorLib {
       timeout = window.requestAnimationFrame(() => {
 
         if (e.target instanceof Konva.Stage) {
+          if (this.konvaTarget) this.dispatchEvent("konvaTargetChange", [false]);
           this.konvaTarget = false;
           this.konvaJsContent.style.cursor = "text";
+          this.dispatchEvent("konvaTargetChange", [false])
           return;
         }
 
         if (e.target instanceof Konva.Text) {
+          if (this.konvaTarget !== e.target) this.dispatchEvent("konvaTargetChange", [e.target]);
           this.konvaTarget = e.target;
           this.konvaJsContent.style.cursor = "auto";
           return;
@@ -175,10 +181,12 @@ class PhotoEditorLib {
   }
 
   undo() {
+    if (this.selectedTool === "crop") document.getElementById("cropCancel").click();
     this.undoRedoLib.undoRedo("undo");
   }
 
   redo() {
+    if (this.selectedTool === "crop") document.getElementById("cropCancel").click();
     this.undoRedoLib.undoRedo("redo")
   }
 
@@ -528,17 +536,135 @@ class PhotoEditorLib {
 
   }
 
+  setCanvasSize(width, height) {
+
+    this.konvaLib.stage.size({
+      width: width,
+      height: height
+    });
+
+    this.konvaLib.transformersStage.size({
+      width: width,
+      height: height
+    });
+
+    this.konvaLib.colorBackgroundImage.size({
+      width: width,
+      height: height
+    });
+
+    this.konvaLib.backgroundImage.size({
+      width: width,
+      height: height
+    });
+
+    this.stage.size({
+      width: width,
+      height: height
+    });
+
+    var drawingCtx = this.drawingCanvas.getContext("2d");
+    var drawingImageData = drawingCtx.getImageData(0, 0, this.drawingCanvas.width, this.drawingCanvas.height);
+
+    this.drawingCanvas.width = width;
+    this.drawingCanvas.height = height;
+
+    drawingCtx.putImageData(drawingImageData, 0, 0);
+
+    var imageRatio = width / height;
+    var canvasRatio = this.canvasesContainer.clientWidth / this.canvasesContainer.clientHeight;
+
+    var scale = imageRatio > canvasRatio ?
+      (this.canvasesContainer.clientWidth / width) : this.canvasesContainer.clientHeight / height;
+
+    if (this.canvasesContainer.clientWidth >= width && this.canvasesContainer.clientHeight >= height) {
+      scale = 1;
+    }
+
+    this.scale = scale;
+
+    document.getElementById("overlayCanvasContainer").firstElementChild.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
+    this.konvaImagesContainer.firstElementChild.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
+    this.drawingCanvas.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
+    this.cursorCanvas.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
+    this.konvaTransformersContainer.firstElementChild.style.transform = `translate(${this.offsetLeftOriginX}px, ${this.offsetLeftOriginY}px) translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
+
+    CanvasLib.copyCanvasProperties(this.drawingCanvas, this.cursorCanvas);
+    CanvasLib.copyCanvasProperties(this.drawingCanvas, this.colorPickerCanvas);
+
+    this.konvaLib.stage.draw();
+    this.konvaLib.transformersStage.draw();
+    this.stage.draw();
+
+
+  }
+
   async loadImage(file) {
 
     if (this.imageInstanced) return;
+
+    if (!this.hasLoadedOnce) {
+
+      if (this.options.shortCutsEnabled) {
+
+        document.addEventListener("keydown", (e) => {
+          console.log(this.shortCutsTempDisabled)
+
+          if (this.shortCutsTempDisabled) return;
+
+          switch (e.code) {
+
+            case "KeyC": {
+              document.getElementById("cropToolButton").click();
+              break;
+            }
+            case "KeyT": {
+              document.getElementById("addTextToolButton").click();
+              break;
+            }
+            case "KeyB": {
+              document.getElementById("paintToolButton").click();
+              break;
+            }
+            case "KeyE": {
+              document.getElementById("eraseToolButton").click();
+              break;
+            }
+            case "KeyP": {
+              document.getElementById("eyedropToolButton").click();
+              break;
+            }
+            case "KeyR": {
+              document.getElementById("rotateToolButton").click();
+              break;
+            }
+            case "KeyS": {
+              document.getElementById("move-tool-icon").click();
+              break;
+            }
+            case "KeyG": {
+              document.getElementById("dragToolButton").click();
+              break;
+            }
+
+          }
+
+        });
+
+      }
+
+      this.hasLoadedOnce = true;
+    }
 
     this.dispatchEvent("loadingImage", [file]);
 
     document.getElementById("canvasesContainer").addEventListener("wheel", this.zoom);
 
-    document.getElementById("canvasesContainer").addEventListener("mousedown", () => {
+    this.beginDragModeEventHandler = () => {
       this.beginDragMode();
-    });
+    };
+
+    document.getElementById("canvasesContainer").addEventListener("mousedown", this.beginDragModeEventHandler);
 
     this.drawingCanvas = document.getElementById("drawingCanvas");
     this.cursorCanvas = document.getElementById("cursorCanvas");
@@ -630,7 +756,7 @@ class PhotoEditorLib {
     var first = true;
     var timeout;
 
-    this.konvaLib.stage.on("mousemove", (e) => {
+    this.konvaPreviewTargetChangeEventHandler = (e) => {
 
       if (timeout) {
         window.cancelAnimationFrame(timeout);
@@ -638,21 +764,30 @@ class PhotoEditorLib {
 
       timeout = window.requestAnimationFrame(() => {
 
+        if (this.konvaTarget !== e.target) this.dispatchEvent("konvaTargetChange", [e.target]);
         this.konvaTarget = e.target;
         if (this.konvaTarget instanceof Konva.Image) {
           this.konvaLib.previewTargetImage(e.target);
         }
       });
 
-    });
+    }
 
-    this.konvaLib.stage.on("click tap", (e) => {
+    this.konvaLib.stage.on("mousemove", this.konvaPreviewTargetChangeEventHandler);
+
+    this.konvaTargetChangeEventHandler = (e) => {
       if (e.evt.button === 2) return;
       if (e.target instanceof Konva.Image) {
         console.log("targeting")
         var targeted = this.konvaLib.targetImage(e.target);
         if (targeted) this.dispatchEvent("imageTargetChange", [e.target]);
       }
+    }
+
+    this.konvaLib.stage.on("click tap", this.konvaTargetChangeEventHandler);
+
+    this.konvaLib.stage.on("mouseleave", () => {
+      if (this.konvaLib.previewedTargetImage) this.konvaLib.unPreviewTargetImage(this.konvaLib.previewedTargetImage);
     });
 
     this.initKonva(image);
@@ -817,6 +952,10 @@ class PhotoEditorLib {
 
     this.dispatchEvent("imageTargetChange", [konvaImage]);
 
+    setTimeout(() => {
+      document.getElementById("move-tool-icon").click();
+    }, 50)
+
   }
 
   deleteSelectedImage() {
@@ -954,7 +1093,12 @@ class PhotoEditorLib {
 
     text.on('dblclick', () => {
 
+      this.shortCutsTempDisabled = true;
+
       var removeTextarea = () => {
+
+        this.shortCutsTempDisabled = false;
+        this.editingText = false;
 
         textarea.parentNode.removeChild(textarea);
         window.removeEventListener('click', handleOutsideClick);
@@ -969,7 +1113,6 @@ class PhotoEditorLib {
         if (e.target !== textarea) {
           text.text(textarea.value);
           removeTextarea();
-          this.editingText = false;
         }
       }
 
@@ -1112,12 +1255,14 @@ class PhotoEditorLib {
       this.konvaImagesContainer.style.cursor = "grab";
     }
 
+    console.log("adding drag mode event listeners..")
     this.canvasesContainer.addEventListener("mousemove", this.dragModeEventHandler);
     this.canvasesContainer.addEventListener("mouseup", this.dragModeMouseupEventHandler);
     this.canvasesContainer.addEventListener("mouseout", this.dragModeMouseoutEventHandler);
   }
 
   endDragMode() {
+    console.log("removing drag mode event listeners..")
     this.canvasesContainer.removeEventListener("mousemove", this.dragModeEventHandler);
     this.canvasesContainer.removeEventListener("mouseup", this.dragModeMouseupEventHandler);
     this.canvasesContainer.removeEventListener("mouseout", this.dragModeMouseoutEventHandler);
@@ -1531,7 +1676,7 @@ class PhotoEditorLib {
 
     var transformer = this.konvaLib.getNodeTransformer(text, this.layer);
 
-    transformer.detach();
+    transformer.remove();
 
     text.remove();
     this.layer.draw();
@@ -1597,6 +1742,18 @@ class PhotoEditorLib {
     });
 
     this.cropper = cropper;
+
+    var timeout;
+    cropDummyCanvas.addEventListener("crop", (e) => {
+
+      if (timeout) {
+        window.cancelAnimationFrame(timeout);
+      }
+
+      timeout = window.requestAnimationFrame(() => {
+        this.dispatchEvent("croppingSelectionChange", [e.detail]);
+      })
+    });
   }
 
   endCrop() {
@@ -1657,7 +1814,7 @@ class PhotoEditorLib {
 
     this.reapplyImageFilters();
 
-    if (selectedTargetImage) this.konvaLib.targetImage(selectedTargetImage);
+    if (selectedTargetImage) this.konvaLib.targetImage(this.konvaLib.getImageWithId(selectedTargetImage.photoEditorId));
 
     for (var i = 0; i < this.konvaLib.imagesLayer.getChildren().length; i++) {
       let image = this.konvaLib.imagesLayer.getChildren()[i];
@@ -1715,6 +1872,16 @@ class PhotoEditorLib {
     this.konvaLib.imagesLayer.x(this.konvaLib.imagesLayer.x() + diffX);
     this.konvaLib.imagesLayer.y(this.konvaLib.imagesLayer.y() + diffY);
 
+    this.konvaLib.colorBackgroundImage.size({
+      width: Math.floor(cropData.width),
+      height: Math.floor(cropData.height)
+    });
+
+    this.konvaLib.backgroundImage.size({
+      width: Math.floor(cropData.width),
+      height: Math.floor(cropData.height)
+    });
+
     this.konvaLib.fixLayerContentsPositioning(this.konvaLib.imagesLayer);
 
     if (this.konvaLib.imagesLayerRotation === 90 || this.konvaLib.imagesLayerRotation === 270) {
@@ -1760,6 +1927,8 @@ class PhotoEditorLib {
 
     this.colorPickerCanvas.width = Math.floor(cropData.width);
     this.colorPickerCanvas.height = Math.floor(cropData.height);
+
+    this.dispatchEvent("cropped", [cropData]);
 
     this.cropper.destroy();
 
@@ -1808,6 +1977,7 @@ class PhotoEditorLib {
     //this.konvaDrawingCanvasNode.listening(false);
     //this.konvaCursorCanvasNode.listening(false);
     this.softBrush.enabled = false;
+    this.softBrush.cursorCanvas.getContext("2d").clearRect(0, 0, this.softBrush.cursorCanvas.width, this.softBrush.cursorCanvas.height)
     //this.konvaLib.stage.draw();
   }
 
@@ -1906,6 +2076,7 @@ class PhotoEditorLib {
       this.konvaLib.setBackgroundColor(color.rgbaString);
     });
     this.selectedBackgroundColor = this.backgroundColorPicker.color;
+    document.getElementById("background-color-picker-button").style.backgroundColor = "transparent";
   }
 
   showColorPicker(id) {
@@ -2005,14 +2176,17 @@ class PhotoEditorLib {
 
     if (!this.imageInstanced) return;
 
-    //var canvas = document.getElementById("canvas");
+    // drawing
+
     var drawingCanvas = document.getElementById("drawingCanvas");
-
-    //var ctx = canvas.getContext("2d");
-    //ctx.clearRect(0, 0, canvas.width, canvas.height);
-
     var ctx = drawingCanvas.getContext("2d");
     ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+
+    this.softBrush.removeInstance();
+    this.softBrush = false;
+    this.drawingEnabled = false;
+
+    // konva
 
     if (this.konvaReady) {
 
@@ -2035,9 +2209,7 @@ class PhotoEditorLib {
     document.getElementById("konvaTransformersContainer").firstElementChild.remove();
     this.konvaLib = false;
 
-    this.softBrush.removeInstance();
-    this.softBrush = false;
-    this.drawingEnabled = false;
+    // misc
 
     this.appliedPixiFilters = {};
 
@@ -2053,6 +2225,8 @@ class PhotoEditorLib {
     this.offsetLeftOriginX = 0;
     this.offsetLeftOriginY = 0;
 
+    this.shortCutsTempDisabled = false;
+
     this.activeTransformers = [];
     this.reattachTextAnchorList = [];
     this.imageInstanced = false;
@@ -2064,8 +2238,44 @@ class PhotoEditorLib {
     this.defaultBrushSize = this.originalOptions.defaultBrushSize ? this.originalOptions.defaultBrushSize : 20;
     this.defaultBrushHardness = this.originalOptions.defaultBrushHardness ? this.originalOptions.defaultBrushHardness : 0.5;
 
+    // undo/redo
+
     this.undoRedoLib.clearRedoCache();
     this.undoRedoLib.clearUndoCache();
+
+    // events
+
+    document.getElementById("canvasesContainer").removeEventListener("wheel", this.zoom);
+    document.getElementById("canvasesContainer").removeEventListener("mousedown", this.beginDragModeEventHandler);
+
+    // color pickers
+
+    var iroColor = new iro.Color({r: 255, g: 255, b: 255, a: 1});
+
+    if (this.textColorPicker) {
+      this.textColorPicker.setColors([iroColor]);
+      this.textColorPicker.setActiveColor(0);
+    }
+
+    if (this.drawingColorPicker) {
+      this.drawingColorPicker.setColors([iroColor]);
+      this.drawingColorPicker.setActiveColor(0);
+    }
+
+    if (this.backgroundColorPicker) {
+      this.backgroundColorPicker.setColors([iroColor]);
+      this.backgroundColorPicker.setActiveColor(0);
+    }
+
+    this.selectedTextColor = iroColor;
+    this.selectedDrawingColor = iroColor;
+
+    document.getElementById("text-color-picker-button").style.backgroundColor = `rgba(255, 255, 255, 1)`;
+    document.getElementById("drawing-color-picker-button").style.backgroundColor = `rgba(255, 255, 255, 1)`;
+    document.getElementById("eyedrop-color-picker-button").style.backgroundColor = `rgba(255, 255, 255, 1)`;
+    document.getElementById("background-color-picker-button").style.backgroundColor = `rgba(255, 255, 255, 0)`;
+
+    // dispatch event
 
     this.dispatchEvent("removeImageInstance", []);
 

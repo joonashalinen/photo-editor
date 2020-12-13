@@ -181,6 +181,16 @@ h1 {
   box-shadow: 0 0 10px #181818;
 }
 
+.resolutionTag {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  padding: 5px;
+  color: rgba(255, 255, 255, 0.85);
+  border-radius: 2px;
+  background-color: rgb(31, 31, 31);
+}
+
 .cropAccept, .cropCancel {
   position: absolute;
   bottom: 4px;
