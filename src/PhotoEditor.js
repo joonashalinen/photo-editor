@@ -267,7 +267,7 @@ class PhotoEditor extends React.Component {
           <div className="toolOptionsMenu">
             <div style={{position: "relative", width: "24px", height: "24px", display: this.state.selectedTool === "draw" ? "block" : "none"}}>
               <Tooltip title="Color">
-                <div style={{position: "relative"}}>
+                <div style={{position: "relative", height: "24px", width: "24px"}}>
                   <div className="colorPickerButton" style={{pointerEvents: "none", zIndex: 1, position: "absolute", top: "0px", left: "0px", backgroundImage: "url(background_tile_pattern.png)", backgroundSize: "cover"}}></div>
                   <button style={{zIndex: 2, position: "absolute", top: "0px", left: "0px"}} id="drawing-color-picker-button" className="colorPickerButton" onClick={() => {
                     this.photoEditorLib.showColorPicker("drawing-color-picker");
@@ -316,7 +316,7 @@ class PhotoEditor extends React.Component {
             }
             <div style={{position: "relative", width: "24px", height: "24px", display: this.state.selectedTool === "addText" ? "block" : "none"}}>
               <Tooltip title="Color">
-                <div style={{position: "relative"}}>
+                <div style={{position: "relative", height: "24px", width: "24px"}}>
                   <div className="colorPickerButton" style={{pointerEvents: "none", zIndex: 1, position: "absolute", top: "0px", left: "0px", backgroundImage: "url(background_tile_pattern.png)", backgroundSize: "cover"}}></div>
                   <button style={{zIndex: 2, position: "absolute", top: "0px", left: "0px"}} id="text-color-picker-button" className="colorPickerButton" onClick={() => {
                     this.photoEditorLib.showColorPicker("text-color-picker");
@@ -337,12 +337,18 @@ class PhotoEditor extends React.Component {
               </Select>
             </div>
             <Button id="addTextEmojiButton" className="addTextEmojiButton" style={{display: this.state.selectedTool === "addText" ? "inline-block" : "none"}} onClick={(e) => {
+              this.photoEditorLib.shortCutsTempDisabled = true;
+              var closeEventHandler = () => {
+                this.photoEditorLib.shortCutsTempDisabled = false;
+                this.photoEditorLib.emojiPicker.off("hidden", closeEventHandler)
+              }
               this.photoEditorLib.emojiPicker.showPicker(e.target);
+              this.photoEditorLib.emojiPicker.on("hidden", closeEventHandler)
             }}>😀</Button>
             <div style={{height:"24px", position: "relative", display: this.state.selectedTool === "eyedrop" ? "block" : "none"}}>
               <Tooltip title="Color">
-                <button id="eyedrop-color-picker-button" className="colorPickerButton" onClick={() => {
-                }}></button>
+                <div id="eyedrop-color-picker-button" className="colorPickerButton" onClick={() => {
+                }}></div>
               </Tooltip>
             </div>
           </div>
@@ -414,7 +420,7 @@ class PhotoEditor extends React.Component {
               }
 
               if (target instanceof this.photoEditorLib.Konva.Text) {
-                setOptions(["Delete Text"]);
+                setOptions(["Delete"]);
                 return;
               }
 
@@ -434,7 +440,7 @@ class PhotoEditor extends React.Component {
 
                 return;
               }
-              if (target.key === "Delete Text") {
+              if (target.key === "Delete") {
                 this.photoEditorLib.deleteSelectedText();
                 return;
               }
@@ -839,7 +845,7 @@ class PhotoEditor extends React.Component {
                   <h5>Background color: </h5>
                   <div style={{position: "relative", width: "24px", height: "24px"}}>
                     <Tooltip title="Color">
-                      <div style={{position: "relative", marginLeft: "10px"}}>
+                      <div style={{position: "relative", marginLeft: "10px", height: "24px", width: "24px"}}>
                         <div className="colorPickerButton" style={{pointerEvents: "none", zIndex: 1, position: "absolute", top: "0px", left: "0px", backgroundImage: "url(background_tile_pattern.png)", backgroundSize: "cover"}}></div>
                         <button style={{zIndex: 2, position: "absolute", top: "0px", left: "0px"}} id="background-color-picker-button" className="colorPickerButton" onClick={() => {
                           this.photoEditorLib.showColorPicker("background-color-picker");
