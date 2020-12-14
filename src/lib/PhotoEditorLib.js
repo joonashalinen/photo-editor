@@ -2203,6 +2203,7 @@ class PhotoEditorLib {
     if (this.konvaLib.backgroundImageColor === "transparent") this.konvaLib.hideImage(this.konvaLib.backgroundImage);
 
     downloadCtx.drawImage(this.konvaLib.stage.toCanvas(), 0, 0);
+    downloadCtx.drawImage(this.drawingCanvas, 0, 0);
     downloadCtx.drawImage(this.stage.toCanvas(), 0, 0);
 
     if (this.selectedTool === "addText") this.readdAllAnchors();

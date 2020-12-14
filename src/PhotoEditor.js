@@ -862,6 +862,7 @@ class PhotoEditor extends React.Component {
                       this.photoEditorLib.shortCutsTempDisabled = true;
                     }} onBlur={(e) => {
                       if (isNaN(parseFloat(e.target.value))) return;
+                      if (!this.photoEditorLib.imageInstanced) return;
                       if (e.target.value === this.state.canvasWidth) return;
                       this.setState({
                         canvasWidth: e.target.value
@@ -870,6 +871,7 @@ class PhotoEditor extends React.Component {
                       this.photoEditorLib.setCanvasSize(e.target.value, this.state.canvasHeight);
                     }} onPressEnter={(value) => {
                       if (isNaN(parseFloat(value))) return;
+                      if (!this.photoEditorLib.imageInstanced) return;
                       if (value === this.state.canvasWidth) return;
                       this.setState({
                         canvasWidth: value
@@ -885,6 +887,7 @@ class PhotoEditor extends React.Component {
                       this.photoEditorLib.shortCutsTempDisabled = true;
                     }} onBlur={(e) => {
                       if (isNaN(parseFloat(e.target.value))) return;
+                      if (!this.photoEditorLib.imageInstanced) return;
                       if (e.target.value === this.state.canvasHeight) return;
                       this.setState({
                         canvasHeight: e.target.value
@@ -892,8 +895,8 @@ class PhotoEditor extends React.Component {
                       this.photoEditorLib.shortCutsTempDisabled = false;
                       this.photoEditorLib.setCanvasSize(this.state.canvasWidth, e.target.value);
                     }} onPressEnter={(value) => {
-                      console.log(value)
                       if (isNaN(parseFloat(value))) return;
+                      if (!this.photoEditorLib.imageInstanced) return;
                       if (value === this.state.canvasHeight) return;
                       this.setState({
                         canvasHeight: value
