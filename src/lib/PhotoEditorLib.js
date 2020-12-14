@@ -803,6 +803,23 @@ class PhotoEditorLib {
     this.konvaLib.stage.on("click tap", this.konvaTargetChangeEventHandler);
 
     this.konvaLib.stage.on("mouseleave", () => {
+      if (this.konvaLib.transformerIsTransforming()) {
+        var redraw = () => {
+          if (!draw) return;
+          setTimeout(() => {
+            this.konvaLib.stage.batchDraw();
+            this.konvaLib.transformersStage.batchDraw();
+            redraw();
+          }, 1000 / 60)
+        }
+        var mouseUpEvent = () => {
+          draw = false;
+          document.removeEventListener("mouseup", mouseUpEvent);
+        }
+        var draw = true;
+        redraw();
+        document.addEventListener("mouseup", mouseUpEvent);
+      }
       if (this.konvaLib.previewedTargetImage) this.konvaLib.unPreviewTargetImage(this.konvaLib.previewedTargetImage);
     });
 
