@@ -760,6 +760,8 @@ class PhotoEditorLib {
 
     await initKonvaLib;
 
+    this.konvaImagesContainer.firstElementChild.style.boxShadow = "rgb(11, 11, 11) 4px 10px 4px";
+
     var konvaImage = this.konvaLib.addImage(image, {
       targetable: true,
       alignCenter: true

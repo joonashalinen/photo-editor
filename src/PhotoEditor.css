@@ -9,7 +9,6 @@ h1 {
   width: 100%;
   padding-top: 10px;
   height: 744px;
-  background-color: #1f1f1f;
 }
 
 .toolOptionsMenu {
@@ -107,7 +106,7 @@ h1 {
   height: 100%;
   position: relative;
   overflow: hidden;
-  background-color: #181818;
+  background-color: #212121;
 }
 
 .emptyCanvasImage {

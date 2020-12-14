@@ -45,7 +45,7 @@ class App extends React.Component {
     return (
       <div style={{display: "flex", width: "100%", height: "100%"}}>
         <div className="testLeftSidebar"></div>
-        <div style={{width: "100%", overflowY: "auto", backgroundColor: "#1f1f1f", scrollBehavior: "smooth"}}>
+        <div style={{width: "100%", overflowY: "auto", backgroundColor: "rgb(39 39 39)", scrollBehavior: "smooth"}}>
           <h1 style={{padding: "10px", marginTop: "20px"}}>Meme Generator</h1>
           <PhotoEditor/>
           <div style={{display: "flex", alignItems: "center", marginTop: "50px", padding: "10px"}}>
