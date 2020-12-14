@@ -348,11 +348,17 @@ class KonvaLib {
 
     var boundingFunc = (oldBox, newBox) => {
 
+      // no bounding actions when not adjusting size
+      if (oldBox.width === newBox.width && oldBox.height === newBox.height) return newBox;
+
       if (image.rotation() >= 360) {
         image.rotation(image.rotation() - 360);
       }
 
       var rotation = parseFloat(image.rotation().toFixed(8));
+
+      // no bounding actions when not at a right angle
+      if (rotation % 90 !== 0) return newBox;
 
       if ((oldBox.width / oldBox.height).toFixed(5) === (newBox.width / newBox.height).toFixed(5)) {
         var aspectRatioLocked = true;
@@ -529,21 +535,23 @@ class KonvaLib {
 
       }
 
-      // restrict width to at least 10
-      if (newBox.width < 10) {
-        newBox.width = 10;
-      }
-      // restrict height to at least 10
-      if (newBox.height < 10) {
-        newBox.height = 10;
-      }
-      // don't allow resizing outside of x-boundaries
-      if (newBox.x < newBox.width * -1 + 10) {
-        newBox.x = newBox.width * -1 + 10;
-      }
-      // don't allow resizing outside of y-boundaries
-      if (newBox.y < newBox.height * -1 + 10) {
-        newBox.y = newBox.height * -1 + 10;
+      if (parseFloat(rotation) % 90 === 0) {
+        // restrict width to at least 10
+        if (newBox.width < 10) {
+          newBox.width = 10;
+        }
+        // restrict height to at least 10
+        if (newBox.height < 10) {
+          newBox.height = 10;
+        }
+        // don't allow resizing outside of x-boundaries
+        if (newBox.x < newBox.width * -1 + 10) {
+          newBox.x = newBox.width * -1 + 10;
+        }
+        // don't allow resizing outside of y-boundaries
+        if (newBox.y < newBox.height * -1 + 10) {
+          newBox.y = newBox.height * -1 + 10;
+        }
       }
 
       return newBox;

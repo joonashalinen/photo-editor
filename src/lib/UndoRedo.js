@@ -140,6 +140,34 @@ class UndoRedo {
         break;
       }
 
+      case "canvas-resize": {
+
+        handleUndoRedoCache(this.typesLib.getCanvasResizeUndoRedo(), undoOrRedo);
+
+        this.parent.konvaLib.stage.width(latestUndoRedo.data.width);
+        this.parent.konvaLib.stage.height(latestUndoRedo.data.height);
+
+        this.parent.konvaLib.backgroundImage.width(latestUndoRedo.data.width);
+        this.parent.konvaLib.backgroundImage.height(latestUndoRedo.data.height);
+
+        this.parent.konvaLib.colorBackgroundImage.width(latestUndoRedo.data.width);
+        this.parent.konvaLib.colorBackgroundImage.height(latestUndoRedo.data.height);
+
+        this.parent.konvaLib.transformersStage.width(latestUndoRedo.data.width);
+        this.parent.konvaLib.transformersStage.height(latestUndoRedo.data.height);
+
+        this.parent.stage.width(latestUndoRedo.data.width);
+        this.parent.stage.height(latestUndoRedo.data.height);
+
+        this.parent.konvaLib.stage.batchDraw();
+        this.parent.konvaLib.transformersStage.batchDraw();
+        this.parent.stage.batchDraw();
+
+        this.parent.dispatchEvent("canvasResize", [latestUndoRedo.data.width, latestUndoRedo.data.height]);
+
+        break;
+      }
+
       case "crop": {
 
         handleUndoRedoCache(this.typesLib.getCropUndoRedo(), undoOrRedo);
@@ -221,6 +249,13 @@ class UndoRedo {
 
         this.parent.konvaLib.transformersStage.batchDraw();
         this.parent.konvaLib.stage.batchDraw();
+
+        this.parent.dispatchEvent("cropped", [{
+          width: latestUndoRedo.data.width,
+          height: latestUndoRedo.data.height,
+          x: latestUndoRedo.data.x,
+          y: latestUndoRedo.data.y,
+        }]);
 
         break;
       }

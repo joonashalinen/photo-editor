@@ -230,6 +230,13 @@ class PhotoEditor extends React.Component {
       })
     })
 
+    this.photoEditorLib.on("canvasResize", (width, height) => {
+      this.setState({
+        canvasWidth: width,
+        canvasHeight: height
+      })
+    });
+
   }
 
   render() {

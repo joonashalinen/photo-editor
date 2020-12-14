@@ -30,6 +30,18 @@ class UndoRedoTypesLib {
     return undoRedoItem;
   }
 
+  getCanvasResizeUndoRedo() {
+
+    return {
+      data: {
+        width: this.parent.konvaLib.stage.width(),
+        height: this.parent.konvaLib.stage.height()
+      },
+      type: "canvas-resize"
+    }
+
+  }
+
   getCropUndoRedo() {
 
     var drawingImageData = this.parent.drawingCanvas.getContext("2d").getImageData(0, 0, this.parent.drawingCanvas.width, this.parent.drawingCanvas.height);

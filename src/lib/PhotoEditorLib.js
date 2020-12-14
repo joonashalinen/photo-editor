@@ -553,6 +553,8 @@ class PhotoEditorLib {
 
   setCanvasSize(width, height) {
 
+    this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getCanvasResizeUndoRedo());
+
     this.konvaLib.stage.size({
       width: width,
       height: height
@@ -611,6 +613,7 @@ class PhotoEditorLib {
     this.konvaLib.transformersStage.draw();
     this.stage.draw();
 
+    this.dispatchEvent("canvasResize", [width, height]);
 
   }
 
