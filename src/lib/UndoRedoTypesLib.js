@@ -44,7 +44,7 @@ class UndoRedoTypesLib {
 
   getCropUndoRedo() {
 
-    var drawingImageData = this.parent.drawingCanvas.getContext("2d").getImageData(0, 0, this.parent.drawingCanvas.width, this.parent.drawingCanvas.height);
+    var drawingImageData = this.parent.drawingCanvas.getContext("2d").getImageData(0, 0, Math.floor(this.parent.drawingCanvas.width), Math.floor(this.parent.drawingCanvas.height));
 
     /*
     var drawingImageDataCopy = new ImageData(

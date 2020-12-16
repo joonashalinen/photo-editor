@@ -54,10 +54,7 @@ class KonvaLib {
 
       //this.imagesCroppingLayer = new Konva.Layer();
 
-      this.imagesLayer = new Konva.Layer({
-        stroke: "blue",
-        strokeWidth: 1
-      });
+      this.imagesLayer = new Konva.Layer();
       //this.imagesCroppingLayer.add(this.imagesLayer);
       this.stage.add(this.imagesLayer);
 

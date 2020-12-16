@@ -68,6 +68,7 @@ class SoftBrush {
   setSamplingCanvas(canvas) {
     this.samplingCanvas = canvas;
     this.samplingCtx = canvas.getContext("2d");
+    //this.samplingImageData = this.samplingCtx.getImageData(this.samplingCanvas.width, this.samplingCanvas.height);
   }
 
   setCanvasHeight(value) {
@@ -78,6 +79,10 @@ class SoftBrush {
   setCanvasWidth(value) {
     this.canvas.width = value;
     if (this.cursorCanvas) this.cursorCanvas.width = this.canvas.width;
+  }
+
+  setCanvasScale(value) {
+    this.canvasScale = value;
   }
 
   clearCanvas(ctx) {
@@ -483,7 +488,13 @@ class SoftBrush {
       if (this.enabled){
         this.dispatchEvent("drawbegin");
         isDrawing = true;
-        var pos = {x: e.offsetX, y: e.offsetY}
+
+        var boundingRect = this.canvas.getBoundingClientRect();
+
+        var x = e.clientX - boundingRect.x;
+        var y = e.clientY - boundingRect.y;
+
+        var pos = {x: x / this.canvasScale, y: y / this.canvasScale}
 
         lastPoint = { x: pos.x, y: pos.y };
         points.push(lastPoint);
@@ -509,7 +520,13 @@ class SoftBrush {
       timeout = window.requestAnimationFrame(() => {
 
         if (this.enabled) {
-          var pos = {x: e.offsetX, y: e.offsetY}
+
+          var boundingRect = this.canvas.getBoundingClientRect();
+
+          var x = e.clientX - boundingRect.x;
+          var y = e.clientY - boundingRect.y;
+
+          var pos = {x: x / this.canvasScale, y: y / this.canvasScale}
 
           handleMousemove(pos.x, pos.y);
 
@@ -531,10 +548,10 @@ class SoftBrush {
 
     console.log("adding event listeners")
 
-    this.canvas.onpointerdown = this.onMouseDown;
-    this.canvas.onpointerup = this.onMouseUp;
-    this.canvas.onpointermove = this.onMouseMove;
-    this.canvas.onpointerleave = this.onMouseLeave;
+    this.canvas.onmousedown = this.onMouseDown;
+    this.canvas.onmouseup = this.onMouseUp;
+    this.canvas.onmousemove = this.onMouseMove;
+    this.canvas.onmouseleave = this.onMouseLeave;
 
     /*
     this.canvas.addEventListener('mousedown', this.onMouseDown);

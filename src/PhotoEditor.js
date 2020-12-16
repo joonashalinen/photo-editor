@@ -408,7 +408,7 @@ class PhotoEditor extends React.Component {
                 null
               }
             </div>
-            <Canvas id="canvas" containerId="canvasContainer"/>
+            <Canvas id="canvas" containerId="canvasContainer" style={{display: "none"}}/>
             <ContextMenu visible={this.state.contextMenuVisible} onVisibleChange={(visible, setOptions, setMenuVisible) => {
               var target = this.photoEditorLib.getKonvaTarget();
 
@@ -452,16 +452,16 @@ class PhotoEditor extends React.Component {
                 return;
               }
             }}>
-              <div>
+              <div id="canvasesZoomContainer">
                 <div id="konvaImagesContainer" className="canvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
                 <Canvas id="drawingCanvas" containerId="drawingCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent" }}/>
                 <div id="konvaTransformersContainer" className="canvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
                 <Canvas id="overlayCanvas" containerId="overlayCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
+                <Canvas id="colorPickerCanvas" containerId="colorPickerCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none"}}/>
+                <Canvas id="cursorCanvas" containerId="cursorCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
               </div>
             </ContextMenu>
-            <Canvas id="cropDummyCanvas" containerId="cropDummyCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none", visibility: "hidden" }}/>
-            <Canvas id="colorPickerCanvas" containerId="colorPickerCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none"}}/>
-            <Canvas id="cursorCanvas" containerId="cursorCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
+            <Canvas id="cropDummyCanvas" containerId="cropDummyCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none", visibility: "hidden", display: "none" }}/>
             <div id="drawingCanvasCursor" className="drawingCanvasCursor" style={{display: "none"}}></div>
             {
               this.state.selectedTool === "crop" ?

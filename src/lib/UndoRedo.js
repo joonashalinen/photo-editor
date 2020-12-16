@@ -144,6 +144,10 @@ class UndoRedo {
 
         handleUndoRedoCache(this.typesLib.getCanvasResizeUndoRedo(), undoOrRedo);
 
+        this.parent.setCanvasSize(latestUndoRedo.data.width, latestUndoRedo.data.height, true);
+
+        break;
+
         this.parent.konvaLib.stage.width(latestUndoRedo.data.width);
         this.parent.konvaLib.stage.height(latestUndoRedo.data.height);
 
@@ -172,6 +176,13 @@ class UndoRedo {
 
         handleUndoRedoCache(this.typesLib.getCropUndoRedo(), undoOrRedo);
 
+        latestUndoRedo.x = Math.round(latestUndoRedo.x);
+        latestUndoRedo.y = Math.round(latestUndoRedo.y);
+        latestUndoRedo.imagesOffsetX = Math.round(latestUndoRedo.imagesOffsetX);
+        latestUndoRedo.imagesOffsetY = Math.round(latestUndoRedo.imagesOffsetY);
+        latestUndoRedo.width = Math.round(latestUndoRedo.width);
+        latestUndoRedo.height = Math.round(latestUndoRedo.height)
+
         console.log(latestUndoRedo.data.images)
 
         console.log(this.undoCache, this.redoCache)
@@ -192,18 +203,18 @@ class UndoRedo {
         this.parent.layer.offsetY(latestUndoRedo.data.offsetY);
 
         this.parent.stage.size({
-          width: Math.floor(latestUndoRedo.data.width),
-          height: Math.floor(latestUndoRedo.data.height)
+          width: Math.round(latestUndoRedo.data.width),
+          height: Math.round(latestUndoRedo.data.height)
         })
 
         this.parent.konvaLib.colorBackgroundImage.size({
-          width: Math.floor(latestUndoRedo.data.width),
-          height: Math.floor(latestUndoRedo.data.height)
+          width: Math.round(latestUndoRedo.data.width),
+          height: Math.round(latestUndoRedo.data.height)
         });
 
         this.parent.konvaLib.backgroundImage.size({
-          width: Math.floor(latestUndoRedo.data.width),
-          height: Math.floor(latestUndoRedo.data.height)
+          width: Math.round(latestUndoRedo.data.width),
+          height: Math.round(latestUndoRedo.data.height)
         });
 
         this.parent.konvaLib.imagesLayer.x(latestUndoRedo.data.x);
@@ -218,16 +229,16 @@ class UndoRedo {
         this.parent.konvaLib.transformersStageMainLayer.offsetX(latestUndoRedo.data.imagesOffsetX);
         this.parent.konvaLib.transformersStageMainLayer.offsetY(latestUndoRedo.data.imagesOffsetY);
 
-        this.parent.drawingCanvas.width = Math.floor(latestUndoRedo.data.width);
-        this.parent.drawingCanvas.height = Math.floor(latestUndoRedo.data.height);
+        this.parent.drawingCanvas.width = Math.round(latestUndoRedo.data.width);
+        this.parent.drawingCanvas.height = Math.round(latestUndoRedo.data.height);
 
-        this.parent.cursorCanvas.width = Math.floor(latestUndoRedo.data.width);
-        this.parent.cursorCanvas.height = Math.floor(latestUndoRedo.data.height);
+        this.parent.cursorCanvas.width = Math.round(latestUndoRedo.data.width);
+        this.parent.cursorCanvas.height = Math.round(latestUndoRedo.data.height);
 
         this.parent.drawingCanvas.getContext("2d").putImageData(latestUndoRedo.data.drawingImageData, 0, 0);
 
-        this.parent.colorPickerCanvas.width = Math.floor(latestUndoRedo.data.width);
-        this.parent.colorPickerCanvas.height = Math.floor(latestUndoRedo.data.height);
+        this.parent.colorPickerCanvas.width = Math.round(latestUndoRedo.data.width);
+        this.parent.colorPickerCanvas.height = Math.round(latestUndoRedo.data.height);
 
         this.parent.konvaLib.transformersStage.size({
           width: Math.floor(latestUndoRedo.data.width),
@@ -239,10 +250,14 @@ class UndoRedo {
           height: Math.floor(latestUndoRedo.data.height)
         });
 
+        /*
         this.parent.drawingCanvas.style.transform = latestUndoRedo.data.transform;
         this.parent.cursorCanvas.style.transform = latestUndoRedo.data.transform;
         this.parent.konvaImagesContainer.firstElementChild.style.transform = latestUndoRedo.data.transform;
         this.parent.konvaTransformersContainer.firstElementChild.style.transform = latestUndoRedo.data.transform;
+        document.getElementById("overlayCanvasContainer").firstElementChild.style.transform = latestUndoRedo.data.transform */
+
+        this.parent.canvasesZoomContainer.style.transform = latestUndoRedo.data.transform;
 
         this.parent.replaceImagesWithNoFilters(latestUndoRedo.data.imagesWithNoFilters);
         //this.parent.reapplyImageFilters();
@@ -386,6 +401,7 @@ class UndoRedo {
         handleUndoRedoCache(this.typesLib.getTextAddUndoRedo(latestUndoRedo.data.textNode, latestUndoRedo.data.transformer), undoOrRedo);
 
         if (undoOrRedo === "undo") {
+          if (latestUndoRedo.data.textNode === this.parent.konvaTextTarget) this.parent.untargetKonvaText(latestUndoRedo.data.textNode);
           latestUndoRedo.data.textNode.remove();
           if (latestUndoRedo.data.transformer) latestUndoRedo.data.transformer.remove();
           latestUndoRedo.data.textNode.zIndex(latestUndoRedo.data.zIndex);
@@ -393,6 +409,7 @@ class UndoRedo {
           this.parent.layer.add(latestUndoRedo.data.textNode);
           if (latestUndoRedo.data.transformer) this.parent.layer.add(latestUndoRedo.data.transformer);
           latestUndoRedo.data.textNode.zIndex(latestUndoRedo.data.zIndex);
+          this.parent.targetKonvaText(latestUndoRedo.data.textNode);
         }
 
         this.parent.stage.batchDraw();
@@ -409,7 +426,9 @@ class UndoRedo {
           this.parent.layer.add(latestUndoRedo.data.textNode);
           if (latestUndoRedo.data.transformer) this.parent.layer.add(latestUndoRedo.data.transformer);
           latestUndoRedo.data.textNode.zIndex(latestUndoRedo.data.zIndex);
+          this.parent.targetKonvaText(latestUndoRedo.data.textNode);
         } else {
+          if (latestUndoRedo.data.textNode === this.parent.konvaTextTarget) this.parent.untargetKonvaText(latestUndoRedo.data.textNode);
           latestUndoRedo.data.textNode.remove();
           if (latestUndoRedo.data.transformer) latestUndoRedo.data.transformer.remove();
           latestUndoRedo.data.textNode.zIndex(latestUndoRedo.data.zIndex);
