@@ -180,163 +180,165 @@ class KonvaLib {
 
       var rotation = parseFloat(image.rotation().toFixed(8));
 
-      if (rotation === 0) {
-        // left edge snap
-        if (pos.x < 10 && pos.x > -10) {
-          pos.x = 0;
-        }
-        // top edge snap
-        if (pos.y < 10 && pos.y > -10) {
-          pos.y = 0;
-        }
-        // right edge snap
-        if (pos.x + image.width() * image.getAbsoluteScale().x + 10 > this.stage.width() &&
-            pos.x + image.width() * image.getAbsoluteScale().x - 10 < this.stage.width()) {
-          pos.x = this.stage.width() - image.width() * image.getAbsoluteScale().x;
-        }
-        // bottom edge snap
-        if (pos.y + image.height() * image.getAbsoluteScale().y + 10 > this.stage.height() &&
-            pos.y + image.height() * image.getAbsoluteScale().y - 10 < this.stage.height()) {
-          pos.y = this.stage.height() - image.height() * image.getAbsoluteScale().y;
-        }
-        // right edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
-        if (pos.x + image.width() * image.getAbsoluteScale().x > this.stage.width() + image.width() * image.getAbsoluteScale().x - 10) {
-          pos.x = this.stage.width() - 10;
-        }
-        // bottom edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
-        if (pos.y + image.height() * image.getAbsoluteScale().y > this.stage.height() + image.height() * image.getAbsoluteScale().y - 10) {
-          pos.y = this.stage.height() - 10;
-        }
-        // left edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
-        if (pos.x < image.width() * image.getAbsoluteScale().x * -1 + 10) {
-          pos.x = image.width() * image.getAbsoluteScale().x * -1 + 10;
-        }
-        // top edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
-        if (pos.y < image.height() * image.getAbsoluteScale().y * -1 + 10) {
-          pos.y = image.height() * image.getAbsoluteScale().y * -1 + 10;
+      if (this.options.snapToEdges) {
+        if (rotation === 0) {
+          // left edge snap
+          if (pos.x < 10 && pos.x > -10) {
+            pos.x = 0;
+          }
+          // top edge snap
+          if (pos.y < 10 && pos.y > -10) {
+            pos.y = 0;
+          }
+          // right edge snap
+          if (pos.x + image.width() * image.getAbsoluteScale().x + 10 > this.stage.width() &&
+              pos.x + image.width() * image.getAbsoluteScale().x - 10 < this.stage.width()) {
+            pos.x = this.stage.width() - image.width() * image.getAbsoluteScale().x;
+          }
+          // bottom edge snap
+          if (pos.y + image.height() * image.getAbsoluteScale().y + 10 > this.stage.height() &&
+              pos.y + image.height() * image.getAbsoluteScale().y - 10 < this.stage.height()) {
+            pos.y = this.stage.height() - image.height() * image.getAbsoluteScale().y;
+          }
+          // right edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
+          if (pos.x + image.width() * image.getAbsoluteScale().x > this.stage.width() + image.width() * image.getAbsoluteScale().x - 10) {
+            pos.x = this.stage.width() - 10;
+          }
+          // bottom edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
+          if (pos.y + image.height() * image.getAbsoluteScale().y > this.stage.height() + image.height() * image.getAbsoluteScale().y - 10) {
+            pos.y = this.stage.height() - 10;
+          }
+          // left edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
+          if (pos.x < image.width() * image.getAbsoluteScale().x * -1 + 10) {
+            pos.x = image.width() * image.getAbsoluteScale().x * -1 + 10;
+          }
+          // top edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
+          if (pos.y < image.height() * image.getAbsoluteScale().y * -1 + 10) {
+            pos.y = image.height() * image.getAbsoluteScale().y * -1 + 10;
+          }
+
+          return pos;
         }
 
-        return pos;
-      }
+        if (rotation === 90 || rotation === -270) {
+          // left edge snap
+          if (pos.x - image.height() * image.getAbsoluteScale().y < 10 && pos.x - image.height() * image.getAbsoluteScale().y > -10) {
+            pos.x = image.height() * image.getAbsoluteScale().y;
+          }
+          // top edge snap
+          if (pos.y < 10 && pos.y > -10) {
+            pos.y = 0;
+          }
+          // right edge snap
+          if (pos.x + 10 > this.stage.width() &&
+              pos.x - 10 < this.stage.width()) {
+            pos.x = this.stage.width();
+          }
+          // bottom edge snap
+          if (pos.y + image.width() * image.getAbsoluteScale().x + 10 > this.stage.height() &&
+              pos.y + image.width() * image.getAbsoluteScale().x - 10 < this.stage.height()) {
+            pos.y = this.stage.height() - image.width() * image.getAbsoluteScale().x;
+          }
+          // right edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
+          if (pos.x > this.stage.width() + image.height() * image.getAbsoluteScale().y - 10) {
+            pos.x = this.stage.width() + image.height() * image.getAbsoluteScale().y - 10;
+          }
+          // bottom edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
+          if (pos.y > this.stage.height() - 10) {
+            pos.y = this.stage.height() - 10;
+          }
+          // left edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
+          if (pos.x < 10) {
+            pos.x = 10;
+          }
+          // top edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
+          if (pos.y < image.height() * image.getAbsoluteScale().y * -1 + 10) {
+            pos.y = image.height() * image.getAbsoluteScale().y * -1 + 10;
+          }
 
-      if (rotation === 90) {
-        // left edge snap
-        if (pos.x - image.height() * image.getAbsoluteScale().y < 10 && pos.x - image.height() * image.getAbsoluteScale().y > -10) {
-          pos.x = image.height() * image.getAbsoluteScale().y;
-        }
-        // top edge snap
-        if (pos.y < 10 && pos.y > -10) {
-          pos.y = 0;
-        }
-        // right edge snap
-        if (pos.x + 10 > this.stage.width() &&
-            pos.x - 10 < this.stage.width()) {
-          pos.x = this.stage.width();
-        }
-        // bottom edge snap
-        if (pos.y + image.width() * image.getAbsoluteScale().x + 10 > this.stage.height() &&
-            pos.y + image.width() * image.getAbsoluteScale().x - 10 < this.stage.height()) {
-          pos.y = this.stage.height() - image.width() * image.getAbsoluteScale().x;
-        }
-        // right edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
-        if (pos.x > this.stage.width() + image.height() * image.getAbsoluteScale().y - 10) {
-          pos.x = this.stage.width() + image.height() * image.getAbsoluteScale().y - 10;
-        }
-        // bottom edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
-        if (pos.y > this.stage.height() - 10) {
-          pos.y = this.stage.height() - 10;
-        }
-        // left edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
-        if (pos.x < 10) {
-          pos.x = 10;
-        }
-        // top edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
-        if (pos.y < image.height() * image.getAbsoluteScale().y * -1 + 10) {
-          pos.y = image.height() * image.getAbsoluteScale().y * -1 + 10;
-        }
+          return pos;
 
-        return pos;
-
-      }
-
-      if (rotation === 180 || rotation === -180) {
-
-        // left edge snap
-        if (pos.x - image.width() * image.getAbsoluteScale().x < 10 && pos.x - image.width() * image.getAbsoluteScale().x > -10) {
-          pos.x = image.width() * image.getAbsoluteScale().x;
-        }
-        // top edge snap
-        if (pos.y - image.height() * image.getAbsoluteScale().y < 10 && pos.y - image.height() * image.getAbsoluteScale().y > -10) {
-          pos.y = image.height() * image.getAbsoluteScale().y;
-        }
-        // right edge snap
-        if (pos.x + 10 > this.stage.width() &&
-            pos.x - 10 < this.stage.width()) {
-          pos.x = this.stage.width();
-        }
-        // bottom edge snap
-        if (pos.y + 10 > this.stage.height() &&
-            pos.y - 10 < this.stage.height()) {
-          pos.y = this.stage.height();
-        }
-        // right edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
-        if (pos.x > this.stage.width() + image.height() * image.getAbsoluteScale().y - 10) {
-          pos.x = this.stage.width() + image.height() * image.getAbsoluteScale().y - 10;
-        }
-        // bottom edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
-        if (pos.y > this.stage.height() + image.height() * image.getAbsoluteScale().y - 10) {
-          pos.y = this.stage.height() + image.height() * image.getAbsoluteScale().y - 10;
-        }
-        // left edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
-        if (pos.x < 10) {
-          pos.x = 10;
-        }
-        // top edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
-        if (pos.y < 10) {
-          pos.y = 10;
         }
 
-        return pos;
-      }
+        if (rotation === 180 || rotation === -180) {
 
-      if (rotation === 270 || rotation === -90) {
+          // left edge snap
+          if (pos.x - image.width() * image.getAbsoluteScale().x < 10 && pos.x - image.width() * image.getAbsoluteScale().x > -10) {
+            pos.x = image.width() * image.getAbsoluteScale().x;
+          }
+          // top edge snap
+          if (pos.y - image.height() * image.getAbsoluteScale().y < 10 && pos.y - image.height() * image.getAbsoluteScale().y > -10) {
+            pos.y = image.height() * image.getAbsoluteScale().y;
+          }
+          // right edge snap
+          if (pos.x + 10 > this.stage.width() &&
+              pos.x - 10 < this.stage.width()) {
+            pos.x = this.stage.width();
+          }
+          // bottom edge snap
+          if (pos.y + 10 > this.stage.height() &&
+              pos.y - 10 < this.stage.height()) {
+            pos.y = this.stage.height();
+          }
+          // right edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
+          if (pos.x > this.stage.width() + image.height() * image.getAbsoluteScale().y - 10) {
+            pos.x = this.stage.width() + image.height() * image.getAbsoluteScale().y - 10;
+          }
+          // bottom edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
+          if (pos.y > this.stage.height() + image.height() * image.getAbsoluteScale().y - 10) {
+            pos.y = this.stage.height() + image.height() * image.getAbsoluteScale().y - 10;
+          }
+          // left edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
+          if (pos.x < 10) {
+            pos.x = 10;
+          }
+          // top edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
+          if (pos.y < 10) {
+            pos.y = 10;
+          }
 
-        // left edge snap
-        if (pos.x < 10 && pos.x > -10) {
-          pos.x = 0;
-        }
-        // top edge snap
-        if (pos.y - image.height() * image.getAbsoluteScale().y < 10 && pos.y - image.height() * image.getAbsoluteScale().y > -10) {
-          pos.y = image.height() * image.getAbsoluteScale().y;
-        }
-        // right edge snap
-        if (pos.x + image.height() * image.getAbsoluteScale().y + 10 > this.stage.width() &&
-            pos.x + image.height() * image.getAbsoluteScale().y - 10 < this.stage.width()) {
-          pos.x = this.stage.width() - image.height() * image.getAbsoluteScale().y;
-        }
-        // bottom edge snap
-        if (pos.y + 10 > this.stage.height() &&
-            pos.y - 10 < this.stage.height()) {
-          pos.y = this.stage.height();
-        }
-        // right edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
-        if (pos.x > this.stage.width() - 10) {
-          pos.x = this.stage.width() - 10;
-        }
-        // bottom edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
-        if (pos.y > this.stage.height() + image.height() * image.getAbsoluteScale().y - 10) {
-          pos.y = this.stage.height() + image.height() * image.getAbsoluteScale().y - 10;
-        }
-        // left edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
-        if (pos.x < image.height() * image.getAbsoluteScale().y * -1 + 10) {
-          pos.x = image.height() * image.getAbsoluteScale().y * -1 + 10;
-        }
-        // top edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
-        if (pos.y < 10) {
-          pos.y = 10;
+          return pos;
         }
 
-        return pos;
+        if (rotation === 270 || rotation === -90) {
+
+          // left edge snap
+          if (pos.x < 10 && pos.x > -10) {
+            pos.x = 0;
+          }
+          // top edge snap
+          if (pos.y - image.width() * image.getAbsoluteScale().x < 10 && pos.y - image.width() * image.getAbsoluteScale().x > -10) {
+            pos.y = image.width() * image.getAbsoluteScale().x;
+          }
+          // right edge snap
+          if (pos.x + image.height() * image.getAbsoluteScale().y + 10 > this.stage.width() &&
+              pos.x + image.height() * image.getAbsoluteScale().y - 10 < this.stage.width()) {
+            pos.x = this.stage.width() - image.height() * image.getAbsoluteScale().y;
+          }
+          // bottom edge snap
+          if (pos.y + 10 > this.stage.height() &&
+              pos.y - 10 < this.stage.height()) {
+            pos.y = this.stage.height();
+          }
+          // right edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
+          if (pos.x > this.stage.width() - 10) {
+            pos.x = this.stage.width() - 10;
+          }
+          // bottom edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
+          if (pos.y > this.stage.height() + image.height() * image.getAbsoluteScale().y - 10) {
+            pos.y = this.stage.height() + image.height() * image.getAbsoluteScale().y - 10;
+          }
+          // left edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
+          if (pos.x < image.height() * image.getAbsoluteScale().y * -1 + 10) {
+            pos.x = image.height() * image.getAbsoluteScale().y * -1 + 10;
+          }
+          // top edge prevent image from going outside the canvas, at least 10px width/height of image will be visible on canvas
+          if (pos.y < 10) {
+            pos.y = 10;
+          }
+
+          return pos;
+        }
       }
 
       return pos;
@@ -367,170 +369,173 @@ class KonvaLib {
         var aspectRatioLocked = false;
       }
 
-      if (rotation === 0) {
+      if (this.options.snapToEdges) {
+        if (rotation === 0) {
 
-        // right edge snap
-        if (newBox.x + newBox.width + 10 > this.stage.width() &&
-            newBox.x + newBox.width - 10 < this.stage.width()) {
-          let oldWidth = newBox.width;
-          newBox.width = this.stage.width() - newBox.x + 1;
-          if (aspectRatioLocked) {
-            newBox.height += (newBox.width - oldWidth) * aspectRatio;
+          // right edge snap
+          if (newBox.x + newBox.width + 10 > this.stage.width() &&
+              newBox.x + newBox.width - 10 < this.stage.width()) {
+            let oldWidth = newBox.width;
+            newBox.width = this.stage.width() - newBox.x + 1;
+            if (aspectRatioLocked) {
+              newBox.height += (newBox.width - oldWidth) * aspectRatio;
+            }
           }
-        }
-        // bottom edge snap
-        if (newBox.y + newBox.height + 10 > this.stage.height() &&
-            newBox.y + newBox.height - 10 < this.stage.height()) {
-          let oldHeight = newBox.height;
-          newBox.height = this.stage.height() - newBox.y + 1;
-          if (aspectRatioLocked) {
-            newBox.width += (newBox.height - oldHeight) / aspectRatio;
+          // bottom edge snap
+          if (newBox.y + newBox.height + 10 > this.stage.height() &&
+              newBox.y + newBox.height - 10 < this.stage.height()) {
+            let oldHeight = newBox.height;
+            newBox.height = this.stage.height() - newBox.y + 1;
+            if (aspectRatioLocked) {
+              newBox.width += (newBox.height - oldHeight) / aspectRatio;
+            }
           }
-        }
-        // left edge snap
-        if (newBox.x < 10 && newBox.x > -10) {
-          let widthChange = newBox.x + 1;
-          newBox.width += widthChange;
-          newBox.x = -1;
-          if (aspectRatioLocked) {
-            newBox.height += widthChange * aspectRatio;
-            newBox.y -= widthChange * aspectRatio;
+          // left edge snap
+          if (newBox.x < 10 && newBox.x > -10) {
+            let widthChange = newBox.x + 1;
+            newBox.width += widthChange;
+            newBox.x = -1;
+            if (aspectRatioLocked) {
+              newBox.height += widthChange * aspectRatio;
+              newBox.y -= widthChange * aspectRatio;
+            }
           }
-        }
-        // top edge snap
-        if (newBox.y < 10 && newBox.y > -10) {
-          newBox.height += newBox.y + 1;
-          let oldY = newBox.y;
-          newBox.y = -1;
-          if (aspectRatioLocked) {
-            newBox.width += (oldY + 1) / aspectRatio;
+          // top edge snap
+          if (newBox.y < 10 && newBox.y > -10) {
+            newBox.height += newBox.y + 1;
+            let oldY = newBox.y;
+            newBox.y = -1;
+            if (aspectRatioLocked) {
+              newBox.width += (oldY + 1) / aspectRatio;
+            }
           }
-        }
 
-      }
-
-      if (rotation === 90 || rotation === -270) {
-
-        // right edge snap
-        if (newBox.x + 10 > this.stage.width() &&
-            newBox.x - 10 < this.stage.width()) {
-          let oldHeight = newBox.height;
-          newBox.height += this.stage.width() - newBox.x + 1;
-          newBox.x = this.stage.width() + 1;
-          if (aspectRatioLocked) {
-            newBox.width += (newBox.height - oldHeight) / aspectRatio;
-          }
-        }
-        // bottom edge snap
-        if (newBox.y + newBox.width + 10 > this.stage.height() &&
-            newBox.y + newBox.width - 10 < this.stage.height()) {
-          let oldWidth = newBox.width;
-          newBox.width = this.stage.height() - newBox.y + 1;
-          if (aspectRatioLocked) {
-            newBox.height += (newBox.width - oldWidth) * aspectRatio;
-          }
-        }
-        // left edge snap
-        if (newBox.height - newBox.x < 10 &&
-            newBox.height - newBox.x > -10) {
-          let oldHeight = newBox.height;
-          newBox.height = newBox.x + 1;
-          if (aspectRatioLocked) {
-            newBox.width += (newBox.height - oldHeight) / aspectRatio;
-          }
-        }
-        // top edge snap
-        if (newBox.y < 10 && newBox.y > -10) {
-          let oldWidth = newBox.width;
-          newBox.width += newBox.y + 1
-          newBox.y = -1;
-          if (aspectRatioLocked) {
-            newBox.height += (newBox.width - oldWidth) * aspectRatio;
-          }
         }
 
-      }
+        if (rotation === 90 || rotation === -270) {
 
-      if (rotation === 180 || rotation === -180) {
+          // right edge snap
+          if (newBox.x + 10 > this.stage.width() &&
+              newBox.x - 10 < this.stage.width()) {
+            let oldHeight = newBox.height;
+            newBox.height += this.stage.width() - newBox.x + 1;
+            newBox.x = this.stage.width() + 1;
+            if (aspectRatioLocked) {
+              newBox.width += (newBox.height - oldHeight) / aspectRatio;
+            }
+          }
+          // bottom edge snap
+          if (newBox.y + newBox.width + 10 > this.stage.height() &&
+              newBox.y + newBox.width - 10 < this.stage.height()) {
+            let oldWidth = newBox.width;
+            newBox.width = this.stage.height() - newBox.y + 1;
+            if (aspectRatioLocked) {
+              newBox.height += (newBox.width - oldWidth) * aspectRatio;
+            }
+          }
+          // left edge snap
+          if (newBox.height - newBox.x < 10 &&
+              newBox.height - newBox.x > -10) {
+            let oldHeight = newBox.height;
+            newBox.height = newBox.x + 1;
+            if (aspectRatioLocked) {
+              newBox.width += (newBox.height - oldHeight) / aspectRatio;
+            }
+          }
+          // top edge snap
+          if (newBox.y < 10 && newBox.y > -10) {
+            let oldWidth = newBox.width;
+            newBox.width += newBox.y + 1
+            newBox.y = -1;
+            if (aspectRatioLocked) {
+              newBox.height += (newBox.width - oldWidth) * aspectRatio;
+            }
+          }
 
-        // right edge snap
-        if (newBox.x + 10 > this.stage.width() &&
-            newBox.x - 10 < this.stage.width()) {
-          let oldWidth = newBox.width;
-          newBox.width += this.stage.width() - newBox.x + 1;
-          newBox.x = this.stage.width() + 1;
-          if (aspectRatioLocked) {
-            newBox.height += (newBox.width - oldWidth) * aspectRatio;
-          }
-        }
-        // bottom edge snap
-        if (newBox.y + 10 > this.stage.height() &&
-            newBox.y - 10 < this.stage.height()) {
-          let oldHeight = newBox.height;
-          newBox.height += this.stage.height() - newBox.y + 1;
-          newBox.y = this.stage.height() + 1;
-          if (aspectRatioLocked) {
-            newBox.width += (newBox.height - oldHeight) / aspectRatio;
-          }
-        }
-        // left edge snap
-        if (newBox.x - newBox.width < 10 &&
-          newBox.x - newBox.width > -10) {
-          let oldWidth = newBox.width;
-          newBox.width = newBox.x + 1;
-          if (aspectRatioLocked) {
-            newBox.height += (newBox.width - oldWidth) * aspectRatio;
-          }
-        }
-        // top edge snap
-        if (newBox.y - newBox.height < 10 && newBox.y - newBox.height > -10) {
-          let oldHeight = newBox.height;
-          newBox.height = newBox.y + 1
-          if (aspectRatioLocked) {
-            newBox.width += (newBox.height - oldHeight) / aspectRatio;
-          }
         }
 
-      }
+        if (rotation === 180 || rotation === -180) {
 
-      if (rotation === 270 || rotation === -90) {
+          // right edge snap
+          if (newBox.x + 10 > this.stage.width() &&
+              newBox.x - 10 < this.stage.width()) {
+            let oldWidth = newBox.width;
+            newBox.width += this.stage.width() - newBox.x + 1;
+            newBox.x = this.stage.width() + 1;
+            if (aspectRatioLocked) {
+              newBox.height += (newBox.width - oldWidth) * aspectRatio;
+            }
+          }
+          // bottom edge snap
+          if (newBox.y + 10 > this.stage.height() &&
+              newBox.y - 10 < this.stage.height()) {
+            let oldHeight = newBox.height;
+            newBox.height += this.stage.height() - newBox.y + 1;
+            newBox.y = this.stage.height() + 1;
+            if (aspectRatioLocked) {
+              newBox.width += (newBox.height - oldHeight) / aspectRatio;
+            }
+          }
+          // left edge snap
+          if (newBox.x - newBox.width < 10 &&
+            newBox.x - newBox.width > -10) {
+            let oldWidth = newBox.width;
+            newBox.width = newBox.x + 1;
+            if (aspectRatioLocked) {
+              newBox.height += (newBox.width - oldWidth) * aspectRatio;
+            }
+          }
+          // top edge snap
+          if (newBox.y - newBox.height < 10 && newBox.y - newBox.height > -10) {
+            let oldHeight = newBox.height;
+            newBox.height = newBox.y + 1
+            if (aspectRatioLocked) {
+              newBox.width += (newBox.height - oldHeight) / aspectRatio;
+            }
+          }
 
-        // right edge snap
-        if (newBox.x + newBox.height + 10 > this.stage.width() &&
-            newBox.x + newBox.height - 10 < this.stage.width()) {
-          let oldHeight = newBox.height;
-          newBox.height = this.stage.width() - newBox.x + 1;
-          if (aspectRatioLocked) {
-            newBox.width += (newBox.height - oldHeight) / aspectRatio;
-          }
         }
-        // bottom edge snap
-        if (newBox.y > this.stage.height() - 10 &&
-            newBox.y < this.stage.height() + 10) {
-          let oldWidth = newBox.width;
-          newBox.width += this.stage.height() - newBox.y + 1;
-          newBox.y = this.stage.height() + 1;
-          if (aspectRatioLocked) {
-            newBox.height += (newBox.width - oldWidth) * aspectRatio;
+
+        if (rotation === 270 || rotation === -90) {
+
+          // right edge snap
+          if (newBox.x + newBox.height + 10 > this.stage.width() &&
+              newBox.x + newBox.height - 10 < this.stage.width()) {
+            let oldHeight = newBox.height;
+            newBox.height = this.stage.width() - newBox.x + 1;
+            if (aspectRatioLocked) {
+              newBox.width += (newBox.height - oldHeight) / aspectRatio;
+            }
           }
-        }
-        // left edge snap
-        if (newBox.x < 10 &&
-          newBox.x > -10) {
-          let oldHeight = newBox.height;
-          newBox.height += newBox.x + 1;
-          newBox.x = -1;
-          if (aspectRatioLocked) {
-            newBox.width += (newBox.height - oldHeight) / aspectRatio;
+          // bottom edge snap
+          if (newBox.y > this.stage.height() - 10 &&
+              newBox.y < this.stage.height() + 10) {
+            let oldWidth = newBox.width;
+            newBox.width += this.stage.height() - newBox.y + 1;
+            newBox.y = this.stage.height() + 1;
+            if (aspectRatioLocked) {
+              newBox.height += (newBox.width - oldWidth) * aspectRatio;
+            }
           }
-        }
-        // top edge snap
-        if (newBox.y - newBox.width < 10 && newBox.y - newBox.width > -10) {
-          let oldWidth = newBox.width;
-          newBox.width = newBox.y + 1
-          if (aspectRatioLocked) {
-            newBox.height += (newBox.width - oldWidth) * aspectRatio;
+          // left edge snap
+          if (newBox.x < 10 &&
+            newBox.x > -10) {
+            let oldHeight = newBox.height;
+            newBox.height += newBox.x + 1;
+            newBox.x = -1;
+            if (aspectRatioLocked) {
+              newBox.width += (newBox.height - oldHeight) / aspectRatio;
+            }
           }
+          // top edge snap
+          if (newBox.y - newBox.width < 10 && newBox.y - newBox.width > -10) {
+            let oldWidth = newBox.width;
+            newBox.width = newBox.y + 1
+            if (aspectRatioLocked) {
+              newBox.height += (newBox.width - oldWidth) * aspectRatio;
+            }
+          }
+
         }
 
       }

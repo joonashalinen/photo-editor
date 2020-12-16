@@ -1,5 +1,6 @@
 
 import { Bezier } from "bezier-js";
+import CanvasLib from "./CanvasLib.js";
 
 class SoftBrush {
 
@@ -128,7 +129,7 @@ class SoftBrush {
       var angle = angleBetween(lastPoint, currentPoint);
 
 
-      for (var i = 0; i < dist; i+= this.size < 35 ? 1 : 5) {
+      for (var i = 0; i < Math.max(1, dist); i+= this.size < 35 ? 1 : 5) {
 
         x = lastPoint.x + (Math.sin(angle) * i);
         y = lastPoint.y + (Math.cos(angle) * i);
@@ -288,9 +289,10 @@ class SoftBrush {
 
     }
 
-    var checkColorAtMousePos = (x, y, ctx) => {
+    var checkColorAtMousePos = (x, y, canvas) => {
+      var cloneCanvas = CanvasLib.cloneCanvas(canvas);
+      var ctx = cloneCanvas.getContext("2d");
       var colorAtMousePos = ctx.getImageData(x, y, 1, 1).data;
-      console.log(colorAtMousePos)
       if (colorAtMousePos[0] < 200 && colorAtMousePos[1] < 200 && colorAtMousePos[2] < 200 && colorAtMousePos[3] > 100) {
         this.cursorColor = [255, 255, 255, 255];
       }
@@ -300,8 +302,8 @@ class SoftBrush {
     }
 
     var drawCursor = (x, y, cursorCtx) => {
-      checkColorAtMousePos(x, y, this.samplingCtx);
-      checkColorAtMousePos(x, y, ctx);
+      checkColorAtMousePos(x, y, this.samplingCanvas);
+      checkColorAtMousePos(x, y, this.canvas);
       cursorCtx.beginPath();
       cursorCtx.arc(x, y, this.size / 2, 0, 2 * Math.PI);
       cursorCtx.lineWidth = 1 / this.canvasScale;
@@ -310,6 +312,7 @@ class SoftBrush {
     }
 
     var handleMousemove = (x, y) => {
+      if (testDisable) return;
 
       if (mouseLeft) {
         lastPoint = { x: x, y: y };
@@ -362,9 +365,15 @@ class SoftBrush {
 
       points.push({x: x, y: y});
 
-      if (points.length >= 3) drawPoints(x, y, ctx);
+      if (points.length >= 3) {
+        if (testDisable) return;
+        drawPoints(x, y, ctx);
+        this.dispatchEvent("draw");
+      }
 
       //drawPoints(x, y, ctx);
+
+      if (testDisable) return;
 
       this.clearCanvas(cursorCtx);
 
@@ -503,13 +512,37 @@ class SoftBrush {
 
     this.onMouseUp = (e) => {
       if (this.enabled) {
-        points = [];
+
+        var boundingRect = this.canvas.getBoundingClientRect();
+
+        var x = e.clientX - boundingRect.x;
+        var y = e.clientY - boundingRect.y;
+
+        points = [
+          { x: x / this.canvasScale, y: y / this.canvasScale },
+          { x: x / this.canvasScale, y: y / this.canvasScale },
+          { x: x / this.canvasScale, y: y / this.canvasScale }];
+
+        lastPoint = { x: x / this.canvasScale, y: y / this.canvasScale };
+
+        drawPoints(x / this.canvasScale, y / this.canvasScale, ctx);
+        this.dispatchEvent("draw");
+
         isDrawing = false;
+
+        points = [];
         this.dispatchEvent("drawend");
       }
     }
 
     var timeout;
+
+    var testDisable = false;
+
+    setTimeout(() => {
+      //testDisable = true;
+      //console.log("test disabled softBrush")
+    }, 10000)
 
     this.onMouseMove = (e) => {
 
@@ -530,7 +563,6 @@ class SoftBrush {
 
           handleMousemove(pos.x, pos.y);
 
-          this.dispatchEvent("draw");
         }
 
       });

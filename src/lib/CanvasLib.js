@@ -13,7 +13,6 @@ class CanvasLib {
     return canvas;
   }
 
-  // #deprecated
   static cloneImageData(originalImageData) {
     return new ImageData(
       new Uint8ClampedArray(originalImageData.data),

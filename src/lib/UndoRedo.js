@@ -49,10 +49,12 @@ class UndoRedo {
 
   clearRedoCache() {
     this.redoCache = [];
+    this.parent.dispatchEvent("redoAmountChange", [this.getRedoCache().length]);
   }
 
   clearUndoCache() {
     this.undoCache = [];
+    this.parent.dispatchEvent("undoAmountChange", [this.getUndoCache().length]);
   }
 
   addToRedoCache(redoItem, redoType) {
@@ -64,6 +66,7 @@ class UndoRedo {
         type: redoType
       });
     }
+    this.parent.dispatchEvent("redoAmountChange", [this.getRedoCache().length]);
   }
 
   addToUndoCache(undoItem, undoType, isRedo) {
@@ -78,10 +81,16 @@ class UndoRedo {
         type: undoType
       });
     }
+
+    this.parent.dispatchEvent("undoAmountChange", [this.getUndoCache().length]);
   }
 
   getUndoCache() {
     return this.undoCache;
+  }
+
+  getRedoCache() {
+    return this.redoCache;
   }
 
   undoRedo(undoOrRedo) {
@@ -90,10 +99,12 @@ class UndoRedo {
       if (undoOrRedo === "undo") {
         this.addToRedoCache(undoRedoItem);
         this.undoCache.pop();
+        this.parent.dispatchEvent("undoAmountChange", [this.getUndoCache().length]);
         console.log(this.undoCache, this.redoCache)
       } else {
         this.addToUndoCache(undoRedoItem, null, true);
         this.redoCache.pop();
+        this.parent.dispatchEvent("redoAmountChange", [this.getRedoCache().length]);
         console.log(this.undoCache, this.redoCache)
       }
     }
@@ -249,15 +260,6 @@ class UndoRedo {
           width: Math.floor(latestUndoRedo.data.width),
           height: Math.floor(latestUndoRedo.data.height)
         });
-
-        /*
-        this.parent.drawingCanvas.style.transform = latestUndoRedo.data.transform;
-        this.parent.cursorCanvas.style.transform = latestUndoRedo.data.transform;
-        this.parent.konvaImagesContainer.firstElementChild.style.transform = latestUndoRedo.data.transform;
-        this.parent.konvaTransformersContainer.firstElementChild.style.transform = latestUndoRedo.data.transform;
-        document.getElementById("overlayCanvasContainer").firstElementChild.style.transform = latestUndoRedo.data.transform */
-
-        this.parent.canvasesZoomContainer.style.transform = latestUndoRedo.data.transform;
 
         this.parent.replaceImagesWithNoFilters(latestUndoRedo.data.imagesWithNoFilters);
         //this.parent.reapplyImageFilters();

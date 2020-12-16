@@ -4,7 +4,7 @@ import Canvas from "./Canvas.js";
 import Upload from "./Upload.js" ;
 import EffectSlider from "./EffectSlider.js";
 import TextField from "./TextField.js";
-import { Input, InputNumber, Button, Tooltip, Empty, Select, Collapse, Spin } from "antd";
+import { Input, InputNumber, Button, Tooltip, Empty, Select, Collapse, Spin, Checkbox } from "antd";
 import { RotateRightOutlined, UploadOutlined, DownloadOutlined, CloudUploadOutlined } from "@ant-design/icons"
 import '@simonwep/pickr/dist/themes/nano.min.css';
 import "./PhotoEditor.css";
@@ -237,6 +237,18 @@ class PhotoEditor extends React.Component {
       })
     });
 
+    this.photoEditorLib.on("undoAmountChange", (undosAmount) => {
+      this.setState({
+        undosAmount: undosAmount
+      })
+    });
+
+    this.photoEditorLib.on("redoAmountChange", (redosAmount) => {
+      this.setState({
+        redosAmount: redosAmount
+      })
+    });
+
   }
 
   render() {
@@ -358,6 +370,16 @@ class PhotoEditor extends React.Component {
                 }}></div>
               </Tooltip>
             </div>
+            {
+              this.state.selectedTool === "move" ?
+                <>
+                  <Checkbox defaultChecked={true} onChange={(e) => {
+                    this.photoEditorLib.toggleSnapToEdges(e.target.checked);
+                  }}>Snap to edges</Checkbox>
+                </>
+              :
+              null
+            }
           </div>
           {
             this.state.imageInstanced ?
@@ -376,12 +398,12 @@ class PhotoEditor extends React.Component {
             null
           }
           <Tooltip title="Redo">
-            <img className="toolIcon redoButton undoRedoButton" src="redo.svg" height="18px" onClick={() => {
+            <img className={"toolIcon redoButton undoRedoButton " + (this.state.redosAmount > 0 ? "" : "undoRedoButtonDisabled")} src="redo.svg" height="18px" onClick={() => {
               this.photoEditorLib.redo();
             }}></img>
           </Tooltip>
           <Tooltip title="Undo">
-            <img className="toolIcon undoButton undoRedoButton" src="redo.svg" height="18px" onClick={() => {
+            <img className={"toolIcon undoButton undoRedoButton " + (this.state.undosAmount > 0 ? "" : "undoRedoButtonDisabled")} src="redo.svg" height="18px" onClick={() => {
               this.photoEditorLib.undo();
             }}></img>
           </Tooltip>
@@ -600,11 +622,11 @@ class PhotoEditor extends React.Component {
               </div>
             </Tooltip>
             <Tooltip placement="right" title="Rotate [R]">
-              <div className="toolIconContainer">
-                <img  id="rotateToolButton" className="toolIcon" src="refresh.svg" height="18px" style={{transform: "scaleX(-1)"}} onClick={() => {
-                  if (!this.state.imageInstanced) return;
-                  this.photoEditorLib.rotate();
-                }}></img>
+              <div className="toolIconContainer" onClick={() => {
+                if (!this.state.imageInstanced) return;
+                this.photoEditorLib.rotate();
+              }}>
+                <img  id="rotateToolButton" className="toolIcon" src="refresh.svg" height="18px" style={{transform: "scaleX(-1)"}}></img>
               </div>
             </Tooltip>
             <Tooltip placement="right" title="Select [S]">
@@ -631,23 +653,23 @@ class PhotoEditor extends React.Component {
               </div>
             </Tooltip>
             <Tooltip placement="right" title="Drag [G]">
-              <div className={`toolIconContainer${this.state.selectedTool === "drag" ? " toolIconContainerSelected" : ""}`}>
-                <img id="dragToolButton" className="toolIcon" src="hand-right.svg" height="18px" onClick={() => {
-                  if (!this.state.imageInstanced) return;
-                  if (this.state.selectedTool === "drag") return;
-                  if (this.state.selectedTool === "crop") this.photoEditorLib.endCrop();
-                  if (this.state.selectedTool === "draw") this.photoEditorLib.disableDrawingCanvas();
-                  if (this.state.selectedTool === "addText") this.photoEditorLib.untargetKonvaText(this.photoEditorLib.konvaTextTarget);
-                  if (this.state.selectedTool === "eyedrop") this.photoEditorLib.disableColorPickerMode();
-                  this.photoEditorLib.konvaImagesContainer.style.cursor = "grab";
-                  this.photoEditorLib.focusCanvasContainer("konvaImagesContainer");
-                  this.photoEditorLib.konvaLib.stage.listening(false);
-                  this.photoEditorLib.beginDragMode();
-                  this.setState({
-                    selectedTool: "drag"
-                  });
-                  this.photoEditorLib.selectedTool = "drag";
-                }}></img>
+              <div className={`toolIconContainer${this.state.selectedTool === "drag" ? " toolIconContainerSelected" : ""}`} onClick={() => {
+                if (!this.state.imageInstanced) return;
+                if (this.state.selectedTool === "drag") return;
+                if (this.state.selectedTool === "crop") this.photoEditorLib.endCrop();
+                if (this.state.selectedTool === "draw") this.photoEditorLib.disableDrawingCanvas();
+                if (this.state.selectedTool === "addText") this.photoEditorLib.untargetKonvaText(this.photoEditorLib.konvaTextTarget);
+                if (this.state.selectedTool === "eyedrop") this.photoEditorLib.disableColorPickerMode();
+                this.photoEditorLib.konvaImagesContainer.style.cursor = "grab";
+                this.photoEditorLib.focusCanvasContainer("konvaImagesContainer");
+                this.photoEditorLib.konvaLib.stage.listening(false);
+                this.photoEditorLib.beginDragMode();
+                this.setState({
+                  selectedTool: "drag"
+                });
+                this.photoEditorLib.selectedTool = "drag";
+              }}>
+                <img id="dragToolButton" className="toolIcon" src="hand-right.svg" height="18px"></img>
               </div>
             </Tooltip>
           </div>

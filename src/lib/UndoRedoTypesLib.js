@@ -1,4 +1,6 @@
 
+import CanvasLib from "./CanvasLib.js";
+
 class UndoRedoTypesLib {
 
   constructor(parent) {
@@ -59,7 +61,6 @@ class UndoRedoTypesLib {
         imagesWithNoFilters: this.parent.imagesWithNoFilters,
         width: this.parent.konvaLib.stage.width(),
         height: this.parent.konvaLib.stage.height(),
-        transform: this.parent.konvaImagesContainer.firstElementChild.style.transform,
         offsetX: this.parent.layer.offsetX(),
         offsetY: this.parent.layer.offsetY(),
         imagesOffsetX: this.parent.konvaLib.imagesLayer.offsetX(),
@@ -80,7 +81,6 @@ class UndoRedoTypesLib {
         rotation: this.parent.konvaLib.imagesLayer.rotation(),
         width: this.parent.konvaLib.imagesLayer.width(),
         height: this.parent.konvaLib.imagesLayer.height(),
-        transform: this.parent.konvaImagesContainer.firstElementChild.style.transform,
         offsetX: this.parent.konvaLib.imagesLayer.offsetX(),
         offsetY: this.parent.konvaLib.imagesLayer.offsetY(),
         x: this.parent.konvaLib.imagesLayer.x(),
@@ -183,7 +183,7 @@ class UndoRedoTypesLib {
   getDrawingUndoRedo() {
     return {
       data: {
-        imageData: this.parent.drawingCanvas.getContext("2d").getImageData(0, 0, this.parent.drawingCanvas.width, this.parent.drawingCanvas.height)
+        imageData: CanvasLib.cloneCanvas(this.parent.drawingCanvas).getContext("2d").getImageData(0, 0, this.parent.drawingCanvas.width, this.parent.drawingCanvas.height)
       },
       type: "drawing"
     }
