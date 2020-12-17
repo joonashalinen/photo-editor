@@ -1007,7 +1007,15 @@ class PhotoEditor extends React.Component {
                         canvasWidth: value
                       });
                       this.photoEditorLib.setCanvasSize(value, this.state.canvasHeight);
-                    }} size="small"/>
+                    }} onStep={(value) => {
+                      if (isNaN(parseFloat(value))) return;
+                      if (!this.photoEditorLib.imageInstanced) return;
+                      if (value === this.state.canvasWidth) return;
+                      this.setState({
+                        canvasWidth: value
+                      });
+                      this.photoEditorLib.setCanvasSize(value, this.state.canvasHeight);
+                      }} size="small"/>
                   </div>
                 </div>
                 <div style={{display: "flex", alignItems: "center", position: "relative", marginTop: "10px"}}>
@@ -1031,6 +1039,15 @@ class PhotoEditor extends React.Component {
                       this.setState({
                         canvasHeight: value
                       });
+                      this.photoEditorLib.setCanvasSize(this.state.canvasWidth, value);
+                    }} onStep={(value) => {
+                      if (isNaN(parseFloat(value))) return;
+                      if (!this.photoEditorLib.imageInstanced) return;
+                      if (value === this.state.canvasHeight) return;
+                      this.setState({
+                        canvasHeight: value
+                      });
+                      this.photoEditorLib.shortCutsTempDisabled = false;
                       this.photoEditorLib.setCanvasSize(this.state.canvasWidth, value);
                     }} size="small"/>
                   </div>

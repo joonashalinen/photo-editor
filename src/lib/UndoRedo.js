@@ -502,6 +502,12 @@ class UndoRedo {
 
       case "drawing": {
 
+        handleUndoRedoCache(this.typesLib.getDrawingUndoRedo(), undoOrRedo);
+
+        this.parent.softBrush.canvasCtx.putImageData(latestUndoRedo.imageData);
+
+        break;
+
         var drawnPoints = this.parent.softBrush.getDrawnPoints();
 
         console.log(drawnPoints)
