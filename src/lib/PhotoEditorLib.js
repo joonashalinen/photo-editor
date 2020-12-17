@@ -510,6 +510,8 @@ class PhotoEditorLib {
 
       this.konvaLib.stage.draw();
 
+      this.softBrush.setSamplingCanvas(this.konvaLib.stage.toCanvas());
+
     }
 
   }
@@ -734,6 +736,8 @@ class PhotoEditorLib {
     this.stage.draw();
 
     this.dispatchEvent("canvasResize", [width, height]);
+
+    this.softBrush.setSamplingCanvas(this.konvaLib.stage.toCanvas());
 
   }
 
@@ -1022,7 +1026,7 @@ class PhotoEditorLib {
     }); */
 
     this.softBrush.on("drawSegment", (drawSegment) => {
-      console.log()
+      console.log(drawSegment)
       this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getDrawingUndoRedo(drawSegment));
     });
 
@@ -1143,6 +1147,8 @@ class PhotoEditorLib {
       document.getElementById("move-tool-icon").click();
     }, 50)
 
+    this.softBrush.setSamplingCanvas(this.konvaLib.stage.toCanvas());
+
   }
 
   deleteSelectedImage() {
@@ -1150,6 +1156,7 @@ class PhotoEditorLib {
     this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getImageDeleteUndoRedo(this.konvaTarget));
     this.konvaLib.deleteImage(this.konvaTarget);
     this.dispatchEvent("imageTargetChange", [false]);
+    this.softBrush.setSamplingCanvas(this.konvaLib.stage.toCanvas());
     //this.imagesWithNoFilters.splice(this.imagesWithNoFilters.indexOf(this.getImageWithNoFiltersById(this.konvaTarget.photoEditorId)), 1);
   }
 
@@ -1826,10 +1833,11 @@ class PhotoEditorLib {
     this.konvaLib.stage.draw();
     this.konvaLib.transformersStage.draw();
 
-    CanvasLib.rotateCanvas(this.drawingCanvas);
+    CanvasLib.rotateCanvasSize(this.drawingCanvas);
     CanvasLib.rotateCanvasSize(this.cursorCanvas);
-    CanvasLib.rotateCanvas(this.colorPickerCanvas);
+    CanvasLib.rotateCanvasSize(this.colorPickerCanvas);
 
+    this.softBrush.redrawSegments();
 
     this.stage.width(this.konvaLib.stage.width());
     this.stage.height(this.konvaLib.stage.height());
@@ -1851,6 +1859,8 @@ class PhotoEditorLib {
     this.updateCanvasCSSTransforms();
 
     this.dispatchEvent("canvasResize", [this.konvaLib.stage.width(), this.konvaLib.stage.height()]);
+
+    this.softBrush.setSamplingCanvas(this.konvaLib.stage.toCanvas());
 
   }
 
@@ -2113,14 +2123,19 @@ class PhotoEditorLib {
     this.konvaLib.stage.batchDraw();
 
     var ctx = this.drawingCanvas.getContext("2d");
-    var drawingImageData = ctx.getImageData(cropData.x, cropData.y, Math.round(cropData.width), Math.round(cropData.height));
+    //var drawingImageData = ctx.getImageData(cropData.x, cropData.y, Math.round(cropData.width), Math.round(cropData.height));
 
     this.drawingCanvas.width = Math.round(cropData.width);
     this.drawingCanvas.height = Math.round(cropData.height);
 
+    this.softBrush.setDrawSegmentsOffset(this.layer.offsetX() * -1, this.layer.offsetY() * -1);
+
+    this.softBrush.clearCanvas();
+    this.softBrush.redrawSegments();
+
     console.log(cropData.x, cropData.y)
 
-    ctx.putImageData(drawingImageData, 0, 0);
+    //ctx.putImageData(drawingImageData, 0, 0);
 
     this.cursorCanvas.width = Math.round(cropData.width);
     this.cursorCanvas.height = Math.round(cropData.height);
@@ -2162,6 +2177,8 @@ class PhotoEditorLib {
       fill: "gray",
       draggable: true
     })); */
+
+    this.softBrush.setSamplingCanvas(this.konvaLib.stage.toCanvas());
 
   }
 
@@ -2456,6 +2473,8 @@ class PhotoEditorLib {
 
     this.defaultBrushSize = this.originalOptions.defaultBrushSize ? this.originalOptions.defaultBrushSize : 20;
     this.defaultBrushHardness = this.originalOptions.defaultBrushHardness ? this.originalOptions.defaultBrushHardness : 0.5;
+
+    this.focusCanvasContainer("konvaImagesContainer");
 
     // undo/redo
 

@@ -39,6 +39,7 @@ class UndoRedo {
 
     var onDragEnd = () => {
       this.addToUndoCache(beforeDragUndoRedo);
+      this.parent.softBrush.setSamplingCanvas(this.parent.konvaLib.stage.toCanvas());
     }
 
     konvaImage.on("dragstart", onDragStart);
@@ -210,6 +211,8 @@ class UndoRedo {
 
         } */
 
+        this.parent.softBrush.setDrawSegmentsOffset(latestUndoRedo.data.offsetX * -1, latestUndoRedo.data.offsetY * -1);
+
         this.parent.layer.offsetX(latestUndoRedo.data.offsetX);
         this.parent.layer.offsetY(latestUndoRedo.data.offsetY);
 
@@ -291,6 +294,8 @@ class UndoRedo {
 
         handleUndoRedoCache(latestUndoRedo, undoOrRedo);
 
+        this.parent.softBrush.setSamplingCanvas(this.parent.konvaLib.stage.toCanvas());
+
         break;
       }
 
@@ -317,6 +322,8 @@ class UndoRedo {
 
         this.parent.konvaLib.stage.batchDraw();
         this.parent.konvaLib.transformersStage.batchDraw();
+
+        this.parent.softBrush.setSamplingCanvas(this.parent.konvaLib.stage.toCanvas());
 
         break;
 
@@ -350,6 +357,8 @@ class UndoRedo {
         this.parent.konvaLib.stage.batchDraw();
         this.parent.konvaLib.transformersStage.batchDraw();
 
+        this.parent.softBrush.setSamplingCanvas(this.parent.konvaLib.stage.toCanvas());
+
         break;
 
       }
@@ -370,6 +379,8 @@ class UndoRedo {
 
         this.parent.konvaLib.stage.batchDraw();
         this.parent.konvaLib.transformersStage.batchDraw();
+
+        this.parent.softBrush.setSamplingCanvas(this.parent.konvaLib.stage.toCanvas());
 
         break;
 
@@ -495,6 +506,9 @@ class UndoRedo {
           this.parent.dispatchEvent("imageTargetChange", [newImageNode]);
         }
 
+        imageObj.onload = () => {
+          this.parent.softBrush.setSamplingCanvas(this.parent.konvaLib.stage.toCanvas());
+        }
 
         break;
 
@@ -509,6 +523,8 @@ class UndoRedo {
         if (undoOrRedo === "undo") {
 
           var drawSegment = this.parent.softBrush.popLatestDrawSegment();
+
+          console.log(drawSegment, this.parent.softBrush.drawSegments)
 
           handleUndoRedoCache(this.typesLib.getDrawingUndoRedo(drawSegment), undoOrRedo);
 

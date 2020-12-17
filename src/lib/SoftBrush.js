@@ -17,6 +17,8 @@ class SoftBrush {
     this.konvaStage = options.konvaStage ? options.konvaStage : false;
     this.konvaLayer = options.konvaLayer ? options.konvaLayer : false;
     this.canvasScale = options.canvasScale ? options.canvasScale : 1;
+    this.offsetX = 0;
+    this.offsetY = 0;
 
     this.brushPreviewEnabled = options.brushPreviewEnabled ? options.brushPreviewEnabled : false;
 
@@ -80,6 +82,7 @@ class SoftBrush {
   setSamplingCanvas(canvas) {
     this.samplingCanvas = canvas;
     this.samplingCtx = canvas.getContext("2d");
+    this.samplingImageData = this.samplingCtx.getImageData(0, 0, this.samplingCanvas.width, this.samplingCanvas.height);
     //this.samplingImageData = this.samplingCtx.getImageData(this.samplingCanvas.width, this.samplingCanvas.height);
   }
 
@@ -104,12 +107,12 @@ class SoftBrush {
 
   enableEraseMode() {
     //this.disableBrushPreviewMode();
-    this.canvas.getContext("2d").globalCompositeOperation = "destination-out";
+    this.canvasCtx.globalCompositeOperation = "destination-out";
   };
 
   disableEraseMode() {
     //this.enableBrushPreviewMode();
-    this.canvas.getContext("2d").globalCompositeOperation = "source-over";
+    this.canvasCtx.globalCompositeOperation = "source-over";
   };
 
   enableBrushPreviewMode() {
@@ -136,8 +139,42 @@ class SoftBrush {
     return this.drawSegments;
   }
 
+  addOffsetToDrawSegments(offsetX, offsetY) {
+
+    var drawSegments = this.getDrawSegments();
+
+    for (var i = 0; i < drawSegments.length; i++) {
+      var drawSegment = drawSegments[i];
+      drawSegment.brush.offsetX += offsetX;
+      drawSegment.brush.offsetY += offsetY;
+    }
+
+  }
+
+  setDrawSegmentsOffset(offsetX, offsetY) {
+    var drawSegments = this.getDrawSegments();
+
+    for (var i = 0; i < drawSegments.length; i++) {
+      var drawSegment = drawSegments[i];
+      drawSegment.brush.offsetX = offsetX;
+      drawSegment.brush.offsetY = offsetY;
+    }
+  }
+
   addDrawSegment(drawSegment) {
-    this.drawSegments.push(drawSegment);
+    var drawSegmentItem = Array.isArray(drawSegment) ? {
+      data: drawSegment,
+      brush: {
+        size: this.size,
+        hardness: this.hardness,
+        color: this.color,
+        globalCompositeOperation: this.canvasCtx.globalCompositeOperation,
+        offsetX: 0,
+        offsetY: 0
+      }
+    } : drawSegment;
+    this.drawSegments.push(drawSegmentItem);
+    return drawSegmentItem;
   }
 
   popLatestDrawSegment() {
@@ -159,12 +196,22 @@ class SoftBrush {
     for (var i = 0; i < drawSegments.length; i++) {
       var drawSegment = drawSegments[i];
 
-      this.lastPoint = drawSegment[0];
+      var first = drawSegment.data[0];
 
-      for (let j = 0; j < drawSegment.length; j++) {
-        let point = drawSegment[j];
-        this.drawPoints(point.x, point.y, this.canvasCtx, true);
+      this.lastPoint = {
+        x: drawSegment.brush.offsetX + first.x,
+        y: drawSegment.brush.offsetY + first.y
+      };
+
+      var currentGlobalCompositeOperation = this.canvasCtx.globalCompositeOperation;
+      this.canvasCtx.globalCompositeOperation = drawSegment.brush.globalCompositeOperation;
+
+      for (let j = 1; j < drawSegment.data.length; j++) {
+        let point =  drawSegment.data[j];
+        this.drawPoints(drawSegment.brush.offsetX + point.x, drawSegment.brush.offsetY + point.y, this.canvasCtx, drawSegment.brush, true);
       }
+
+      this.canvasCtx.globalCompositeOperation = currentGlobalCompositeOperation;
 
     }
 
@@ -183,8 +230,7 @@ class SoftBrush {
 
   }
 
-
-  drawPoints(x, y, ctx, preventAddToDrawnPoints) {
+  drawPoints(x, y, ctx, brush, preventAddToDrawnPoints) {
 
     function distanceBetween(point1, point2) {
       return Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2));
@@ -198,38 +244,46 @@ class SoftBrush {
     var dist = distanceBetween(this.lastPoint, this.currentPoint);
     var angle = angleBetween(this.lastPoint, this.currentPoint);
 
-
-    for (var i = 0; i < Math.max(1, dist); i+= this.size < 35 ? 1 : 5) {
+    for (var i = 0; i < Math.max(1, dist); i+= brush.size < 35 ? 1 : 5) {
 
       x = this.lastPoint.x + (Math.sin(angle) * i);
       y = this.lastPoint.y + (Math.cos(angle) * i);
 
-      if (this.size < 5 || this.hardness === 1) { // hardness no longer applied for brush sizes below 5 or brushes at 100 hardness
+      // hardness no longer applied for brush sizes below 5 or brushes at 100 hardness
+      if (brush.size < 5 || brush.hardness === 1) {
 
         console.log("no hardness on brush")
 
-        var radgrad = ctx.createRadialGradient(x,y,0,x,y,1);
+        //var radgrad = ctx.createRadialGradient(x,y,0,x,y,1);
 
+        /*
         radgrad.addColorStop(0, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, 1)`);
         radgrad.addColorStop(0.5, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, 1)`);
-        radgrad.addColorStop(1, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, 1)`);
+        radgrad.addColorStop(1, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, 1)`); */
 
+        /*
         ctx.fillStyle = radgrad;
-        ctx.fillRect(x-this.size / 2, y-this.size / 2, this.size, this.size);
+        ctx.fillRect(x-this.size / 2, y-this.size / 2, this.size, this.size); */
+
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(${brush.color[0]}, ${brush.color[1]}, ${brush.color[2]}, ${brush.color[3]})`;
+        ctx.arc(x, y, brush.size / 2, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.closePath();
 
       } else {
 
-        var radgrad = ctx.createRadialGradient(x,y, this.size < 40 ? Math.max(this.size / 2 / 2, 1) : 10,x,y,this.size / 2);
+        var radgrad = ctx.createRadialGradient(x,y, brush.size < 40 ? Math.max(brush.size / 2 / 2, 1) : 10,x,y,brush.size / 2);
 
-        var opacity = this.color[3] === 1 ? this.color[3] : Math.pow(this.color[3], 3);
+        var opacity = brush.color[3] === 1 ? brush.color[3] : Math.pow(brush.color[3], 3);
 
-        radgrad.addColorStop(0, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, ${opacity})`);
+        radgrad.addColorStop(0, `rgba(${brush.color[0]}, ${brush.color[1]}, ${brush.color[2]}, ${opacity})`);
         // brush hardness settings on the UI as of the time of writing start from 0.1 and go up to 1
-        radgrad.addColorStop(0.5 + ((this.hardness - 0.1) / 2), `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, ${Math.min(opacity, 0.5 + ( this.hardness - 0.1) / 2)})`);
-        radgrad.addColorStop(1, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, 0)`);
+        radgrad.addColorStop(0.5 + ((brush.hardness - 0.1) / 2), `rgba(${brush.color[0]}, ${brush.color[1]}, ${brush.color[2]}, ${Math.min(opacity, 0.5 + ( brush.hardness - 0.1) / 2)})`);
+        radgrad.addColorStop(1, `rgba(${brush.color[0]}, ${brush.color[1]}, ${brush.color[2]}, 0)`);
 
         ctx.fillStyle = radgrad;
-        ctx.fillRect(x-this.size / 2, y-this.size / 2, this.size, this.size);
+        ctx.fillRect(x-brush.size / 2, y-brush.size / 2, brush.size, brush.size);
       }
 
     }
@@ -242,6 +296,22 @@ class SoftBrush {
   }
 
   enableSoftBrush() {
+
+    function getColorAt(x, y, imageData) {
+
+      x = Math.round(x);
+      y = Math.round(y);
+
+      var index = (y * imageData.width * 4) + x * 4;
+
+      return [
+        imageData.data[index],
+        imageData.data[index + 1],
+        imageData.data[index + 2],
+        imageData.data[index + 3]
+      ]
+
+    }
 
     function distanceBetween(point1, point2) {
       return Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2));
@@ -432,15 +502,11 @@ class SoftBrush {
 
     }
 
-    var checkColorCounter = 0;
+    var checkColorAtMousePos = (x, y, imageData) => {
+      if (!imageData) return;
 
-    var checkColorAtMousePos = (x, y, canvas) => {
-      return;
-      if (checkColorCounter++ < 10) return;
-      checkColorCounter = 0;
-      var cloneCanvas = CanvasLib.cloneCanvas(canvas);
-      var ctx = cloneCanvas.getContext("2d");
-      var colorAtMousePos = ctx.getImageData(x, y, 1, 1).data;
+      var colorAtMousePos = getColorAt(x, y, imageData);
+
       if (colorAtMousePos[0] < 200 && colorAtMousePos[1] < 200 && colorAtMousePos[2] < 200 && colorAtMousePos[3] > 100) {
         this.cursorColor = [255, 255, 255, 255];
       }
@@ -450,8 +516,8 @@ class SoftBrush {
     }
 
     var drawCursor = (x, y, cursorCtx) => {
-      checkColorAtMousePos(x, y, this.samplingCanvas);
-      checkColorAtMousePos(x, y, this.canvas);
+      checkColorAtMousePos(x, y, this.samplingImageData);
+      checkColorAtMousePos(x, y, this.drawingCloneImageData);
       cursorCtx.beginPath();
       cursorCtx.arc(x, y, this.size / 2, 0, 2 * Math.PI);
       cursorCtx.lineWidth = 1 / this.canvasScale;
@@ -595,12 +661,14 @@ class SoftBrush {
 
         points = [];
 
-        this.addDrawSegment(this.currentDrawSegment);
+        var drawSegmentItem = this.addDrawSegment(this.currentDrawSegment);
 
-        this.dispatchEvent("drawSegment", [this.currentDrawSegment]);
+        this.dispatchEvent("drawSegment", [drawSegmentItem]);
         this.dispatchEvent("drawend", [this.getDrawnPoints().length]);
 
         this.resetCurrentDrawSegment();
+
+        this.drawingCloneImageData = CanvasLib.cloneCanvas(this.canvas).getContext("2d").getImageData(0, 0, this.canvas.width, this.canvas.height);
       }
     }
 
