@@ -146,7 +146,6 @@ class SoftBrush {
 
   addToCurrentDrawSegment(point) {
     this.currentDrawSegment.push(point);
-    console.log(this.currentDrawSegment)
   }
 
   resetCurrentDrawSegment() {
@@ -156,8 +155,6 @@ class SoftBrush {
   redrawSegments() {
 
     var drawSegments = this.getDrawSegments();
-
-    console.log(drawSegments)
 
     for (var i = 0; i < drawSegments.length; i++) {
       var drawSegment = drawSegments[i];
@@ -176,8 +173,6 @@ class SoftBrush {
   redrawPoints() {
 
     console.log("redrawing drawn points")
-
-    console.log(this.drawnPoints)
 
     this.lastPoint = this.drawnPoints[0];
 

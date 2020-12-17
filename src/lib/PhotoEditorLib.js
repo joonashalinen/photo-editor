@@ -1022,7 +1022,7 @@ class PhotoEditorLib {
     }); */
 
     this.softBrush.on("drawSegment", (drawSegment) => {
-      console.log(this.softBrush.getDrawSegments())
+      console.log()
       this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getDrawingUndoRedo(drawSegment));
     });
 
