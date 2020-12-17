@@ -229,6 +229,9 @@ class PhotoEditorLib {
       }
     }
 
+    settings.width = this.konvaLib.selectedTargetImage.width();
+    settings.height = this.konvaLib.selectedTargetImage.height();
+
     var appliedFilters = this.appliedPixiFilters[this.konvaLib.selectedTargetImage.photoEditorId];
 
     for (var i = 0; i < this.selectableFilters.length; i++) {
@@ -399,6 +402,62 @@ class PhotoEditorLib {
   }
 
   replaceImagesWithNoFilters(newImages) {
+
+    var adjustFiltersCoordinates = (oldImages, newImages ) => {
+
+      for (var i = 0; i < oldImages.length; i++) {
+        var oldImage = oldImages[i];
+        var newImage = newImages[i];
+        var appliedFilters = this.appliedPixiFilters[oldImage.id];
+        if (!appliedFilters) continue;
+
+        console.log(appliedFilters)
+
+        for (let i = 0; i < appliedFilters.length; i++) {
+          let filter = appliedFilters[i];
+          let filterName = filter[0];
+          let values = filter[1];
+          let properties = filter[2];
+
+          var widthRatio = newImage.width / oldImage.width;
+          var heightRatio = newImage.height / oldImage.height;
+
+          console.log(filter)
+
+          switch (filterName) {
+
+            case "bulge/pinch": {
+
+              values[0].radius = Math.round(values[0].radius * (oldImage.width > oldImage.height ? widthRatio : heightRatio));
+
+              break;
+            }
+
+            case "twist": {
+
+              values[0] = Math.round(values[0] * widthRatio);
+              properties.offset.set(Math.round(properties.offset.x * widthRatio), Math.round(properties.offset.y * heightRatio));
+
+              break;
+            }
+
+            case "zoomblur": {
+
+              values[0].center = [Math.round(values[0].center[0] * widthRatio), Math.round(values[0].center[1] * heightRatio)];
+              values[0].innerRadius = Math.round(values[0].innerRadius * (oldImage.width > oldImage.height ? widthRatio : heightRatio));
+              values[0].radius = Math.round(values[0].radius * (oldImage.width > oldImage.height ? widthRatio : heightRatio));
+
+              break;
+            }
+
+          }
+
+        }
+      }
+
+    }
+
+    adjustFiltersCoordinates(this.imagesWithNoFilters, newImages);
 
     this.imagesWithNoFilters = newImages;
 
@@ -1936,7 +1995,7 @@ class PhotoEditorLib {
 
     var selectedTargetImage = this.konvaLib.selectedTargetImage;
 
-    this.konvaLib.replaceImages(this.imagesWithNoFilters, 0);
+    var replaced = this.konvaLib.replaceImages(this.imagesWithNoFilters, 0);
 
     this.konvaLib.cropImages(cropData);
 

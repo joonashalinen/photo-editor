@@ -136,6 +136,23 @@ h1 {
   overflow-y: auto;
 }
 
+.filtersRefreshButton {
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  font-size: 18px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: scaleX(-1);
+  transition: all 0.3s;
+}
+
+.filtersRefreshButton:hover {
+  filter: brightness(0.5);
+}
+
 .toolIconContainer {
   width: 34px;
   height: 34px;
