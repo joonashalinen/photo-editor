@@ -502,9 +502,25 @@ class UndoRedo {
 
       case "drawing": {
 
-        handleUndoRedoCache(this.typesLib.getDrawingUndoRedo(), undoOrRedo);
+        var drawnPoints = this.parent.softBrush.getDrawnPoints();
 
-        this.parent.drawingCanvas.getContext("2d").putImageData(latestUndoRedo.data.imageData, 0, 0);
+        console.log(drawnPoints)
+
+        if (undoOrRedo === "undo") {
+
+          var drawSegment = this.parent.softBrush.popLatestDrawSegment();
+
+          handleUndoRedoCache(this.typesLib.getDrawingUndoRedo(drawSegment), undoOrRedo);
+
+        } else {
+
+          this.parent.softBrush.addDrawSegment(latestUndoRedo.data.drawSegment)
+
+          handleUndoRedoCache(this.typesLib.getDrawingUndoRedo(latestUndoRedo.data.drawSegment), undoOrRedo);
+        }
+
+        this.parent.softBrush.clearCanvas();
+        this.parent.softBrush.redrawSegments();
 
         break;
       }

@@ -50,6 +50,9 @@ h1 {
   width: 99%;
   height: 34px;
   margin-left: 1%;
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
 .clearCanvasButton {

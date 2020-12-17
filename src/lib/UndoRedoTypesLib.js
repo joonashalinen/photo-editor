@@ -180,10 +180,10 @@ class UndoRedoTypesLib {
     }
   }
 
-  getDrawingUndoRedo() {
+  getDrawingUndoRedo(drawSegment) {
     return {
       data: {
-        imageData: CanvasLib.cloneCanvas(this.parent.drawingCanvas).getContext("2d").getImageData(0, 0, this.parent.drawingCanvas.width, this.parent.drawingCanvas.height)
+        drawSegment: drawSegment
       },
       type: "drawing"
     }

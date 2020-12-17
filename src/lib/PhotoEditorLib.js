@@ -1007,19 +1007,28 @@ class PhotoEditorLib {
 
     var redrawCounter = 0;
 
-    this.softBrush.on("draw", () => {
+    var lastDrawnPointsAmount = 0;
+
+    /*
+    this.softBrush.on("draw", (drawnPointsAmount) => {
 
       if (redrawCounter++ >= 100) {
         console.log("draw")
         redrawCounter = 0;
-        this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getDrawingUndoRedo());
+        this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getDrawingUndoRedo(null, drawnPointsAmount - lastDrawnPointsAmount));
+        lastDrawnPointsAmount = drawnPointsAmount;
       }
 
+    }); */
+
+    this.softBrush.on("drawSegment", (drawSegment) => {
+      console.log(this.softBrush.getDrawSegments())
+      this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getDrawingUndoRedo(drawSegment));
     });
 
     this.softBrush.on("drawbegin", () => {
       console.log("drawbegin")
-      this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getDrawingUndoRedo());
+      //this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getDrawingUndoRedo());
     });
 
     this.imageInstanced = true;

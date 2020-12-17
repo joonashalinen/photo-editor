@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Slider, Switch, InputNumber } from 'antd';
 
-function EffectSlider({ min, max, value, disabled, defaultValue, title, onAfterChange, positioning, sliderWidth, showInput, updateState, name }) {
+function EffectSlider({ min, max, value, disabled, defaultValue, title, onAfterChange, positioning, sliderWidth, inputWidth, showInput, updateState, name }) {
 
   console.log(value)
 
@@ -53,6 +53,24 @@ function EffectSlider({ min, max, value, disabled, defaultValue, title, onAfterC
           }, 50);
         }} value={value} defaultValue={defaultValue} />
       </div>
+      {
+        positioning === "horizontal" ?
+          <InputNumber style={{width: inputWidth ? inputWidth + "px" : null, marginLeft: "5px"}} disabled={disabled} min={min} max={max} value={value} defaultValue={defaultValue} size="small" onChange={(newValue) => {
+            if (isNaN(newValue)) return;
+            newValue = Math.min(max, newValue);
+            newValue = Math.max(min, newValue);
+            var stateObj = {};
+            stateObj[name] = newValue;
+            stateObj.canvasesContainerLoading = true;
+            updateState(stateObj);
+            setTimeout(() => {
+              onAfterChange(newValue);
+              updateState({canvasesContainerLoading: false});
+            }, 50);
+          }}/>
+        :
+        null
+      }
     </div>
   );
 }

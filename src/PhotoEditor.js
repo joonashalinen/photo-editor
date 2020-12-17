@@ -64,7 +64,9 @@ class PhotoEditor extends React.Component {
       imageFilterPreviewsLoading: false,
       contextMenuVisible: false,
       selectedImageWidth: 0,
-      selectedImageHeight: 0
+      selectedImageHeight: 0,
+      undosAmount: 0,
+      redosAmount: 0
     }
 
     this.state = this.defaultState;
@@ -251,12 +253,17 @@ class PhotoEditor extends React.Component {
     });
 
     this.photoEditorLib.on("undoAmountChange", (undosAmount) => {
+      // we only care whether undosAmount is 0 or not
+      console.log(undosAmount, this.state.undosAmount)
+      if (this.state.undosAmount !== 0 && undosAmount !== 0 || this.state.undosAmount === 0 && undosAmount === 0) return;
       this.setState({
         undosAmount: undosAmount
       })
     });
 
     this.photoEditorLib.on("redoAmountChange", (redosAmount) => {
+      // we only care whether redosAmount is 0 or not
+      if (this.state.redosAmount !== 0 && redosAmount !== 0 || this.state.redosAmount === 0 && redosAmount === 0) return;
       this.setState({
         redosAmount: redosAmount
       })
@@ -311,13 +318,13 @@ class PhotoEditor extends React.Component {
             {
               this.state.selectedTool === "draw" ?
                 <>
-                  <div className="toolOptionsSlider">
-                    <EffectSlider name="brushSize" sliderWidth="80" updateState={updateState} positioning="horizontal" min={1} max={100} value={this.state.brushSize} defaultValue={ this.state.brushSize } title="Size:" onAfterChange={(value) => {
+                  <div className="toolOptionsSlider" style={{width: "180px"}}>
+                    <EffectSlider name="brushSize" sliderWidth="80" inputWidth="60" updateState={updateState} positioning="horizontal" min={1} max={this.state.canvasWidth} value={this.state.brushSize} defaultValue={ this.state.brushSize } title="Size:" onAfterChange={(value) => {
                       this.photoEditorLib.setBrushSize(value);
                     }}/>
                   </div>
-                  <div className="toolOptionsSlider" style={{width: "140px"}}>
-                    <EffectSlider name="brushHardness" sliderWidth="80" updateState={updateState} positioning="horizontal" min={10} max={100} value={this.state.brushHardness} defaultValue={this.state.brushHardness} title="Hardness:" onAfterChange={(value) => {
+                  <div className="toolOptionsSlider" style={{width: "240px"}}>
+                    <EffectSlider name="brushHardness" sliderWidth="80" inputWidth="60" updateState={updateState} positioning="horizontal" min={10} max={100} value={this.state.brushHardness} defaultValue={this.state.brushHardness} title="Hardness:" onAfterChange={(value) => {
                       this.photoEditorLib.softBrush.setHardness(value / 100);
                     }}/>
                   </div>
@@ -332,13 +339,13 @@ class PhotoEditor extends React.Component {
                     this.photoEditorLib.eraseAllDrawing();
                   }} type="dashed" size="small" style={{ fontSize: "12px" }}>Erase All</Button>
                   <div style={{height: "10px"}}></div>
-                  <div className="toolOptionsSlider">
-                    <EffectSlider name="brushSize" sliderWidth="80" updateState={updateState} positioning="horizontal" min={1} max={100} value={this.state.brushSize} defaultValue={ this.state.brushSize } title="Size:" onAfterChange={(value) => {
+                  <div className="toolOptionsSlider" style={{width: "180px"}}>
+                    <EffectSlider name="brushSize" sliderWidth="80" inputWidth="60" updateState={updateState} positioning="horizontal" min={1} max={100} value={this.state.brushSize} defaultValue={ this.state.brushSize } title="Size:" onAfterChange={(value) => {
                       this.photoEditorLib.setBrushSize(value);
                     }}/>
                   </div>
-                  <div className="toolOptionsSlider" style={{width: "140px"}}>
-                    <EffectSlider name="brushHardness" sliderWidth="80" updateState={updateState} positioning="horizontal" min={10} max={100} value={this.state.brushHardness} defaultValue={this.state.brushHardness} title="Hardness:" onAfterChange={(value) => {
+                  <div className="toolOptionsSlider" style={{width: "240px"}}>
+                    <EffectSlider name="brushHardness" sliderWidth="80" inputWidth="60" updateState={updateState} positioning="horizontal" min={10} max={100} value={this.state.brushHardness} defaultValue={this.state.brushHardness} title="Hardness:" onAfterChange={(value) => {
                       this.photoEditorLib.softBrush.setHardness(value / 100);
                     }}/>
                   </div>
