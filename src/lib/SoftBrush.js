@@ -435,6 +435,7 @@ class SoftBrush {
     var checkColorCounter = 0;
 
     var checkColorAtMousePos = (x, y, canvas) => {
+      return;
       if (checkColorCounter++ < 10) return;
       checkColorCounter = 0;
       var cloneCanvas = CanvasLib.cloneCanvas(canvas);
