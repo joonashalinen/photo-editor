@@ -74,11 +74,11 @@ class PixiLib {
   }
 
   static canvasFromApp(app) {
-    return app.renderer.extract.canvas(app.stage);
+    return app.renderer.plugings.extract.canvas(app.stage);
   }
 
   static imageFromApp(app) {
-    return app.renderer.extract.image(app.stage);
+    return app.renderer.plugins.extract.image(app.stage);
   }
 
   static getPoint(x, y) {
