@@ -1,5 +1,5 @@
 
-import * as PIXI from 'pixi.js-legacy'
+import * as PIXI from 'pixi.js'
 import * as PixiFilters from "pixi-filters";
 
 class PixiLib {
@@ -40,7 +40,8 @@ class PixiLib {
   static appFromImage(image) {
     var app = new PIXI.Application({
         width: image.width,
-        height: image.height
+        height: image.height,
+        forceCanvas: true
     });
 
     var container = new PIXI.Container();
