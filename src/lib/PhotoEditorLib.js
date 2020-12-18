@@ -380,7 +380,7 @@ class PhotoEditorLib {
 
   }
 
-  getImageWithFilters(image) {
+  async getImageWithFilters(image) {
 
     var appliedFilters = this.appliedPixiFilters[image.id] ? this.appliedPixiFilters[image.id] : [];
 
@@ -392,9 +392,11 @@ class PhotoEditorLib {
 
     var imageObj = PixiLib.imageFromApp(this.pixiApp);
 
-    imageObj.onload = () => {
-      console.log("loaded!")
-    }
+    await new Promise((resolve) => {
+      imageObj.onload = () => {
+        resolve();
+      }
+    });
 
     imageObj.id = image.id;
 
@@ -463,12 +465,12 @@ class PhotoEditorLib {
 
   }
 
-  reapplyImageFilters() {
+  async reapplyImageFilters() {
 
     for (var i = 0; i < this.imagesWithNoFilters.length; i++) {
       var imageWithNoFilters = this.imagesWithNoFilters[i];
 
-      var imageObj = this.getImageWithFilters(imageWithNoFilters);
+      var imageObj = await this.getImageWithFilters(imageWithNoFilters);
 
       var [newImageNode, oldImageNode] = this.konvaLib.replaceImageWithSameId(imageObj);
 
@@ -476,7 +478,7 @@ class PhotoEditorLib {
 
   }
 
-  setSelectedImageFilter(filterName, values, properties) {
+  async setSelectedImageFilter(filterName, values, properties) {
 
     console.log(this.konvaLib.selectedTargetImage)
 
@@ -499,20 +501,16 @@ class PhotoEditorLib {
 
     this.addAppliedFilter(filterName, values, image.id, properties);
 
-    var imageObj = this.getImageWithFilters(image);
+    var imageObj = await this.getImageWithFilters(image);
 
-    imageObj.onload = () => {
+    var [newImageNode, oldImageNode] = this.konvaLib.replaceImageWithSameId(imageObj);
 
-      var [newImageNode, oldImageNode] = this.konvaLib.replaceImageWithSameId(imageObj);
+    //this.undoRedoLib.replaceImageNodeInCaches(oldImageNode, newImageNode);
+    this.undoRedoLib.addKonvaImageUndoRedoEvents(newImageNode);
 
-      //this.undoRedoLib.replaceImageNodeInCaches(oldImageNode, newImageNode);
-      this.undoRedoLib.addKonvaImageUndoRedoEvents(newImageNode);
+    this.konvaLib.stage.draw();
 
-      this.konvaLib.stage.draw();
-
-      this.softBrush.setSamplingCanvas(this.konvaLib.stage.toCanvas());
-
-    }
+    this.softBrush.setSamplingCanvas(this.konvaLib.stage.toCanvas());
 
   }
 
@@ -1837,6 +1835,7 @@ class PhotoEditorLib {
     CanvasLib.rotateCanvasSize(this.cursorCanvas);
     CanvasLib.rotateCanvasSize(this.colorPickerCanvas);
 
+    this.softBrush.clearCanvas();
     this.softBrush.redrawSegments();
 
     this.stage.width(this.konvaLib.stage.width());
@@ -2022,7 +2021,7 @@ class PhotoEditorLib {
 
     this.replaceImagesWithNoFilters(newImagesWithNoFilters);
 
-    this.reapplyImageFilters();
+    await this.reapplyImageFilters();
 
     if (selectedTargetImage) this.konvaLib.targetImage(this.konvaLib.getImageWithId(selectedTargetImage.photoEditorId));
 

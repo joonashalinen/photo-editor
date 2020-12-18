@@ -619,7 +619,7 @@ class SoftBrush {
     var drawSegmentStartIndex;
 
     this.onMouseDown = (e) => {
-      if (this.enabled){
+      if (this.enabled) {
         this.dispatchEvent("drawbegin", [this.getDrawnPoints().length]);
         isDrawing = true;
 
@@ -652,21 +652,20 @@ class SoftBrush {
           { x: x / this.canvasScale, y: y / this.canvasScale },
           { x: x / this.canvasScale, y: y / this.canvasScale }];
 
-        this.lastPoint = { x: x / this.canvasScale, y: y / this.canvasScale };
-        drawPoints(x / this.canvasScale, y / this.canvasScale, ctx);
+        if (isDrawing) {
+          drawPoints(x / this.canvasScale, y / this.canvasScale, ctx);
+          this.dispatchEvent("draw", [this.getDrawnPoints().length]);
+          var drawSegmentItem = this.addDrawSegment(this.currentDrawSegment);
 
-        this.dispatchEvent("draw", [this.getDrawnPoints().length]);
+          this.dispatchEvent("drawSegment", [drawSegmentItem]);
+          this.dispatchEvent("drawend", [this.getDrawnPoints().length]);
+
+          this.resetCurrentDrawSegment();
+        }
 
         isDrawing = false;
 
         points = [];
-
-        var drawSegmentItem = this.addDrawSegment(this.currentDrawSegment);
-
-        this.dispatchEvent("drawSegment", [drawSegmentItem]);
-        this.dispatchEvent("drawend", [this.getDrawnPoints().length]);
-
-        this.resetCurrentDrawSegment();
 
         this.drawingCloneImageData = CanvasLib.cloneCanvas(this.canvas).getContext("2d").getImageData(0, 0, this.canvas.width, this.canvas.height);
       }
@@ -710,6 +709,16 @@ class SoftBrush {
       if (this.enabled) {
         this.clearCanvas(cursorCtx);
         points = [];
+
+        if (isDrawing) {
+          var drawSegmentItem = this.addDrawSegment(this.currentDrawSegment);
+
+          this.dispatchEvent("drawSegment", [drawSegmentItem]);
+          this.dispatchEvent("drawend", [this.getDrawnPoints().length]);
+
+          this.resetCurrentDrawSegment();
+        }
+
         mouseLeft = true;
         isDrawing = false;
       }

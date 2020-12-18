@@ -94,7 +94,7 @@ class UndoRedo {
     return this.redoCache;
   }
 
-  undoRedo(undoOrRedo) {
+  async undoRedo(undoOrRedo) {
 
     var handleUndoRedoCache = (undoRedoItem, undoOrRedo) => {
       if (undoOrRedo === "undo") {
@@ -491,7 +491,7 @@ class UndoRedo {
 
         var image = this.parent.getSelectedImageWithNoFilters();
 
-        var imageObj = this.parent.getImageWithFilters(image);
+        var imageObj = await this.parent.getImageWithFilters(image);
 
         var [newImageNode, oldImageNode] = this.parent.konvaLib.replaceImageWithSameId(imageObj);
 

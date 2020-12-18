@@ -1209,6 +1209,7 @@ class KonvaLib {
     var replaced = [];
 
     for (var i = 0; i < newImages.length; i++) {
+
       var id = newImages[i] instanceof HTMLImageElement ? newImages[i].id : newImages[i].photoEditorId;
       var image = this.getImageWithId(id);
       if (!image) continue;

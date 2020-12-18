@@ -293,6 +293,16 @@ h1 {
   overflow: hidden;
 }
 
+@media screen and (max-width: 1200px) {
+  .undoRedoButton {
+    right: 5%;
+  }
+
+  .clearCanvasButton {
+    right: 5%;
+  }
+}
+
 @media screen and (max-width: 900px) {
 
   .mainContainer {
