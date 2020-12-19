@@ -12,8 +12,8 @@ class KonvaLib {
 
     var fillPatternBase64Url = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAARUlEQVRYhe3VsQkAMAwDQSVkIO0/hTdShlAgzat/OHDhlSQqNjNNrl3VDwYAAAAAAAAAOO0/t131nAAAAAAAAAD4C5B0ARR5Ca7CHgmpAAAAAElFTkSuQmCC`
 
-    var fillImage = new Image(fillPatternBase64Url, 32, 32);
-    fillImage.src = fillPatternBase64Url;
+    var fillImage = new Image("background-3000px.png", 3000, 3000);
+    fillImage.src = "background-3000px.png";
 
     this.stage = new Konva.Stage({
       container: options.containerId,
@@ -35,10 +35,7 @@ class KonvaLib {
       this.stage.add(backgroundLayer);
 
       var backgroundTileImage = new Konva.Image({
-        fillPatternImage: fillImage,
-        fillPatternX: 0,
-        fillPatternY: 0,
-        fillPatternRepeat: "repeat",
+        image: fillImage,
         width: options.width,
         height: options.height
       });
