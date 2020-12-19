@@ -1,3 +1,10 @@
+/*
+* Prefixed by https://autoprefixer.github.io
+* PostCSS: v7.0.29,
+* Autoprefixer: v9.7.6
+* Browsers: last 4 version
+*/
+
 
 .imageGridMenuImageContainer {
   margin: 10px;
@@ -7,11 +14,13 @@
 .imageGridMenuImage {
   border-radius: 5px;
   border: 2px solid transparent;
-  filter: brightness(0.7);
+  -webkit-filter: brightness(0.7);
+          filter: brightness(0.7);
 }
 
 .imageGridMenuImageSelected, .imageGridMenuImage:hover {
   border: 2px solid rgb(0 149 255);
   border-radius: 5px;
-  filter: brightness(1);
+  -webkit-filter: brightness(1);
+          filter: brightness(1);
 }
