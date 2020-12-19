@@ -892,7 +892,7 @@ class PhotoEditorLib {
 
     this.konvaImagesContainer.firstElementChild.style.boxShadow = "rgb(11, 11, 11) 4px 10px 4px";
 
-    var konvaImage = this.konvaLib.addImage(image, {
+    var [konvaImage, transformer, overlayTransformer] = this.konvaLib.addImage(image, {
       targetable: true,
       alignCenter: true
     });
@@ -901,6 +901,8 @@ class PhotoEditorLib {
     this.rotateOriginOffsetY = konvaImage.height() / 2;
 
     this.undoRedoLib.addKonvaImageUndoRedoEvents(konvaImage, this.konvaLib);
+    this.undoRedoLib.addKonvaTransformerUndoRedoEvents(konvaImage, transformer);
+    this.undoRedoLib.addKonvaTransformerUndoRedoEvents(konvaImage, overlayTransformer);
 
     document.getElementById("konvaImagesContainer").style.pointerEvents = "auto";
 
@@ -1075,17 +1077,29 @@ class PhotoEditorLib {
 
   async importImage(file) {
 
+    var fileToArrayBuffer = (file) => {
+      return new Promise((resolve) => {
+
+        var fileReader = new FileReader();
+        fileReader.onloadend = () => {
+          resolve(fileReader);
+        }
+        fileReader.readAsArrayBuffer(file);
+
+      });
+    }
+
     if (file instanceof HTMLImageElement) {
       var imageObj = file;
       file = await imageConversion.imagetoCanvas(file);
       file = await imageConversion.canvastoFile(file);
-      var buffer = await file.arrayBuffer();
+
+      var buffer = await fileToArrayBuffer(file);
+
     } else {
-      var buffer = await file.arrayBuffer();
+      var buffer = await fileToArrayBuffer(file);
       var imageObj = await this.imageLib.bufferToImage(buffer);
     }
-
-
 
     if (this.options.downscaleImage) {
       if (imageObj.width > this.options.maxImageSize || imageObj.height > this.options.maxImageSize) {
@@ -1104,12 +1118,14 @@ class PhotoEditorLib {
 
     imageObj.id = this.runningImageId++;
 
-    var konvaImage = this.konvaLib.addImage(imageObj, {
+    var [konvaImage, transformer, overlayTransformer] = this.konvaLib.addImage(imageObj, {
       targetable: true,
       alignCenter: true
     });
 
     this.undoRedoLib.addKonvaImageUndoRedoEvents(konvaImage, this.konvaLib);
+    this.undoRedoLib.addKonvaTransformerUndoRedoEvents(konvaImage, transformer);
+    this.undoRedoLib.addKonvaTransformerUndoRedoEvents(konvaImage, overlayTransformer);
 
     this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getImageAddUndoRedo(konvaImage));
 

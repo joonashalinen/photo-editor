@@ -48,6 +48,29 @@ class UndoRedo {
 
   }
 
+  addKonvaTransformerUndoRedoEvents(konvaImage, transformer) {
+
+    var beforeTransformUndoRedo;
+
+    var onMouseDown = () => {
+      beforeTransformUndoRedo = this.typesLib.getImageTransformUndoRedo(konvaImage);
+      document.addEventListener("mouseup", onMouseUp)
+    }
+
+    var onMouseUp = () => {
+      this.addToUndoCache(beforeTransformUndoRedo);
+      this.parent.softBrush.setSamplingCanvas(this.parent.konvaLib.stage.toCanvas());
+      document.removeEventListener("mouseup", onMouseUp)
+    }
+
+    if (!konvaImage || !transformer) return;
+
+    transformer.on("mousedown", onMouseDown);
+
+    transformer.on("mouseup", onMouseUp);
+
+  }
+
   clearRedoCache() {
     this.redoCache = [];
     this.parent.dispatchEvent("redoAmountChange", [this.getRedoCache().length]);

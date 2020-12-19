@@ -627,7 +627,7 @@ class KonvaLib {
     this.stage.draw();
     this.transformersStage.draw();
 
-    return image;
+    return [image, transformer, overlayTransformer];
 
   }
 

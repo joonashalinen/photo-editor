@@ -40,8 +40,7 @@ class PixiLib {
   static appFromImage(image) {
     var app = new PIXI.Application({
         width: image.width,
-        height: image.height,
-        forceCanvas: true
+        height: image.height
     });
 
     var container = new PIXI.Container();
