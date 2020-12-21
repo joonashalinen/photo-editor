@@ -154,7 +154,7 @@ h1 {
 
 .emptyCanvasImage {
   position: absolute;
-  top: 295px;
+  top: 263px;
   width: 100%;
 }
 
@@ -459,7 +459,7 @@ h1 {
   }
 
   .emptyCanvasImage {
-    top: 195px;
+    top: 163px;
   }
 
   .toolsMenuContainer {

@@ -69,7 +69,9 @@ class PhotoEditor extends React.Component {
       undosAmount: 0,
       redosAmount: 0,
       error: false,
-      webGLSupported: true
+      webGLSupported: true,
+      selectedTextFont: "Impact",
+      selectedTextColor: "rgb(255, 255, 255)"
     }
 
     this.state = this.defaultState;
@@ -197,6 +199,14 @@ class PhotoEditor extends React.Component {
         selectedImageHeight: imageSettings.height
       });
       setFiltersState(imageSettings, filterPreviewImages);
+    });
+
+    this.photoEditorLib.on("textTargetChange", (newTarget) => {
+      if (!newTarget) return;
+      this.setState({
+        selectedTextColor: newTarget ? newTarget.fill() : "rgba(255, 255, 255, 0)",
+        selectedTextFont: newTarget ? newTarget.fontFamily() : "Impact"
+      });
     });
 
     this.photoEditorLib.on("konvaTargetChange", (newTarget) => {
@@ -374,7 +384,10 @@ class PhotoEditor extends React.Component {
               <div id="text-color-picker" className="colorPicker" style={{opacity: 0, visibility: "hidden", transition: "opacity 0.3s"}}></div>
             </div>
             <div style={{display: this.state.selectedTool === "addText" ? "inline-block" : "none", marginLeft: "10px"}}>
-              <Select size="small" defaultValue="Impact" onChange={(fontName) => {
+              <Select size="small" value={this.state.selectedTextFont} defaultValue="Impact" onChange={(fontName) => {
+                this.setState({
+                  selectedTextFont: fontName
+                })
                 this.photoEditorLib.setSelectedFont(fontName);
               }}>
                 {
@@ -445,12 +458,12 @@ class PhotoEditor extends React.Component {
                   <Empty
                     image="image-outline.svg"
                     imageStyle={{
-                      height: 80,
+                      height: 160,
                       filter: "invert(1) brightness(0.25)"
                     }}
                     description={
                       <>
-                        <p style={{color: "rgba(255, 255, 255, 0.25)"}}>Import image to start editing.</p>
+                        <p style={{color: "rgba(255, 255, 255, 0.25)"}}></p>
                       </>
                     }
                     >
@@ -699,7 +712,7 @@ class PhotoEditor extends React.Component {
                 <img className="toolIcon" src="eyedrop.svg" height="18px"></img>
               </div>
             </Tooltip>
-            <Tooltip placement="right" title="Rotate [R]">
+            <Tooltip placement="right" title="Rotate Images 90° [R]">
               <div className="toolIconContainer" onClick={() => {
                 if (!this.state.imageInstanced) return;
                 this.photoEditorLib.rotate();
@@ -975,7 +988,7 @@ class PhotoEditor extends React.Component {
                       }}/>
                     </Collapse.Panel>
                   </Collapse>
-                  <h4 style={{display: "flex", justifyContent:"space-between", alignItems: "center", marginTop: "10px", marginLeft: "0px"}}>Filter Gallery</h4>
+                  <h4 style={{display: "flex", justifyContent:"space-between", alignItems: "center", marginTop: "10px", marginLeft: "0px"}}></h4>
                   { /* <div style={{display: "flex", justifyContent:"center", alignItems: "center", marginBottom: "10px"}}>
                     <DropdownMenu items={this.selectableFilters} defaultSelectedKey={0} onSelect={(selectedItem) => {
                       this.photoEditorLib.setImageFilter(selectedItem);
@@ -992,7 +1005,7 @@ class PhotoEditor extends React.Component {
                   }
                   {
                     this.state.selectedTargetImage ?
-                      <ImageGridMenu updateState={updateState} onSelectChange={(selectedFilterName) => {
+                      <ImageGridMenu width={150} updateState={updateState} onSelectChange={(selectedFilterName) => {
                         this.setState({
                           canvasesContainerLoading: true
                         })
@@ -1008,7 +1021,7 @@ class PhotoEditor extends React.Component {
                   }
                 </div>
               </Tabs.TabPane>
-              <Tabs.TabPane tab="Adjustments" key="2">
+              <Tabs.TabPane tab="Colors" key="2">
                 <div style={{width: "96%", margin: "auto"}}>
                   <EffectSlider name="contrast" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={-100} max={100} updateState={updateState} value={this.state.contrast} defaultValue={this.state.contrast} title="Contrast" onAfterChange={(value) => {
                     this.photoEditorLib.setSelectedImageFilter("contrast", [value / 100 + 1]);
@@ -1024,7 +1037,7 @@ class PhotoEditor extends React.Component {
                   }}/>
                 </div>
               </Tabs.TabPane>
-              <Tabs.TabPane tab="Image" key="3">
+              <Tabs.TabPane tab="Background" key="3">
               </Tabs.TabPane>
             </Tabs>
             <div style={{width: "96%", margin: "auto"}}>

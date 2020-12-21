@@ -124,12 +124,17 @@ class PhotoEditorLib {
 
     var target = (text) => {
 
+      console.log(text)
+
       if (this.konvaTextTarget === text) {
         untarget(text);
+        this.dispatchEvent("textTargetChange", [false]);
         return;
       }
 
-      if (this.konvaTextTarget) untarget(this.konvaTextTarget);
+      if (this.konvaTextTarget) {
+        untarget(this.konvaTextTarget);
+      }
 
       var transformer = this.konvaLib.getNodeTransformer(text, this.layer);
       transformer.show();
@@ -139,6 +144,22 @@ class PhotoEditorLib {
       this.konvaTextTarget = text;
 
       this.stage.batchDraw();
+
+      var color = text.fill();
+
+      var iroColor = new iro.Color(color);
+
+      if (this.textColorPicker) {
+        this.textColorPicker.setColors([iroColor]);
+        this.textColorPicker.setActiveColor(0);
+        document.getElementById("text-color-picker-button").style.backgroundColor = color;
+        this.selectedTextColor = iroColor;
+      }
+
+      this.selectedFont = text.fontFamily();
+
+      this.dispatchEvent("textTargetChange", [text]);
+
     }
 
     var untarget = (text) => {
@@ -153,6 +174,8 @@ class PhotoEditorLib {
       this.konvaTextTarget = false;
 
       this.stage.batchDraw();
+
+      this.dispatchEvent("textTargetChange", [false]);
 
     }
 
@@ -182,10 +205,9 @@ class PhotoEditorLib {
       timeout = window.requestAnimationFrame(() => {
 
         if (e.target instanceof Konva.Stage) {
-          if (this.konvaTarget) this.dispatchEvent("konvaTargetChange", [false]);
+          if (this.konvaTarget !== false) this.dispatchEvent("konvaTargetChange", [false]);
           this.konvaTarget = false;
           this.konvaJsContent.style.cursor = "text";
-          this.dispatchEvent("konvaTargetChange", [false])
           return;
         }
 
@@ -806,7 +828,10 @@ class PhotoEditorLib {
 
     this.dispatchEvent("loadingImage", [file]);
 
-    document.getElementById("canvasesContainer").addEventListener("wheel", this.zoom);
+    document.getElementById("canvasesContainer").addEventListener("wheel", (e) => {
+      if (this.editingText) this.endTextEditing();
+      this.zoom(e);
+    });
 
     this.beginDragModeEventHandler = () => {
       this.beginDragMode();
@@ -1336,7 +1361,7 @@ class PhotoEditorLib {
 
     text.on('dblclick', () => {
 
-      if (this.konvaTextTarget === text) this.untargetKonvaText(text);
+      //if (this.konvaTextTarget === text) this.untargetKonvaText(text);
 
       this.shortCutsTempDisabled = true;
 
@@ -1354,10 +1379,14 @@ class PhotoEditorLib {
 
       }
 
+      this.endTextEditing = () => {
+        text.text(textarea.value);
+        removeTextarea();
+      }
+
       var handleOutsideClick = (e) => {
         if (e.target !== textarea) {
-          text.text(textarea.value);
-          removeTextarea();
+          this.endTextEditing();
         }
       }
 
@@ -1704,6 +1733,8 @@ class PhotoEditorLib {
     cursorImage.src = "eyedrop.svg";
     cursorImage.width = "18";
     cursorImage.height = "18";
+    cursorImage.style.top = "-100px";
+    cursorImage.style.left = "-100px";
 
     cursorImage.style.pointerEvents = "none";
     cursorImage.style.position = "absolute";
@@ -1715,6 +1746,8 @@ class PhotoEditorLib {
 
     colorPreview.style.pointerEvents = "none";
     colorPreview.style.position = "absolute";
+    colorPreview.style.top = "-100px";
+    colorPreview.style.left = "-100px";
 
     this.canvasesContainer.appendChild(cursorImage);
     this.canvasesContainer.appendChild(colorPreview);

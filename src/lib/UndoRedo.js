@@ -309,7 +309,9 @@ class UndoRedo {
       case "rotate": {
 
         if (undoOrRedo === "undo") {
-          this.parent.rotate(true, true);
+          this.parent.rotate(true);
+          this.parent.rotate(true);
+          this.parent.rotate(true);
         } else {
           this.parent.rotate(true);
         }
