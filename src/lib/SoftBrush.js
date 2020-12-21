@@ -249,7 +249,7 @@ class SoftBrush {
     var dist = distanceBetween(this.lastPoint, this.currentPoint);
     var angle = angleBetween(this.lastPoint, this.currentPoint);
 
-    for (var i = 0; i < Math.max(1, dist); i+= this.size < 35 ? 1 : this.size / 15) {
+    for (var i = 0; i < Math.max(1, dist); i+= brush.size < 35 ? 1 : brush.size / 15) {
 
       x = this.lastPoint.x + (Math.sin(angle) * i);
       y = this.lastPoint.y + (Math.cos(angle) * i);

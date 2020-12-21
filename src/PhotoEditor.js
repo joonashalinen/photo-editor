@@ -137,6 +137,7 @@ class PhotoEditor extends React.Component {
       defaultBrushHardness: this.state.brushHardness / 100,
       downscaleImage: true,
       maxImageSize: 2000,
+      downScaledImageQuality: 0.8,
       shortCutsEnabled: true,
       fonts: this.fonts,
       selectedFont: "Impact"

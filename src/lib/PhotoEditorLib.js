@@ -11,6 +11,7 @@ import KonvaLib from "./KonvaLib.js";
 import { EmojiButton } from '@joeattardi/emoji-button';
 import * as imageConversion from 'image-conversion';
 import { readAndCompressImage } from 'browser-image-resizer';
+const pica = require("pica")();
 
 class PhotoEditorLib {
 
@@ -838,16 +839,31 @@ class PhotoEditorLib {
 
     if (this.options.downscaleImage) {
       if (image.width > this.options.maxImageSize || image.height > this.options.maxImageSize) {
-        console.log(this.options.maxImageSize / Math.max(image.width, image.height))
 
+        /*
         file = await readAndCompressImage(file, {
-          quality: 1,
+          quality: this.options.downScaledImageQuality,
           maxWidth: this.options.maxImageSize,
           maxHeight: this.options.maxImageSize
+        }); */
+
+        var resizeRatio = this.options.maxImageSize / Math.max(image.width, image.height);
+
+        var destinationCanvas = document.createElement("canvas");
+        destinationCanvas.width = image.width * resizeRatio;
+        destinationCanvas.height = image.height * resizeRatio;
+
+        await pica.resize(image, destinationCanvas, {
+          unsharpAmount: 80,
+          unsharpRadius: 0.6,
+          unsharpThreshold: 2
         });
 
+        image = destinationCanvas;
+
+        /*
         let url = await imageConversion.filetoDataURL(file);
-        image = await imageConversion.dataURLtoImage(url);
+        image = await imageConversion.dataURLtoImage(url); */
       }
     }
 
@@ -1632,10 +1648,10 @@ class PhotoEditorLib {
 
       }
 
-      this.colorPickerCanvas.onpointermove = this.colorPickerMoveEventHandler;
-      this.colorPickerCanvas.onpointerover = this.colorPickerMouseinEventHandler;
-      this.colorPickerCanvas.onpointerout = this.colorPickerMouseoutEventHandler;
-      this.colorPickerCanvas.onpointerdown = this.colorPickerClickEventHandler;
+      this.colorPickerCanvas.onmousemove = this.colorPickerMoveEventHandler;
+      this.colorPickerCanvas.onmouseover = this.colorPickerMouseinEventHandler;
+      this.colorPickerCanvas.onmouseout = this.colorPickerMouseoutEventHandler;
+      this.colorPickerCanvas.onmousedown = this.colorPickerClickEventHandler;
 
       /*
       this.colorPickerCanvas.addEventListener("mousemove", this.colorPickerMoveEventHandler);

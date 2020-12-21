@@ -24,6 +24,7 @@
     "jimp": "^0.16.1",
     "konva": "^7.1.4",
     "lazy-brush": "^1.0.1",
+    "pica": "^6.1.1",
     "pixi-filters": "^3.1.1",
     "pixi.js-legacy": "^5.3.3",
     "react": "^17.0.1",
