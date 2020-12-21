@@ -301,6 +301,10 @@ class PixiLib {
 
   }
 
+  static isWebGLSupported() {
+    return PIXI.utils.isWebGLSupported();
+  }
+
 }
 
 export default PixiLib;

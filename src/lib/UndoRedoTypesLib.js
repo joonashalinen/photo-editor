@@ -108,6 +108,10 @@ class UndoRedoTypesLib {
   getImageTransformUndoRedo(imageNode) {
     var undoRedoItem = this.getKonvaNodeTransformUndoRedo(imageNode);
     undoRedoItem.data.imageNode = imageNode;
+    undoRedoItem.data.transformer = this.parent.konvaLib.getImageTransformer(imageNode);
+    undoRedoItem.data.overlayTransformer = this.parent.konvaLib.getImageTransformer(imageNode, this.parent.konvaLib.transformersStageMainLayer);
+    if (undoRedoItem.data.transformer) undoRedoItem.data.transformerAnchorSize = undoRedoItem.data.transformer.anchorSize();
+    if (undoRedoItem.data.transformer) undoRedoItem.data.rotateAnchorOffset = undoRedoItem.data.transformer.rotateAnchorOffset();
     undoRedoItem.type = "image-transform";
     return undoRedoItem;
   }
@@ -158,12 +162,13 @@ class UndoRedoTypesLib {
     return undoRedoItem;
   }
 
-  getFilterUndoRedo(imageNode, filterName, values) {
+  getFilterUndoRedo(imageNode, filterName, values, properties) {
     return {
       data: {
         imageNode: imageNode,
         filterName: filterName,
-        values: values
+        values: values,
+        properties: properties
       },
       type: "filter"
     }

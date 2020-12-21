@@ -100,6 +100,11 @@ class SoftBrush {
     this.canvasScale = value;
   }
 
+  clearCanvasCursor(x, y, ctx) {
+    if (!ctx) ctx = this.canvasCtx;
+    ctx.clearRect(x - this.size * 2, y - this.size * 2, this.size * 4, this.size * 4);
+  }
+
   clearCanvas(ctx) {
     if (!ctx) ctx = this.canvasCtx;
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -244,7 +249,7 @@ class SoftBrush {
     var dist = distanceBetween(this.lastPoint, this.currentPoint);
     var angle = angleBetween(this.lastPoint, this.currentPoint);
 
-    for (var i = 0; i < Math.max(1, dist); i+= brush.size < 35 ? 1 : 5) {
+    for (var i = 0; i < Math.max(1, dist); i+= this.size < 35 ? 1 : this.size / 15) {
 
       x = this.lastPoint.x + (Math.sin(angle) * i);
       y = this.lastPoint.y + (Math.cos(angle) * i);
@@ -332,33 +337,18 @@ class SoftBrush {
       var angle = angleBetween(this.lastPoint, this.currentPoint);
 
 
-      for (var i = 0; i < Math.max(1, dist); i+= this.size < 35 ? 1 : 5) {
+      for (var i = 0; i < Math.max(1, dist); i+= this.size < 35 ? 1 : this.size / 15) {
 
         x = this.lastPoint.x + (Math.sin(angle) * i);
         y = this.lastPoint.y + (Math.cos(angle) * i);
 
         // hardness no longer applied for brush sizes below 5 or brushes at 100 hardness
         if (this.size < 5 || this.hardness === 1) {
-
-          console.log("no hardness on brush")
-
-          //var radgrad = ctx.createRadialGradient(x,y,0,x,y,1);
-
-          /*
-          radgrad.addColorStop(0, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, 1)`);
-          radgrad.addColorStop(0.5, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, 1)`);
-          radgrad.addColorStop(1, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, 1)`); */
-
-          /*
-          ctx.fillStyle = radgrad;
-          ctx.fillRect(x-this.size / 2, y-this.size / 2, this.size, this.size); */
-
           ctx.beginPath();
           ctx.fillStyle = `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, ${this.color[3]})`;
           ctx.arc(x, y, this.size / 2, 0, 2 * Math.PI);
           ctx.fill();
           ctx.closePath();
-
         } else {
 
           var radgrad = ctx.createRadialGradient(x,y, this.size < 40 ? Math.max(this.size / 2 / 2, 1) : 10,x,y,this.size / 2);
@@ -378,127 +368,6 @@ class SoftBrush {
 
       if (!preventAddToDrawnPoints) this.addToCurrentDrawSegment(this.currentPoint);
       this.lastPoint = this.currentPoint;
-      /*
-      var bezier = new Bezier(points[0].x, points[0].y, points[1].x, points[1].y, points[2].x, points[2].y);
-
-      points = [points[2]];
-
-      for (var i = 0; i < 100; i++) {
-        var point = bezier.get(i / 100);
-
-        x = point.x;
-        y = point.y;
-
-
-        var opacity = 0;
-
-        if (this.hardness > 0.8) opacity = (this.hardness - 0.8) * 5;
-
-        for (let i = 0; i < Math.max(1, this.size / 2 + (this.size / 2 / 2 * this.hardness)); i++) {
-
-          ctx.beginPath();
-          ctx.arc(x, y, Math.max(1, (this.size / 2 / 2 + (this.size / 2 / 2 * this.hardness)) - i), 0, 2 * Math.PI);
-          if (i >= Math.max(1, this.size / 2 + (this.size / 2 / 2 * this.hardness)) - 1) opacity = 1;
-          ctx.fillStyle = `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, ${Math.min(this.color[3], opacity)})`
-          ctx.fill();
-          opacity += (1 / this.size);
-          ctx.closePath();
-
-        }
-
-        opacity = 0;
-
-        for (let i = 0; i < Math.max(1, this.size / 2 - (this.size / 2 * this.hardness)); i++) {
-
-          ctx.beginPath();
-          ctx.arc(x, y, Math.max(1, (this.size / 2 - (this.size / 2 * this.hardness)) - i), 0, 2 * Math.PI);
-          ctx.fillStyle = `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, ${Math.min(this.color[3], opacity)})`
-          ctx.fill();
-          opacity += (0.1 / this.size)
-          ctx.closePath();
-
-        }
-
-      }
-
-      return; */
-
-      return;
-
-
-      for (var i = 0; i < dist; i += Math.max(1, this.size / 10) ) {
-
-        var x = this.lastPoint.x + (Math.sin(angle) * i);
-        var y = this.lastPoint.y + (Math.cos(angle) * i);
-
-        /*
-        var radgrad = ctx.createRadialGradient(x,y,1,x,y,1);
-
-        radgrad.addColorStop(0, '#000');
-        radgrad.addColorStop(1, 'rgba(0,0,0,0)');
-
-        ctx.fillStyle = radgrad;
-        ctx.fillRect(x, y, 1, 1); */
-
-        var spacing = innerPointsSpacing * this.getSize() / 100 ;
-
-        var opacity = 0;
-
-
-        if (this.hardness > 0.8) opacity = (this.hardness - 0.8) * 5;
-
-        /*
-        for (let i = 0; i < Math.max(1, this.size / 2 + (this.size / 2 / 2 * this.hardness)); i++) {
-
-          ctx.beginPath();
-          ctx.arc(x, y, Math.max(1, (this.size / 2 / 2 + (this.size / 2 / 2 * this.hardness)) - i), 0, 2 * Math.PI);
-          if (i >= Math.max(1, this.size / 2 + (this.size / 2 / 2 * this.hardness)) - 1) opacity = 1;
-          ctx.fillStyle = `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, ${Math.min(this.color[3], opacity)})`
-          ctx.fill();
-          opacity += (1 / this.size);
-          ctx.closePath();
-
-        } */
-
-        opacity = 0;
-
-
-        for (let i = 0; i < Math.max(1, this.size / 2 - (this.size / 2 * this.hardness)); i++) {
-
-          ctx.beginPath();
-          ctx.arc(x, y, Math.max(1, (this.size / 2 - (this.size / 2 * this.hardness)) - i), 0, 2 * Math.PI);
-          ctx.fillStyle = `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, ${Math.min(this.color[3], opacity)})`
-          ctx.fill();
-          opacity += (0.1 / this.size)
-          ctx.closePath();
-
-        }
-
-        /*
-        if (innerPointsCounter++ % spacing === 0) {
-
-          var radgrad = ctx.createRadialGradient(x, y, 1, x, y, Math.max(1, this.size / 2 / 4));
-
-          //radgrad.addColorStop(0, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, 1)`);
-          radgrad.addColorStop(0, `rgba(${this.color[0]},${this.color[1]},${this.color[2]},1)`);
-          radgrad.addColorStop(1, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, 0)`);
-
-          ctx.fillStyle = radgrad;
-          ctx.fillRect(x - (this.size / 2 / 4), y - (this.size / 2 / 4), Math.max(1, this.size / 4), Math.max(1, this.size / 4));
-
-        }
-
-        var radgrad = ctx.createRadialGradient(x, y, 0, x, y, Math.max(1, this.size / 2));
-
-        //radgrad.addColorStop(0, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, 1)`);
-        radgrad.addColorStop(this.hardness, `rgba(${this.color[0]},${this.color[1]},${this.color[2]},${this.hardness})`);
-        radgrad.addColorStop(1, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, 0)`);
-
-        ctx.fillStyle = radgrad;
-        ctx.fillRect(x - (this.size / 2), y - (this.size / 2), Math.max(1, this.size), Math.max(1, this.size));
-        */
-
-      };
 
     }
 
@@ -526,7 +395,6 @@ class SoftBrush {
     }
 
     var handleMousemove = (x, y) => {
-      if (testDisable) return;
 
       if (mouseLeft) {
         this.lastPoint = { x: x, y: y };
@@ -534,12 +402,11 @@ class SoftBrush {
         return;
       }
 
-      this.canvas.style.cursor = "none";
-
       if (!initialized) {
         if (this.brushPreviewEnabled) {
           initialized = true;
           this.lastPoint = { x: x, y: y};
+          this.lastCursorMovePoint = { x: x, y: y };
           drawCursor(x, y, cursorCtx)
           /*
           drawPoints(x, y, cursorCtx);
@@ -551,45 +418,31 @@ class SoftBrush {
       if (!isDrawing) {
 
         if (this.brushPreviewEnabled) {
-          this.clearCanvas(cursorCtx);
+
+          if (!this.lastCursorMovePoint) this.lastCursorMovePoint = { x: x, y: y };
+
+          this.clearCanvasCursor(this.lastCursorMovePoint.x, this.lastCursorMovePoint.y, cursorCtx);
 
           drawCursor(x, y, cursorCtx)
 
-          /*
-          lastPoint = { x: x, y: y };
-          */
-          /*
-          var counter = 0;
-          for (var i = 0; i < 10; i++) {
-            counter++;
-            let cursorX = counter % 2 === 0 ? x : x - 1;
-            let cursorY = counter % 2 === 0 ? y : y - 1;
-            drawPoints(cursorX, cursorY, cursorCtx);
-          }
-          */
+          this.lastCursorMovePoint = { x: x, y: y };
         }
 
         return;
       }
 
       if (stoppedCursor && this.brushPreviewEnabled) {
-        this.clearCanvas(cursorCtx);
+        //this.clearCanvas(cursorCtx);
         stoppedCursor = false;
       }
 
-      points.push({x: x, y: y});
+      drawPoints(x, y, ctx);
 
-      if (points.length >= 3) {
-        if (testDisable) return;
-        drawPoints(x, y, ctx);
-        this.dispatchEvent("draw", [this.getDrawnPoints().length]);
-      }
+      if (!this.lastCursorMovePoint) this.lastCursorMovePoint = { x: x, y: y };
 
-      //drawPoints(x, y, ctx);
+      this.clearCanvasCursor(this.lastCursorMovePoint.x, this.lastCursorMovePoint.y, cursorCtx);
 
-      if (testDisable) return;
-
-      this.clearCanvas(cursorCtx);
+      this.lastCursorMovePoint = { x: x, y: y };
 
       drawCursor(x, y, cursorCtx);
 

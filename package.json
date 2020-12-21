@@ -18,6 +18,7 @@
     "cropperjs": "^1.5.9",
     "croppie": "^2.6.5",
     "croppr": "^2.3.1",
+    "detect-browser": "^5.2.0",
     "fabric": "^4.2.0",
     "image-conversion": "^2.1.1",
     "jimp": "^0.16.1",

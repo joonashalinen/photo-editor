@@ -6,14 +6,48 @@ class KonvaLib {
 
   constructor(options, callback) {
 
+
+    var isFillPatternSupported = async (fillPatternUrl, stage) => {
+
+      var fillImage = new Image("background-3000px.png", 3000, 3000);
+      fillImage.src = fillPatternUrl;
+
+      return new Promise((resolve) => {
+        fillImage.onload = () => {
+
+          try {
+            var layer = new Konva.Layer();
+
+            stage.add(layer);
+
+            var image = new Konva.Image({
+              image: fillImage,
+              width: options.width,
+              height: options.height
+            });
+
+          } catch (e) {
+            resolve(false)
+          }
+
+          resolve(true);
+        }
+      });
+
+    }
+
     this.initialScale = options.initialScale;
     this.initialOptions = options;
     this.options = options;
 
     var fillPatternBase64Url = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAARUlEQVRYhe3VsQkAMAwDQSVkIO0/hTdShlAgzat/OHDhlSQqNjNNrl3VDwYAAAAAAAAAOO0/t131nAAAAAAAAAD4C5B0ARR5Ca7CHgmpAAAAAElFTkSuQmCC`
 
+    /*
     var fillImage = new Image("background-3000px.png", 3000, 3000);
-    fillImage.src = "background-3000px.png";
+    fillImage.src = "background-3000px.png"; */
+
+    var fillImage = new Image(fillPatternBase64Url, 32, 32);
+    fillImage.src = fillPatternBase64Url;
 
     this.stage = new Konva.Stage({
       container: options.containerId,
@@ -27,6 +61,8 @@ class KonvaLib {
       height: options.height
     });
 
+    //var fillPatternSupported = await isFillPatternSupported(fillPatternBase64Url, this.stage);
+
     fillImage.onload = () => {
 
       var backgroundLayer = new Konva.Layer();
@@ -35,7 +71,7 @@ class KonvaLib {
       this.stage.add(backgroundLayer);
 
       var backgroundTileImage = new Konva.Image({
-        image: fillImage,
+        fillPatternImage: fillImage,
         width: options.width,
         height: options.height
       });
@@ -83,6 +119,18 @@ class KonvaLib {
       this.transformersStageMainLayer.x(options.width / 2);
       this.transformersStageMainLayer.y(options.height / 2);
 
+      try {
+        this.stage.draw();
+      } catch (e) {
+        // Firefox 63 crashes when we try to use Konva.Image with a fillPattern
+        fillImage.src = "background-3000px.png";
+        backgroundTileImage.fillPatternImage("");
+        fillImage.onload = () => {
+          backgroundTileImage.image(fillImage);
+          this.stage.draw();
+        }
+      }
+
       this.stage.draw();
       this.transformersStage.draw();
 
@@ -99,6 +147,10 @@ class KonvaLib {
         }
 
         timeout = window.requestAnimationFrame(() => {
+
+          // if an image has been deleted and brought back with redo, one of the transformers won't update on its own any longer
+          this.updateTransformers(this.mainLayer);
+
           this.stage.batchDraw();
           this.transformersStage.batchDraw();
         });
@@ -111,6 +163,26 @@ class KonvaLib {
         }
 
         timeout2 = window.requestAnimationFrame(() => {
+
+          // if an image has been deleted and brought back with redo, one of the transformers won't update on its own any longer
+          this.updateTransformers(this.mainLayer);
+
+          this.stage.batchDraw();
+          this.transformersStage.batchDraw();
+        })
+      });
+
+      var timeout3;
+      this.stage.on("dragmove", (e) => {
+        if (timeout3) {
+          window.cancelAnimationFrame(timeout3);
+        }
+
+        timeout3 = window.requestAnimationFrame(() => {
+
+          // if an image has been deleted and brought back with redo, one of the transformers won't update on its own any longer
+          this.updateTransformers(this.mainLayer);
+
           this.stage.batchDraw();
           this.transformersStage.batchDraw();
         })
@@ -135,10 +207,11 @@ class KonvaLib {
       anchorStroke: "rgb(0 149 255)",
       borderStrokeWidth: 1,
       rotationSnaps: [0, 90, 180, 270],
-      anchorSize: this.initialScale ? 30 / this.initialScale : 30,
-      anchorCornerRadius: this.initialScale ? 30 / this.initialScale : 30,
+      anchorSize: Math.max(4, image.height() / 12),
+      anchorCornerRadius: Math.max(4, image.height() / 12),
       anchorStrokeWidth: this.initialScale ? 1 / this.initialScale : 1,
-      anchorFill: "rgba(255, 255, 255, 0.5)"
+      anchorFill: "rgba(255, 255, 255, 0.5)",
+      rotateAnchorOffset: Math.max(4 * 2, image.height() / 12 * 2)
     });
 
     return transformer;
@@ -346,6 +419,10 @@ class KonvaLib {
   addDefaultTransformerBoundFuncs(image, transformer, overlayTransformer) {
 
     var boundingFunc = (oldBox, newBox) => {
+
+      var image = transformer.nodes()[0];
+
+      console.log(image.width() * image.getAbsoluteScale().x, newBox.width)
 
       // no bounding actions when not adjusting size
       if (oldBox.width === newBox.width && oldBox.height === newBox.height) return newBox;
@@ -556,6 +633,8 @@ class KonvaLib {
         }
       }
 
+      console.log(newBox.width, image.width() * image.getAbsoluteScale().x)
+
       return newBox;
 
 
@@ -565,8 +644,14 @@ class KonvaLib {
     var initialAnchorSize = overlayTransformer.anchorSize();
 
     var resizeAnchorsFunc = (oldBox, newBox) => {
-      transformer.anchorSize(Math.max(10 / this.initialScale, newBox.width / initialImageSize * initialAnchorSize));
-      overlayTransformer.anchorSize(Math.max(10 / this.initialScale, newBox.width / initialImageSize * initialAnchorSize));
+      var anchorSize = Math.max(10 / this.initialScale, newBox.width / initialImageSize * initialAnchorSize);
+      transformer.anchorSize(anchorSize);
+      transformer.anchorCornerRadius(anchorSize);
+      transformer.rotateAnchorOffset(anchorSize * 2);
+      overlayTransformer.anchorSize(Math.max(anchorSize));
+      overlayTransformer.anchorCornerRadius(anchorSize);
+      overlayTransformer.rotateAnchorOffset(anchorSize * 2);
+
       return boundingFunc(oldBox, newBox)
     }
 
@@ -628,11 +713,13 @@ class KonvaLib {
 
   }
 
-  rotateLayerContents(layer) {
+  rotateLayerContents(layer, negative) {
 
     if (!this.count) this.count = 0;
 
     this.count += 1;
+
+    var rotateDeg = negative ? -90 : 90;
 
     var tempRotationLayer = new Konva.Layer();
     this.stage.add(tempRotationLayer);
@@ -649,7 +736,7 @@ class KonvaLib {
 
     console.log(this.imagesLayerRotation)
 
-    if (this.imagesLayerRotation === 90 || this.imagesLayerRotation === 270) {
+    if (Math.abs(this.imagesLayerRotation) === 90 || Math.abs(this.imagesLayerRotation) === 270) {
 
       tempRotationLayer.offsetX(x);
       tempRotationLayer.offsetY(y);
@@ -659,7 +746,7 @@ class KonvaLib {
 
       //console.log(this.stage.offsetX(), this.stage.offsetY(), this.stage.x(), this.stage.y())
 
-      tempRotationLayer.rotate(90);
+      tempRotationLayer.rotate(rotateDeg);
 
       /*
       tempRotationLayer.add(new Konva.Rect({
@@ -685,7 +772,7 @@ class KonvaLib {
       //console.log(tempRotationLayer.offsetX(), tempRotationLayer.offsetY(), tempRotationLayer.x(), tempRotationLayer.y())
       this.stage.draw();
 
-      this.imagesLayerRotation += 90;
+      this.imagesLayerRotation += rotateDeg;
       if (this.imagesLayerRotation === 360) this.imagesLayerRotation = 0;
 
       return;
@@ -703,13 +790,13 @@ class KonvaLib {
 
     console.log(tempRotationLayer.width(), tempRotationLayer.height(), tempRotationLayer.x(), tempRotationLayer.y(), tempRotationLayer.offsetX(), tempRotationLayer.offsetY())
 
-    tempRotationLayer.rotate(90);
+    tempRotationLayer.rotate(rotateDeg);
 
     this.moveLayerContents(tempRotationLayer, layer, true);
 
     this.stage.draw();
 
-    this.imagesLayerRotation += 90;
+    this.imagesLayerRotation += rotateDeg;
     if (this.imagesLayerRotation === 360) this.imagesLayerRotation = 0;
 
   }
@@ -842,8 +929,8 @@ class KonvaLib {
         x: 1,
         y: 1
       });
-      newImage.width(cropResult.afterCropBoundingBox.width);
-      newImage.height(cropResult.afterCropBoundingBox.height)
+      newImage.width(Math.round(cropResult.afterCropBoundingBox.width));
+      newImage.height(Math.round(cropResult.afterCropBoundingBox.height))
 
       newImage.x(Math.max(cropResult.beforeCropBoundingBox.x - boundaryBox.x, boundaryBox.x - boundaryBox.x));
       newImage.y(Math.max(cropResult.beforeCropBoundingBox.y - boundaryBox.y, boundaryBox.y - boundaryBox.y));
@@ -968,10 +1055,11 @@ class KonvaLib {
       target.shadowOpacity(0.8);
       target.shadowBlur(this.initialScale ? 50 / this.initialScale : 50);
 
+      /*
       target.strokeEnabled(true);
       target.stroke("rgb(0 149 255)");
       target.strokeWidth(1);
-      target.strokeScaleEnabled(false);
+      target.strokeScaleEnabled(false); */
 
       this.stage.batchDraw();
 
@@ -1015,6 +1103,12 @@ class KonvaLib {
     this.selectedTargetImage = false;
   }
 
+  getTargetedImageId() {
+    if (this.selectedTargetImage) {
+      return this.selectedTargetImage.photoEditorId;
+    }
+  }
+
   previewTargetImage(image) {
 
     var setPreviewTargetStyles = (target) => {
@@ -1026,10 +1120,11 @@ class KonvaLib {
       target.shadowOpacity(0.8);
       target.shadowBlur(this.initialScale ? 50 / this.initialScale : 50);
 
+      /*
       target.strokeEnabled(true);
       target.stroke("rgb(0 149 255)");
       target.strokeWidth(1);
-      target.strokeScaleEnabled(false);
+      target.strokeScaleEnabled(false); */
 
       this.stage.batchDraw();
 

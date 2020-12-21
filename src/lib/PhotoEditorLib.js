@@ -78,6 +78,10 @@ class PhotoEditorLib {
       //document.getElementById("addTextEmojiButton").textContent = emojiSelection.emoji;
     });
 
+    if (!this.PixiLib.isWebGLSupported()) {
+      this.error = "WebGL not supported";
+    }
+
   }
 
   on(evtString, evtHandler) {
@@ -494,7 +498,7 @@ class PhotoEditorLib {
     if (!matchingFilter) {
       var undoRedoItem = this.undoRedoLib.typesLib.getFilterRemoveUndoRedo(this.konvaLib.selectedTargetImage, filterName);
     } else {
-      var undoRedoItem = this.undoRedoLib.typesLib.getFilterUndoRedo(this.konvaLib.selectedTargetImage, matchingFilter[0], matchingFilter[1]);
+      var undoRedoItem = this.undoRedoLib.typesLib.getFilterUndoRedo(this.konvaLib.selectedTargetImage, matchingFilter[0], matchingFilter[1], matchingFilter[2]);
     }
 
     this.undoRedoLib.addToUndoCache(undoRedoItem);
@@ -558,9 +562,7 @@ class PhotoEditorLib {
     this.offsetLeftOriginY = Math.round(this.offsetLeftOriginY);
 
     this.canvasesZoomContainer.style.height = drawingCanvas.height + "px";
-    this.canvasesZoomContainer.style.position= "relative";
-    this.canvasesZoomContainer.style.top = "0px";
-    this.canvasesZoomContainer.style.left = "0px";
+    this.canvasesZoomContainer.style.position= "absolute";
     this.canvasesZoomContainer.style.width = drawingCanvas.width + "px";
 
     this.updateCanvasCSSTransforms();
@@ -578,6 +580,7 @@ class PhotoEditorLib {
 
   }
 
+  // #deprecated
   beginZoomMode() {
 
     return;
@@ -1475,6 +1478,22 @@ class PhotoEditorLib {
 
     var initColorPickerMode = () => {
 
+      function getColorAt(x, y, imageData) {
+
+        x = Math.round(x);
+        y = Math.round(y);
+
+        var index = (y * imageData.width * 4) + x * 4;
+
+        return [
+          imageData.data[index],
+          imageData.data[index + 1],
+          imageData.data[index + 2],
+          imageData.data[index + 3]
+        ]
+
+      }
+
       var timeout;
 
       this.colorPickerMoveEventHandler = (e) => {
@@ -1517,12 +1536,9 @@ class PhotoEditorLib {
           this.colorPickerColorPreview.style.left = this.offsetLeftOriginX + this.offsetX + x + offsetX + 8 + "px";
           this.colorPickerColorPreview.style.top = this.offsetLeftOriginY + this.offsetY + y + offsetY - 4 + "px";
 
-          var konvaAsCanvas = this.stage.toCanvas();
-          var konvaImagesAsCanvas = this.konvaLib.stage.toCanvas();
-
-          var textCanvasColor = konvaAsCanvas.getContext("2d").getImageData(pos.x, pos.y, 1, 1).data;
-          var konvaImagesColor = konvaImagesAsCanvas.getContext("2d").getImageData(pos.x, pos.y, 1, 1).data;
-          var drawingCanvasColor = CanvasLib.cloneCanvas(this.drawingCanvas).getContext("2d").getImageData(pos.x, pos.y, 1, 1).data;
+          var textCanvasColor = getColorAt(pos.x, pos.y, this.textCanvasImageData);
+          var konvaImagesColor = getColorAt(pos.x, pos.y, this.konvaImagesImageData);
+          var drawingCanvasColor = getColorAt(pos.x, pos.y, this.drawingCanvasImageData);
 
           if (konvaImagesColor[3] > 0) {
             var color = konvaImagesColor;
@@ -1557,12 +1573,9 @@ class PhotoEditorLib {
 
         var pos = {x: x / this.scale, y: y / this.scale}
 
-        var konvaAsCanvas = this.stage.toCanvas();
-        var konvaImagesAsCanvas = this.konvaLib.stage.toCanvas();
-
-        var textCanvasColor = konvaAsCanvas.getContext("2d").getImageData(pos.x, pos.y, 1, 1).data;
-        var konvaImagesColor = konvaImagesAsCanvas.getContext("2d").getImageData(pos.x, pos.y, 1, 1).data;
-        var drawingCanvasColor = CanvasLib.cloneCanvas(this.drawingCanvas).getContext("2d").getImageData(pos.x, pos.y, 1, 1).data;
+        var textCanvasColor = getColorAt(pos.x, pos.y, this.textCanvasImageData);
+        var konvaImagesColor = getColorAt(pos.x, pos.y, this.konvaImagesImageData);
+        var drawingCanvasColor = getColorAt(pos.x, pos.y, this.drawingCanvasImageData);
 
         if (konvaImagesColor[3] > 0) {
           var color = konvaImagesColor;
@@ -1633,6 +1646,15 @@ class PhotoEditorLib {
       this.colorPickerModeInitialized = true;
     }
 
+    setTimeout(() => {
+      this.konvaAsCanvas = this.stage.toCanvas();
+      this.konvaImagesAsCanvas = this.konvaLib.stage.toCanvas();
+
+      this.textCanvasImageData = this.konvaAsCanvas.getContext("2d").getImageData(0, 0, this.stage.width(), this.stage.height());
+      this.konvaImagesImageData = this.konvaImagesAsCanvas.getContext("2d").getImageData(0, 0, this.konvaLib.stage.width(), this.konvaLib.stage.height());
+      this.drawingCanvasImageData = CanvasLib.cloneCanvas(this.drawingCanvas).getContext("2d").getImageData(0, 0, this.drawingCanvas.width, this.drawingCanvas.height);
+    }, 0)
+
     this.colorPickerModeDisabled = false;
 
     this.focusCanvasContainer("colorPickerCanvasContainer");
@@ -1678,7 +1700,7 @@ class PhotoEditorLib {
 
   }
 
-  async rotate(preventUndoCache) {
+  async rotate(preventUndoCache, negative) {
 
     if (!preventUndoCache) this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getRotateUndoRedo());
 
@@ -1756,7 +1778,7 @@ class PhotoEditorLib {
 
     this.konvaLib.imagesLayer.rotate(90); */
 
-    this.konvaLib.rotateLayerContents(this.konvaLib.imagesLayer);
+    this.konvaLib.rotateLayerContents(this.konvaLib.imagesLayer, negative);
 
     this.konvaLib.stage.size({
       width: this.konvaLib.stage.height(),
@@ -1932,11 +1954,13 @@ class PhotoEditorLib {
 
     this.focusCanvasContainer("cropDummyCanvasContainer");
 
-    document.getElementById("overlayCanvasContainer").style.visibility = "hidden";
-
     var cropDummyCanvas = document.getElementById("cropDummyCanvas");
 
     this.cropDummyCanvas = cropDummyCanvas;
+
+    this.cropDummyCanvas.style.visibility = "hidden";
+
+    debugger;
 
     cropDummyCanvas.parentElement.style.visibility = "visible";
     cropDummyCanvas.parentElement.style.pointerEvents = "auto";
@@ -1949,21 +1973,34 @@ class PhotoEditorLib {
 
     cropDummyCanvas.style.transform = this.canvasesZoomContainer.style.transform;
 
+    debugger;
+
     var ctx = cropDummyCanvas.getContext("2d");
 
     ctx.drawImage(konvaImagesCanvas, 0, 0);
     ctx.drawImage(this.drawingCanvas, 0, 0);
     ctx.drawImage(this.stage.toCanvas(), 0, 0);
 
+    debugger;
+
     var cropper = new Cropper(cropDummyCanvas, {
       viewMode: 1
     });
 
+    debugger;
+
     this.cropper = cropper;
 
     var timeout;
+    var hasLoadedOnce = false;
 
     this.cropEventListener = (e) => {
+
+      if (!hasLoadedOnce) {
+        document.getElementById("overlayCanvasContainer").style.visibility = "hidden";
+        this.canvasesZoomContainer.style.visibility = "hidden";
+        hasLoadedOnce = true;
+      }
 
       if (timeout) {
         window.cancelAnimationFrame(timeout);
@@ -1981,6 +2018,8 @@ class PhotoEditorLib {
   endCrop() {
 
     document.getElementById("overlayCanvasContainer").style.visibility = "visible";
+    this.canvasesZoomContainer.style.visibility = "visible";
+
     this.cropDummyCanvas.parentElement.style.display = "none";
 
     var cropDummyCanvas = document.getElementById("cropDummyCanvas");
@@ -2002,13 +2041,6 @@ class PhotoEditorLib {
     this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getCropUndoRedo());
 
     console.log(this.undoRedoLib.undoCache, this.undoRedoLib.redoCache)
-
-    document.getElementById("overlayCanvasContainer").style.visibility = "visible";
-
-    var cropDummyCanvas = document.getElementById("cropDummyCanvas");
-
-    cropDummyCanvas.parentElement.style.visibility = "hidden";
-    cropDummyCanvas.parentElement.style.pointerEvents = "none";
 
     var cropData = this.cropper.getData();
 
@@ -2195,6 +2227,17 @@ class PhotoEditorLib {
 
     this.softBrush.setSamplingCanvas(this.konvaLib.stage.toCanvas());
 
+    var image = this.konvaLib.imagesLayer.getChildren()[0];
+    var transformer = this.konvaLib.getImageTransformer(image);
+    var overlayTransformer = this.konvaLib.getImageTransformer(image, this.transformersStageMainLayer);
+
+    document.getElementById("overlayCanvasContainer").style.visibility = "visible";
+
+    var cropDummyCanvas = document.getElementById("cropDummyCanvas");
+
+    cropDummyCanvas.parentElement.style.visibility = "hidden";
+    cropDummyCanvas.parentElement.style.pointerEvents = "none";
+
   }
 
   enableDrawing() {
@@ -2236,6 +2279,7 @@ class PhotoEditorLib {
     //this.konvaDrawingCanvasNode.listening(true);
     //this.konvaCursorCanvasNode.listening(true);
     this.softBrush.enabled = true;
+    this.drawingCanvas.style.cursor = "none";
     //this.konvaLib.stage.draw();
   }
 
@@ -2489,7 +2533,7 @@ class PhotoEditorLib {
     this.defaultBrushSize = this.originalOptions.defaultBrushSize ? this.originalOptions.defaultBrushSize : 20;
     this.defaultBrushHardness = this.originalOptions.defaultBrushHardness ? this.originalOptions.defaultBrushHardness : 0.5;
 
-    this.focusCanvasContainer("konvaImagesContainer");
+    this.focusCanvasContainer("");
 
     // undo/redo
 

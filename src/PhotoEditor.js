@@ -5,7 +5,7 @@ import Upload from "./Upload.js" ;
 import EffectSlider from "./EffectSlider.js";
 import TextField from "./TextField.js";
 import { Input, InputNumber, Button, Tooltip, Empty, Select, Collapse, Spin, Checkbox } from "antd";
-import { RotateRightOutlined, UploadOutlined, DownloadOutlined, CloudUploadOutlined, ReloadOutlined } from "@ant-design/icons"
+import { RotateRightOutlined, UploadOutlined, DownloadOutlined, CloudUploadOutlined, ReloadOutlined, RobotOutlined } from "@ant-design/icons"
 import '@simonwep/pickr/dist/themes/nano.min.css';
 import "./PhotoEditor.css";
 import CustomModal from "./CustomModal.js";
@@ -16,6 +16,7 @@ import ConfirmPopupButton from "./ConfirmPopupButton.js";
 import FilterCollapseHeader from "./FilterCollapseHeader.js";
 import { Tabs } from 'antd';
 import PhotoEditorLib from "./lib/PhotoEditorLib";
+import { detect } from "detect-browser";
 
 class PhotoEditor extends React.Component {
 
@@ -66,7 +67,9 @@ class PhotoEditor extends React.Component {
       selectedImageWidth: 0,
       selectedImageHeight: 0,
       undosAmount: 0,
-      redosAmount: 0
+      redosAmount: 0,
+      error: false,
+      webGLSupported: true
     }
 
     this.state = this.defaultState;
@@ -140,6 +143,11 @@ class PhotoEditor extends React.Component {
     });
 
     window.photoEditorLib = this.photoEditorLib;
+
+    if (this.photoEditorLib.error === "WebGL not supported") {
+      this.state.webGLSupported = false;
+      this.state.error = true;
+    }
 
     /*
     this.photoEditorLib.on("load", () => {
@@ -340,7 +348,7 @@ class PhotoEditor extends React.Component {
                   }} type="dashed" size="small" style={{ fontSize: "12px" }}>Erase All</Button>
                   <div style={{height: "10px"}}></div>
                   <div className="toolOptionsSlider" style={{width: "180px"}}>
-                    <EffectSlider name="brushSize" sliderWidth="80" inputWidth="60" updateState={updateState} positioning="horizontal" min={1} max={100} value={this.state.brushSize} defaultValue={ this.state.brushSize } title="Size:" onAfterChange={(value) => {
+                    <EffectSlider name="brushSize" sliderWidth="80" inputWidth="60" updateState={updateState} positioning="horizontal" min={1} max={this.state.canvasWidth} value={this.state.brushSize} defaultValue={ this.state.brushSize } title="Size:" onAfterChange={(value) => {
                       this.photoEditorLib.setBrushSize(value);
                     }}/>
                   </div>
@@ -432,16 +440,65 @@ class PhotoEditor extends React.Component {
           <div id="canvasesContainer" className="canvasesContainer">
             <div className="emptyCanvasImage">
               {
-                !this.state.imageInstanced && !this.state.canvasesContainerLoading ?
+                !this.state.imageInstanced && !this.state.canvasesContainerLoading && !this.state.error ?
                   <Empty
                     image="image-outline.svg"
                     imageStyle={{
                       height: 80,
-                      filter: "invert() brightness(0.25)"
+                      filter: "invert(1) brightness(0.25)"
                     }}
                     description={
                       <>
                         <p style={{color: "rgba(255, 255, 255, 0.25)"}}>Import image to start editing.</p>
+                      </>
+                    }
+                    >
+                  </Empty>
+                :
+                null
+              }
+              {
+                !this.state.webGLSupported ?
+                  <Empty
+                    image={<RobotOutlined style={{fontSize: "80px"}}/>}
+                    imageStyle={{
+                      height: 80,
+                      filter: "brightness(0.25)"
+                    }}
+                    description={
+                      <>
+                        <p style={{color: "rgba(255, 255, 255, 0.25)"}}>{(() => {
+
+                          var baseMessage = "WebGL is not enabled.";
+
+                          var browser = detect();
+
+                          if (browser) {
+
+                            if (browser.name === "chrome") {
+                              return <span>{baseMessage} <a target="_blank" href="https://wevideo.zendesk.com/hc/en-us/articles/225259448-How-to-enable-WebGL"> Enable WebGL</a></span>
+                            }
+
+                            if (browser.name === "firefox") {
+                              return <span>{baseMessage} <a target="_blank" href="https://wevideo.zendesk.com/hc/en-us/articles/225259448-How-to-enable-WebGL"> Enable WebGL</a></span>
+                            }
+
+                            if (browser.name === "opera") {
+                              return <span>{baseMessage} <a target="_blank" href="https://wevideo.zendesk.com/hc/en-us/articles/225259448-How-to-enable-WebGL"> Enable WebGL</a></span>
+                            }
+
+                            if (browser.name === "safari") {
+                              return <span>{baseMessage} <a target="_blank" href="https://wevideo.zendesk.com/hc/en-us/articles/225259448-How-to-enable-WebGL"> Enable WebGL</a></span>
+                            }
+
+                            if (browser.name === "edge") {
+                              return <span>{baseMessage} <a target="_blank" href="https://www.picmonkey.com/help/errors-and-troubleshooting/crashes-and-performance/how-to-enable-webgl#:~:text=%E2%80%A2,-Microsoft%20Edge&text=In%20an%20Edge%20browser%20window,so%20the%20change%20takes%20effect."> Enable WebGL</a></span>
+                            }
+
+                          }
+
+                          return baseMessage;
+                        })()}</p>
                       </>
                     }
                     >
@@ -496,7 +553,7 @@ class PhotoEditor extends React.Component {
             }}>
               <div id="canvasesZoomContainer">
                 <div id="konvaImagesContainer" className="canvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
-                <Canvas id="drawingCanvas" containerId="drawingCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent" }}/>
+                <Canvas id="drawingCanvas" containerId="drawingCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
                 <div id="konvaTransformersContainer" className="canvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
                 <Canvas id="overlayCanvas" containerId="overlayCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
                 <Canvas id="colorPickerCanvas" containerId="colorPickerCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none"}}/>
@@ -668,7 +725,7 @@ class PhotoEditor extends React.Component {
               }}>
                 <div style={{position: "relative"}}>
                   <img className="toolIcon" src="images.svg" height="18px"></img>
-                  <img style={{position: "absolute", top: "8px", left: "2px", filter: "invert()"}} className="toolIcon" src="mouse.svg" height="12px"></img>
+                  <img style={{position: "absolute", top: "8px", left: "2px", filter: "invert(1)"}} className="toolIcon" src="mouse.svg" height="12px"></img>
                 </div>
               </div>
             </Tooltip>
@@ -735,7 +792,7 @@ class PhotoEditor extends React.Component {
                         strength: 0
                       }]);
                     }} title="Bulge/Pinch"/>} key="1" className="site-collapse-custom-panel">
-                      <EffectSlider name="bulgePinchRadius" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={1000} updateState={updateState} value={this.state.bulgePinchRadius} defaultValue={this.state.bulgePinchRadius} title="Bulge/Pinch Radius" onAfterChange={(value) => {
+                      <EffectSlider name="bulgePinchRadius" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={this.state.selectedImageWidth} updateState={updateState} value={this.state.bulgePinchRadius} defaultValue={this.state.bulgePinchRadius} title="Bulge/Pinch Radius" onAfterChange={(value) => {
                         this.photoEditorLib.setSelectedImageFilter("bulge/pinch", [{
                           center: [this.state.bulgePinchCenterX / 100, this.state.bulgePinchCenterY / 100],
                           radius: value,
@@ -793,7 +850,7 @@ class PhotoEditor extends React.Component {
                         offset: this.photoEditorLib.PixiLib.getPoint(0, 0)
                       });
                     }} title="Twist"/>} key="2" className="site-collapse-custom-panel">
-                      <EffectSlider name="twistRadius" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={this.state.canvasWidth} updateState={updateState} value={this.state.twistRadius} defaultValue={this.state.twistRadius} title="Twist Radius" onAfterChange={(value) => {
+                      <EffectSlider name="twistRadius" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={this.state.selectedImageWidth} updateState={updateState} value={this.state.twistRadius} defaultValue={this.state.twistRadius} title="Twist Radius" onAfterChange={(value) => {
                         this.photoEditorLib.setSelectedImageFilter("twist", [value, this.state.twistAngle], {
                           offset: this.photoEditorLib.PixiLib.getPoint(this.state.twistX, this.state.twistY)
                         });
@@ -803,12 +860,12 @@ class PhotoEditor extends React.Component {
                           offset: this.photoEditorLib.PixiLib.getPoint(this.state.twistX, this.state.twistY)
                         });
                       }}/>
-                      <EffectSlider name="twistX" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={this.state.canvasWidth} updateState={updateState} value={this.state.twistX} defaultValue={this.state.twistX} title="Twist X" onAfterChange={(value) => {
+                      <EffectSlider name="twistX" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={this.state.selectedImageWidth} updateState={updateState} value={this.state.twistX} defaultValue={this.state.twistX} title="Twist X" onAfterChange={(value) => {
                         this.photoEditorLib.setSelectedImageFilter("twist", [this.state.twistRadius, this.state.twistAngle], {
                           offset: this.photoEditorLib.PixiLib.getPoint(value, this.state.twistY)
                         });
                       }}/>
-                      <EffectSlider name="twistY" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={this.state.canvasHeight} updateState={updateState} value={this.state.twistY} defaultValue={this.state.twistY} title="Twist Y" onAfterChange={(value) => {
+                      <EffectSlider name="twistY" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={this.state.selectedImageWidth} updateState={updateState} value={this.state.twistY} defaultValue={this.state.twistY} title="Twist Y" onAfterChange={(value) => {
                         this.photoEditorLib.setSelectedImageFilter("twist", [this.state.twistRadius, this.state.twistAngle], {
                           offset: this.photoEditorLib.PixiLib.getPoint(this.state.twistX, value)
                         });

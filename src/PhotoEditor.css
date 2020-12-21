@@ -88,8 +88,8 @@ h1 {
   cursor: pointer;
   right: 35%;
   margin-right: 34px;
-  -webkit-filter: invert() brightness(0.85);
-          filter: invert() brightness(0.85);
+  -webkit-filter: invert(1) brightness(0.85);
+          filter: invert(1) brightness(0.85);
 }
 
 .undoButton {
@@ -113,8 +113,8 @@ h1 {
 }
 
 .undoRedoButtonDisabled {
-  -webkit-filter: invert() brightness(0.3);
-          filter: invert() brightness(0.3);
+  -webkit-filter: invert(1) brightness(0.3);
+          filter: invert(1) brightness(0.3);
 }
 
 .canvasTools {
@@ -215,7 +215,7 @@ h1 {
 }
 
 .toolIcons {
-  width: 32px;
+  width: 34px;
   height: 100%;
   display: -webkit-box;
   display: -ms-flexbox;
@@ -228,8 +228,8 @@ h1 {
       -ms-flex-align: center;
           align-items: center;
   background-color: darkgrey;
-  -webkit-filter: invert() brightness(0.85);
-          filter: invert() brightness(0.85);
+  -webkit-filter: invert(1) brightness(0.85);
+          filter: invert(1) brightness(0.85);
 }
 
 .toolIcon {
@@ -243,8 +243,8 @@ h1 {
 
 .toolIconContainer:hover, .toolIconContainerSelected {
   background-color: lightgrey;
-  -webkit-filter: invert();
-          filter: invert();
+  -webkit-filter: invert(1);
+          filter: invert(1);
   border-radius: 2px;
 }
 
@@ -319,7 +319,7 @@ h1 {
   -webkit-box-pack: center;
       -ms-flex-pack: center;
           justify-content: center;
-  padding: 20px;
+  height: 40px;
   border-radius: 2px;
   cursor: pointer;
 }
@@ -329,7 +329,7 @@ h1 {
 }
 
 .cropCancel {
-  right: 69px;
+  right: 59px;
   color: rgba(255, 255, 255, 0.85);
   border: 1px solid transparent;
   background-color: rgb(31, 31, 31);
@@ -342,8 +342,8 @@ h1 {
 }
 
 .whiteCheckmark {
-  -webkit-filter: invert();
-          filter: invert();
+  -webkit-filter: invert(1);
+          filter: invert(1);
 }
 
 .toolOptionsSlider {
