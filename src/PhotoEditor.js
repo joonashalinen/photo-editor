@@ -251,17 +251,34 @@ class PhotoEditor extends React.Component {
       })
     });
 
+    this.photoEditorLib.on("beginRotate", () => {
+      this.setState({
+        canvasesContainerLoading: true
+      });
+    });
+
+    this.photoEditorLib.on("rotated", () => {
+      this.setState({
+        canvasesContainerLoading: false
+      });
+    });
+
+    this.photoEditorLib.on("acceptCrop", () => {
+      this.setState({
+        canvasesContainerLoading: true
+      });
+    });
+
     this.photoEditorLib.on("cropped", (cropBox) => {
       var imageSettings = this.photoEditorLib.getSelectedTargetImageSettings();
       setFiltersState(imageSettings, this.state.filterPreviewImages);
       this.setState({
         selectedImageWidth: imageSettings.width,
-        selectedImageHeight: imageSettings.height
-      });
-      this.setState({
+        selectedImageHeight: imageSettings.height,
         canvasWidth: cropBox.width,
-        canvasHeight: cropBox.height
-      })
+        canvasHeight: cropBox.height,
+        canvasesContainerLoading: false
+      });
     })
 
     this.photoEditorLib.on("canvasResize", (width, height) => {
@@ -582,8 +599,8 @@ class PhotoEditor extends React.Component {
                     <div className="resolutionTag">
                       {this.state.cropBoxWidth} px x {this.state.cropBoxHeight} px
                     </div>
-                    <Button onClick={(e) => {
-                      this.photoEditorLib.acceptCrop();
+                    <Button onClick={async (e) => {
+                      await this.photoEditorLib.acceptCrop();
                       this.setState({
                         showAcceptCancelMenu: false
                       });
@@ -604,7 +621,7 @@ class PhotoEditor extends React.Component {
             {
               this.state.canvasesContainerLoading ?
                 <div style={{position: "absolute", top: "0px", left: "0px", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center"}}>
-                  <Spin spinning={this.state.canvasesContainerLoading}>
+                  <Spin size="large" spinning={this.state.canvasesContainerLoading} tip={!this.state.imageInstanced ? "Loading..." : ""}>
                   </Spin>
                 </div>
               :

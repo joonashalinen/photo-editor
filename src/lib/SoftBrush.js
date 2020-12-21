@@ -280,7 +280,8 @@ class SoftBrush {
 
         var radgrad = ctx.createRadialGradient(x,y, brush.size < 40 ? Math.max(brush.size / 2 / 2, 1) : 10,x,y,brush.size / 2);
 
-        var opacity = brush.color[3] === 1 ? brush.color[3] : Math.pow(brush.color[3], 3);
+        // dividing the opacity by 5 is simply the result of eyeballing what looks close to the real opacity value of the color picker
+        var opacity = brush.color[3] === 1 ? brush.color[3] : brush.color[3] / 5;
 
         radgrad.addColorStop(0, `rgba(${brush.color[0]}, ${brush.color[1]}, ${brush.color[2]}, ${opacity})`);
         // brush hardness settings on the UI as of the time of writing start from 0.1 and go up to 1
@@ -330,8 +331,6 @@ class SoftBrush {
 
     var drawPoints = (x, y, ctx, preventAddToDrawnPoints) => {
 
-      //if (drawn) return;
-
       this.currentPoint = { x: x, y: y };
       var dist = distanceBetween(this.lastPoint, this.currentPoint);
       var angle = angleBetween(this.lastPoint, this.currentPoint);
@@ -353,7 +352,8 @@ class SoftBrush {
 
           var radgrad = ctx.createRadialGradient(x,y, this.size < 40 ? Math.max(this.size / 2 / 2, 1) : 10,x,y,this.size / 2);
 
-          var opacity = this.color[3] === 1 ? this.color[3] : Math.pow(this.color[3], 3);
+          // dividing the opacity by 5 is simply the result of eyeballing what looks close to the real opacity value of the color picker
+          var opacity = this.color[3] === 1 ? this.color[3] : this.color[3] / 5;
 
           radgrad.addColorStop(0, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, ${opacity})`);
           // brush hardness settings on the UI as of the time of writing start from 0.1 and go up to 1
@@ -583,12 +583,6 @@ class SoftBrush {
     this.canvas.onmouseup = this.onMouseUp;
     this.canvas.onmousemove = this.onMouseMove;
     this.canvas.onmouseleave = this.onMouseLeave;
-
-    /*
-    this.canvas.addEventListener('mousedown', this.onMouseDown);
-    this.canvas.addEventListener('mouseup', this.onMouseUp);
-    this.canvas.addEventListener('mousemove', this.onMouseMove);
-    this.canvas.addEventListener('mouseleave', this.onMouseLeave); */
 
   }
 

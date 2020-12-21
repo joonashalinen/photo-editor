@@ -209,6 +209,15 @@ class UndoRedo {
 
       case "crop": {
 
+        this.parent.dispatchEvent("acceptCrop", []);
+
+        // stop blocking so the loading animation can render
+        await new Promise((resolve) => {
+          setTimeout(() => {
+            resolve();
+          }, 0)
+        });
+
         handleUndoRedoCache(this.typesLib.getCropUndoRedo(), undoOrRedo);
 
         latestUndoRedo.x = Math.round(latestUndoRedo.x);
@@ -309,8 +318,6 @@ class UndoRedo {
       case "rotate": {
 
         if (undoOrRedo === "undo") {
-          this.parent.rotate(true);
-          this.parent.rotate(true);
           this.parent.rotate(true);
         } else {
           this.parent.rotate(true);

@@ -152,6 +152,10 @@ h1 {
           justify-content: center;
 }
 
+#canvasesZoomContainer {
+  transition: all 0.1s;
+}
+
 .emptyCanvasImage {
   position: absolute;
   top: 263px;

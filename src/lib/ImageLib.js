@@ -4,7 +4,7 @@ import CanvasLib from "./CanvasLib.js";
 
 class ImageLib {
 
-  async bufferToImage(buffer) {
+  static async bufferToImage(buffer) {
 
     var image = await Jimp.read(buffer);
 
@@ -16,7 +16,7 @@ class ImageLib {
 
   }
 
-  canvasToImage(canvas) {
+  static canvasToImage(canvas) {
 
     var imageObj = new Image(canvas.width, canvas.height);
     imageObj.src = canvas.toDataURL();

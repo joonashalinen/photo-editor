@@ -44,7 +44,6 @@ class PhotoEditorLib {
     this.offsetLeftOriginY = 0;
 
     this.undoRedoLib = new UndoRedo(this);
-    this.imageLib = new ImageLib();
 
     this.Konva = Konva;
     this.PixiLib = PixiLib;
@@ -883,7 +882,7 @@ class PhotoEditorLib {
           unsharpThreshold: 2
         });
 
-        image = destinationCanvas;
+        image = await ImageLib.canvasToImage(destinationCanvas);
 
         /*
         let url = await imageConversion.filetoDataURL(file);
@@ -895,6 +894,9 @@ class PhotoEditorLib {
 
     this.colorPickerCanvas.height = image.height;
     this.colorPickerCanvas.width = image.width;
+
+    this.canvasesZoomContainer.width = image.width;
+    this.canvasesZoomContainer.height = image.height;
 
     this.canvasWidth = image.width;
     this.canvasHeight = image.height;
@@ -1100,9 +1102,11 @@ class PhotoEditorLib {
       unsharpThreshold: 2
     });
 
+    var thumbnailImage = await ImageLib.canvasToImage(thumbnailCanvas);
+
     this.filterPreviews.push([
       konvaImage,
-      this.generateFilterPreviewImages(thumbnailCanvas)
+      this.generateFilterPreviewImages(thumbnailImage)
     ]);
 
     this.updateCanvasCSSTransforms();
@@ -1143,7 +1147,7 @@ class PhotoEditorLib {
 
     } else {
       var buffer = await fileToArrayBuffer(file);
-      var imageObj = await this.imageLib.bufferToImage(buffer);
+      var imageObj = await ImageLib.bufferToImage(buffer);
     }
 
     if (this.options.downscaleImage) {
@@ -1172,7 +1176,7 @@ class PhotoEditorLib {
           unsharpThreshold: 2
         });
 
-        imageObj = destinationCanvas;
+        imageObj = await ImageLib.canvasToImage(destinationCanvas);
       }
     }
 
@@ -1207,9 +1211,11 @@ class PhotoEditorLib {
       unsharpThreshold: 2
     });
 
+    var thumbnailImage = await ImageLib.canvasToImage(thumbnailCanvas);
+
     this.filterPreviews.push([
       konvaImage,
-      this.generateFilterPreviewImages(thumbnailCanvas)
+      this.generateFilterPreviewImages(thumbnailImage)
     ]);
 
     this.dispatchEvent("importImage", [{
@@ -1380,8 +1386,14 @@ class PhotoEditorLib {
       }
 
       this.endTextEditing = () => {
-        text.text(textarea.value);
-        removeTextarea();
+        if (textarea.value === "") {
+          removeTextarea();
+          this.deleteText(text);
+        } else {
+          text.text(textarea.value);
+          removeTextarea();
+        }
+
       }
 
       var handleOutsideClick = (e) => {
@@ -1482,6 +1494,8 @@ class PhotoEditorLib {
         textarea.style.height = textarea.scrollHeight + text.fontSize() * this.scale + 'px';
 
       });
+
+      textarea.select();
 
       setTimeout(() => {
         window.addEventListener('click', handleOutsideClick);
@@ -1767,7 +1781,16 @@ class PhotoEditorLib {
 
   }
 
-  async rotate(preventUndoCache, negative) {
+  async rotate(preventUndoCache, negative, preventDrawing) {
+
+    this.dispatchEvent("beginRotate", []);
+
+    // stop blocking so the loading animation can render
+    await new Promise((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, 0)
+    });
 
     if (!preventUndoCache) this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getRotateUndoRedo());
 
@@ -1933,8 +1956,10 @@ class PhotoEditorLib {
     this.konvaLib.updateTransformers(this.konvaLib.transformersStageMainLayer);
     //this.konvaLib.recreateTransformersStageTransformers();
 
-    this.konvaLib.stage.draw();
-    this.konvaLib.transformersStage.draw();
+    if (!preventDrawing) {
+      this.konvaLib.stage.draw();
+      this.konvaLib.transformersStage.draw();
+    }
 
     CanvasLib.rotateCanvasSize(this.drawingCanvas);
     CanvasLib.rotateCanvasSize(this.cursorCanvas);
@@ -1963,6 +1988,7 @@ class PhotoEditorLib {
     this.updateCanvasCSSTransforms();
 
     this.dispatchEvent("canvasResize", [this.konvaLib.stage.width(), this.konvaLib.stage.height()]);
+    this.dispatchEvent("rotated", []);
 
     this.softBrush.setSamplingCanvas(this.konvaLib.stage.toCanvas());
 
@@ -2103,6 +2129,15 @@ class PhotoEditorLib {
 
   async acceptCrop() {
 
+    this.dispatchEvent("acceptCrop", []);
+
+    // stop blocking so the loading animation can render
+    await new Promise((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, 0)
+    });
+
     console.log(this.konvaLib.getImageNodes())
 
     this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getCropUndoRedo());
@@ -2130,15 +2165,27 @@ class PhotoEditorLib {
 
     var replaced = this.konvaLib.replaceImages(this.imagesWithNoFilters, 0);
 
+    debugger;
+
     this.konvaLib.cropImages(cropData);
+
+    debugger;
 
     var newImagesWithNoFilters = await this.konvaLib.getImageObjects(this.konvaLib.imagesLayer);
 
+    debugger;
+
     this.replaceImagesWithNoFilters(newImagesWithNoFilters);
+
+    debugger;
 
     await this.reapplyImageFilters();
 
+    debugger;
+
     if (selectedTargetImage) this.konvaLib.targetImage(this.konvaLib.getImageWithId(selectedTargetImage.photoEditorId));
+
+    debugger;
 
     for (var i = 0; i < this.konvaLib.imagesLayer.getChildren().length; i++) {
       let image = this.konvaLib.imagesLayer.getChildren()[i];
