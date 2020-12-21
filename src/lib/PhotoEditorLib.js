@@ -10,7 +10,6 @@ import PixiLib from "./PixiLib.js";
 import KonvaLib from "./KonvaLib.js";
 import { EmojiButton } from '@joeattardi/emoji-button';
 import * as imageConversion from 'image-conversion';
-import { readAndCompressImage } from 'browser-image-resizer';
 const pica = require("pica")();
 
 class PhotoEditorLib {
@@ -1064,19 +1063,21 @@ class PhotoEditorLib {
     this.konvaDrawingCanvasNode.listening(false);
     this.konvaCursorCanvasNode.listening(false); */
 
-    var thumbnailImageFile = await readAndCompressImage(file, {
-      quality: 1,
-      maxWidth: 150,
-      maxHeight: 150
+    var resizeRatio = 150 / Math.max(image.width, image.height);
+
+    var thumbnailCanvas = document.createElement("canvas");
+    thumbnailCanvas.width = image.width * resizeRatio;
+    thumbnailCanvas.height = image.height * resizeRatio;
+
+    await pica.resize(image, thumbnailCanvas, {
+      unsharpAmount: 80,
+      unsharpRadius: 0.6,
+      unsharpThreshold: 2
     });
-
-    var thumbnailImageURL = await imageConversion.filetoDataURL(thumbnailImageFile);
-
-    var thumbnailImage = await imageConversion.urltoImage(thumbnailImageURL);
 
     this.filterPreviews.push([
       konvaImage,
-      this.generateFilterPreviewImages(thumbnailImage)
+      this.generateFilterPreviewImages(thumbnailCanvas)
     ]);
 
     this.updateCanvasCSSTransforms();
@@ -1124,6 +1125,7 @@ class PhotoEditorLib {
       if (imageObj.width > this.options.maxImageSize || imageObj.height > this.options.maxImageSize) {
         console.log(this.options.maxImageSize / Math.max(imageObj.width, imageObj.height))
 
+        /*
         file = await readAndCompressImage(file, {
           quality: 1,
           maxWidth: this.options.maxImageSize,
@@ -1131,7 +1133,21 @@ class PhotoEditorLib {
         });
 
         let url = await imageConversion.filetoDataURL(file);
-        imageObj = await imageConversion.dataURLtoImage(url);
+        imageObj = await imageConversion.dataURLtoImage(url); */
+
+        var resizeRatio = this.options.maxImageSize / Math.max(imageObj.width, imageObj.height);
+
+        var destinationCanvas = document.createElement("canvas");
+        destinationCanvas.width = imageObj.width * resizeRatio;
+        destinationCanvas.height = imageObj.height * resizeRatio;
+
+        await pica.resize(imageObj, destinationCanvas, {
+          unsharpAmount: 80,
+          unsharpRadius: 0.6,
+          unsharpThreshold: 2
+        });
+
+        imageObj = destinationCanvas;
       }
     }
 
@@ -1154,19 +1170,21 @@ class PhotoEditorLib {
 
     this.imagesWithNoFilters.push(imageObj);
 
-    var thumbnailImageFile = await readAndCompressImage(file, {
-      quality: 1,
-      maxWidth: 150,
-      maxHeight: 150
+    var resizeRatio = 150 / Math.max(imageObj.width, imageObj.height);
+
+    var thumbnailCanvas = document.createElement("canvas");
+    thumbnailCanvas.width = imageObj.width * resizeRatio;
+    thumbnailCanvas.height = imageObj.height * resizeRatio;
+
+    await pica.resize(imageObj, thumbnailCanvas, {
+      unsharpAmount: 80,
+      unsharpRadius: 0.6,
+      unsharpThreshold: 2
     });
-
-    var thumbnailImageURL = await imageConversion.filetoDataURL(thumbnailImageFile);
-
-    var thumbnailImage = await imageConversion.urltoImage(thumbnailImageURL);
 
     this.filterPreviews.push([
       konvaImage,
-      this.generateFilterPreviewImages(thumbnailImage)
+      this.generateFilterPreviewImages(thumbnailCanvas)
     ]);
 
     this.dispatchEvent("importImage", [{
