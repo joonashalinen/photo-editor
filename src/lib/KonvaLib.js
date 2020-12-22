@@ -773,7 +773,7 @@ class KonvaLib {
       this.stage.draw();
 
       this.imagesLayerRotation += rotateDeg;
-      if (this.imagesLayerRotation === 360) this.imagesLayerRotation = 0;
+      if (Math.abs(this.imagesLayerRotation) === 360) this.imagesLayerRotation = 0;
 
       return;
     }

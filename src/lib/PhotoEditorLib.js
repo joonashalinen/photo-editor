@@ -222,14 +222,20 @@ class PhotoEditorLib {
 
   }
 
-  undo() {
+  async undo() {
+    if (this.undoing || this.redoing) return;
+    this.undoing = true;
     if (this.selectedTool === "crop") document.getElementById("cropCancel").click();
-    this.undoRedoLib.undoRedo("undo");
+    await this.undoRedoLib.undoRedo("undo");
+    this.undoing = false;
   }
 
-  redo() {
+  async redo() {
+    if (this.undoing || this.redoing) return;
+    this.redoing = true;
     if (this.selectedTool === "crop") document.getElementById("cropCancel").click();
-    this.undoRedoLib.undoRedo("redo")
+    await this.undoRedoLib.undoRedo("redo")
+    this.redoing = false;
   }
 
   getSelectedTargetImageSettings() {
@@ -895,8 +901,9 @@ class PhotoEditorLib {
     this.colorPickerCanvas.height = image.height;
     this.colorPickerCanvas.width = image.width;
 
-    this.canvasesZoomContainer.width = image.width;
-    this.canvasesZoomContainer.height = image.height;
+    this.canvasesZoomContainer.style.width = image.width + "px";
+    this.canvasesZoomContainer.style.height = image.height + "px";
+    this.canvasesZoomContainer.style.position = "absolute";
 
     this.canvasWidth = image.width;
     this.canvasHeight = image.height;

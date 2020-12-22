@@ -318,9 +318,9 @@ class UndoRedo {
       case "rotate": {
 
         if (undoOrRedo === "undo") {
-          this.parent.rotate(true);
+          await this.parent.rotate(true, true);
         } else {
-          this.parent.rotate(true);
+          await this.parent.rotate(true);
         }
 
         this.parent.konvaLib.stage.batchDraw();
@@ -406,7 +406,7 @@ class UndoRedo {
 
           latestUndoRedo.data.imageNode.zIndex(latestUndoRedo.data.zIndex);
 
-          if (this.parent.konvaLib.selectedTargetImage !== image){
+          if (this.parent.konvaLib.selectedTargetImage !== latestUndoRedo.data.imageNode){
             this.parent.konvaLib.targetImage(latestUndoRedo.data.imageNode);
             this.parent.dispatchEvent("imageTargetChange", [latestUndoRedo.data.imageNode]);
           }
@@ -432,12 +432,19 @@ class UndoRedo {
 
         if (undoOrRedo === "undo") {
           this.parent.konvaLib.imagesLayer.add(latestUndoRedo.data.imageNode);
-          if (latestUndoRedo.data.transformer) this.parent.konvaLib.mainLayer.add(latestUndoRedo.data.transformer);
-          if (latestUndoRedo.data.overlayTransformer) this.parent.konvaLib.transformersStageMainLayer.add(latestUndoRedo.data.overlayTransformer);
+          debugger;
+          if (latestUndoRedo.data.transformer) {
+            latestUndoRedo.data.transformer.nodes([latestUndoRedo.data.imageNode]);
+            this.parent.konvaLib.mainLayer.add(latestUndoRedo.data.transformer);
+          }
+          if (latestUndoRedo.data.overlayTransformer) {
+            latestUndoRedo.data.overlayTransformer.nodes([latestUndoRedo.data.imageNode]);
+            this.parent.konvaLib.transformersStageMainLayer.add(latestUndoRedo.data.overlayTransformer);
+          }
           latestUndoRedo.data.imageNode.zIndex(latestUndoRedo.data.zIndex);
-
-          if (this.parent.konvaLib.selectedTargetImage !== image){
+          if (this.parent.konvaLib.selectedTargetImage !== latestUndoRedo.data.imageNode) {
             this.parent.konvaLib.targetImage(latestUndoRedo.data.imageNode);
+            debugger;
             this.parent.dispatchEvent("imageTargetChange", [latestUndoRedo.data.imageNode]);
           }
         } else {
@@ -555,6 +562,14 @@ class UndoRedo {
           this.parent.addAppliedFilter(latestUndoRedo.data.filterName, latestUndoRedo.data.values, latestUndoRedo.data.imageNode.photoEditorId, latestUndoRedo.data.properties);
         }
 
+        var isAlreadyTargeted = (this.parent.konvaLib.getTargetedImageId() === latestUndoRedo.data.imageNode.photoEditorId);
+
+        console.log(isAlreadyTargeted)
+
+        if (!isAlreadyTargeted) {
+          this.parent.konvaLib.targetImage(this.parent.konvaLib.getImageWithId(latestUndoRedo.data.imageNode.photoEditorId));
+        }
+
         var image = this.parent.getSelectedImageWithNoFilters();
 
         var imageObj = await this.parent.getImageWithFilters(image);
@@ -563,12 +578,6 @@ class UndoRedo {
 
         //this.replaceImageNodeInCaches(oldImageNode, newImageNode);
         this.addKonvaImageUndoRedoEvents(newImageNode);
-
-        var isAlreadyTargeted = (this.parent.konvaLib.getTargetedImageId() === latestUndoRedo.data.imageNode.photoEditorId);
-
-        if (!isAlreadyTargeted) {
-          this.parent.konvaLib.targetImage(newImageNode);
-        }
 
         this.parent.konvaLib.stage.batchDraw();
 

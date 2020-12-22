@@ -621,7 +621,7 @@ class PhotoEditor extends React.Component {
             {
               this.state.canvasesContainerLoading ?
                 <div style={{position: "absolute", top: "0px", left: "0px", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center"}}>
-                  <Spin size="large" spinning={this.state.canvasesContainerLoading} tip={!this.state.imageInstanced ? "Loading..." : ""}>
+                  <Spin size="large" spinning={this.state.canvasesContainerLoading} tip={!this.state.imageInstanced ? "Loading image..." : ""}>
                   </Spin>
                 </div>
               :
@@ -1182,9 +1182,9 @@ class PhotoEditor extends React.Component {
               </div>
               <div style={{marginLeft: "5px"}}>
                 <CustomModal>
-                  <div style={{width: "100%", height: "100px", display: "flex", alignItems: "center", justifyContent: "space-around", flexFlow: "column nowrap"}}>
-                    <Button><CloudUploadOutlined/> Save to profile </Button>
-                    <Button onClick={() => {
+                  <div style={{width: "100%", height: "120px", display: "flex", alignItems: "center", justifyContent: "space-around", flexFlow: "column nowrap"}}>
+                    <Button type="primary" size="large"><CloudUploadOutlined/> Save to profile </Button>
+                    <Button size="large" onClick={() => {
                       this.photoEditorLib.exportImage();
                     }}><DownloadOutlined/> Save to local computer</Button>
                   </div>
