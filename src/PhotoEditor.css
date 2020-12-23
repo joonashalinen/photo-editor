@@ -12,13 +12,13 @@ h1 {
   font-family: "Fredoka One";
 }
 
-.mainContainer {
+#mainContainer {
   width: 100%;
   padding-top: 10px;
   height: 744px;
 }
 
-.toolOptionsMenu {
+#toolOptionsMenu {
   height: 24px;
   width: 98%;
   margin-left: 1%;
@@ -28,6 +28,18 @@ h1 {
   -webkit-box-align: center;
       -ms-flex-align: center;
           align-items: center;
+}
+
+.colorPickerContainer {
+  position: relative;
+  width: 24px;
+  height: 24px;
+}
+
+.colorPickerButtonContainer {
+  position: relative;
+  height: 24px;
+  width: 24px;
 }
 
 .addTextEmojiButton {
@@ -57,7 +69,7 @@ h1 {
   visibility: hidden;
 }
 
-.upperRow {
+#upperRow {
   width: 99%;
   height: 34px;
   margin-left: 1%;
@@ -68,6 +80,7 @@ h1 {
       -ms-flex-align: center;
           align-items: center;
   margin-bottom: 10px;
+  position: relative;
 }
 
 .clearCanvasButton {
@@ -79,6 +92,7 @@ h1 {
 
 .clearCanvasButton > div > img {
   margin-right: 0px;
+  filter: brightness(1);
 }
 
 .undoRedoButton {
@@ -162,6 +176,14 @@ h1 {
   width: 100%;
 }
 
+#robotImage {
+  font-size: 80px;
+}
+
+.emptyText {
+  color: rgba(255, 255, 255, 0.25);
+}
+
 .toolsMenuContainer {
   width: 35%;
   height: 100%;
@@ -172,7 +194,7 @@ h1 {
 .filtersTabContainer {
   width: 96%;
   margin: auto;
-  height: 600px;
+  height: 649px;
   overflow-y: auto;
 }
 
@@ -216,6 +238,7 @@ h1 {
   -webkit-box-pack: center;
       -ms-flex-pack: center;
           justify-content: center;
+  margin-bottom: 10px;
 }
 
 .toolIcons {
@@ -252,6 +275,26 @@ h1 {
   border-radius: 2px;
 }
 
+.colorPickerButtonTilePattern {
+  width: 24px;
+  height: 24px;
+  background-color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  -webkit-transition: opacity 0.3s, -webkit-filter 0.3s;
+  transition: opacity 0.3s, -webkit-filter 0.3s;
+  -o-transition: opacity 0.3s, filter 0.3s;
+  transition: opacity 0.3s, filter 0.3s;
+  transition: opacity 0.3s, filter 0.3s, -webkit-filter 0.3s;
+  border: 2px solid #f5f5f5;
+  pointer-events: none;
+  z-index: 1;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  background-size: cover;
+}
+
 .colorPickerButton {
   width: 24px;
   height: 24px;
@@ -264,6 +307,10 @@ h1 {
   transition: opacity 0.3s, filter 0.3s;
   transition: opacity 0.3s, filter 0.3s, -webkit-filter 0.3s;
   border: 2px solid #f5f5f5;
+  z-index: 2;
+  position: absolute;
+  top: 0px;
+  left: 0px;
 }
 
 .colorPickerButton:hover {
@@ -296,6 +343,32 @@ h1 {
   border-radius: 4px;
   -webkit-box-shadow: 0 0 10px #181818;
           box-shadow: 0 0 10px #181818;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease 0s;
+}
+
+#eraseAllDrawingButton {
+  font-size: 1em;
+}
+
+#fontMenuContainer {
+  margin-left: 10px;
+  font-size: 1em;
+}
+
+.fontMenu {
+  width: 140px;
+}
+
+.optionsTabTitle {
+  width: 110px;
+}
+
+.optionsTabValue {
+  display: flex;
+  justify-content: flex-end;
+  width: 100px;
 }
 
 .resolutionTag {
@@ -368,11 +441,13 @@ h1 {
 
 .fileOptionsMenu {
   position: absolute;
-  bottom: 0px;
-  width: 100%;
+  bottom: -45px;
+  left: 0%;
+  margin-left: -203.74px;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
+  justify-content: flex-end;
 }
 
 [data-theme='compact'] .site-collapse-custom-collapse .site-collapse-custom-panel,
@@ -394,12 +469,8 @@ h1 {
 
 @media screen and (max-width: 900px) {
 
-  .mainContainer {
+  #mainContainer {
     height: auto;
-  }
-
-  .undoRedoButton {
-
   }
 
   .clearCanvasButton {
@@ -427,13 +498,13 @@ h1 {
     margin-right: 21px;
   }
 
-  .upperRow {
+  #upperRow {
     width: 99%;
     height: 43px;
     margin-left: 1%;
   }
 
-  .toolOptionsMenu {
+  #toolOptionsMenu {
     height: 24px;
     width: 98%;
     margin-left: 1%;
@@ -469,7 +540,7 @@ h1 {
   .toolsMenuContainer {
     width: 100%;
     height: 600px;
-    margin-top: 58px;
+    margin-top: 80px;
     margin-bottom: -80px;
   }
 
@@ -514,13 +585,17 @@ h1 {
 
   .fileOptionsMenu {
     bottom: auto;
-    top: -46px;
-    -ms-flex-pack: distribute;
-        justify-content: space-around;
+    top: -65px;
+    justify-content: space-around;
     width: 98%;
-    height: 48px;
-    padding-left: 20%;
-    padding-right: 20%;
+    height: 50px;
+    padding-left: 30%;
+    padding-right: 30%;
+    position: absolute;
+    bottom: 0px;
+    width: 100%;
+    margin-left: 0px;
+    align-items: center;
   }
 
 }

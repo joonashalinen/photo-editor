@@ -48,7 +48,7 @@ class App extends React.Component {
         <div style={{width: "100%", overflowY: "auto", backgroundColor: "rgb(39 39 39)", scrollBehavior: "smooth"}}>
           <h1 style={{padding: "10px", marginTop: "20px"}}>Meme Generator</h1>
           <PhotoEditor/>
-          <div style={{display: "flex", alignItems: "center", marginTop: "50px", padding: "10px"}}>
+          <div style={{display: "flex", alignItems: "center", marginTop: "80px", padding: "10px"}}>
             <h2 style={{padding: "10px", fontWeight: "600"}}>Your Memes</h2>
           </div>
           <div>

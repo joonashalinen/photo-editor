@@ -337,22 +337,22 @@ class PhotoEditor extends React.Component {
 
 
     return (
-      <div id="mainContainer" className="mainContainer">
-        <div className="upperRow" style={{position: "relative"}}>
-          <div className="toolOptionsMenu">
-            <div style={{position: "relative", width: "24px", height: "24px", display: this.state.selectedTool === "draw" ? "block" : "none"}}>
+      <div id="mainContainer">
+        <div id="upperRow">
+          <div id="toolOptionsMenu">
+            <div className="colorPickerContainer" style={{display: this.state.selectedTool === "draw" ? "block" : "none"}}>
               <Tooltip title="Color">
-                <div style={{position: "relative", height: "24px", width: "24px"}}>
-                  <div className="colorPickerButton" style={{pointerEvents: "none", zIndex: 1, position: "absolute", top: "0px", left: "0px", backgroundImage: "url(background_tile_pattern.png)", backgroundSize: "cover"}}></div>
-                  <button style={{zIndex: 2, position: "absolute", top: "0px", left: "0px"}} id="drawing-color-picker-button" className="colorPickerButton" onClick={() => {
+                <div className="colorPickerButtonContainer">
+                  <div className="colorPickerButtonTilePattern" style={{backgroundImage: "url(background_tile_pattern.png)"}}></div>
+                  <button id="drawing-color-picker-button" className="colorPickerButton" onClick={() => {
                     this.photoEditorLib.showColorPicker("drawing-color-picker");
                   }}></button>
                 </div>
               </Tooltip>
-              <div id="drawing-color-picker" className="colorPicker" style={{opacity: 0, visibility: "hidden", transition: "opacity 0.3s"}}></div>
+              <div id="drawing-color-picker" className="colorPicker"></div>
             </div>
             {
-              this.state.selectedTool === "draw" ?
+              this.state.selectedTool === "draw" &&
                 <>
                   <div className="toolOptionsSlider" style={{width: "180px"}}>
                     <EffectSlider name="brushSize" sliderWidth="80" inputWidth="60" updateState={updateState} positioning="horizontal" min={1} max={this.state.canvasWidth} value={this.state.brushSize} defaultValue={ this.state.brushSize } title="Size:" onAfterChange={(value) => {
@@ -365,16 +365,13 @@ class PhotoEditor extends React.Component {
                     }}/>
                   </div>
                 </>
-              :
-              null
             }
             {
-              this.state.selectedTool === "erase" ?
+              this.state.selectedTool === "erase" &&
                 <>
-                  <Button onClick={() => {
+                  <Button id="eraseAllDrawingButton" onClick={() => {
                     this.photoEditorLib.eraseAllDrawing();
-                  }} type="dashed" size="small" style={{ fontSize: "12px" }}>Erase All</Button>
-                  <div style={{height: "10px"}}></div>
+                  }} type="dashed" size="default">Erase All</Button>
                   <div className="toolOptionsSlider" style={{width: "180px"}}>
                     <EffectSlider name="brushSize" sliderWidth="80" inputWidth="60" updateState={updateState} positioning="horizontal" min={1} max={this.state.canvasWidth} value={this.state.brushSize} defaultValue={ this.state.brushSize } title="Size:" onAfterChange={(value) => {
                       this.photoEditorLib.setBrushSize(value);
@@ -386,75 +383,71 @@ class PhotoEditor extends React.Component {
                     }}/>
                   </div>
                 </>
-              :
-              null
             }
-            <div style={{position: "relative", width: "24px", height: "24px", display: this.state.selectedTool === "addText" ? "block" : "none"}}>
+            <div className="colorPickerContainer" style={{display: this.state.selectedTool === "addText" ? "block" : "none"}}>
               <Tooltip title="Color">
-                <div style={{position: "relative", height: "24px", width: "24px"}}>
-                  <div className="colorPickerButton" style={{pointerEvents: "none", zIndex: 1, position: "absolute", top: "0px", left: "0px", backgroundImage: "url(background_tile_pattern.png)", backgroundSize: "cover"}}></div>
-                  <button style={{zIndex: 2, position: "absolute", top: "0px", left: "0px"}} id="text-color-picker-button" className="colorPickerButton" onClick={() => {
+                <div className="colorPickerButtonContainer">
+                  <div className="colorPickerButtonTilePattern" style={{backgroundImage: "url(background_tile_pattern.png)"}}></div>
+                  <button id="text-color-picker-button" className="colorPickerButton" onClick={() => {
                     this.photoEditorLib.showColorPicker("text-color-picker");
                   }}></button>
                 </div>
               </Tooltip>
-              <div id="text-color-picker" className="colorPicker" style={{opacity: 0, visibility: "hidden", transition: "opacity 0.3s"}}></div>
+              <div id="text-color-picker" className="colorPicker"></div>
             </div>
-            <div style={{display: this.state.selectedTool === "addText" ? "inline-block" : "none", marginLeft: "10px"}}>
-              <Select size="small" value={this.state.selectedTextFont} defaultValue="Impact" onChange={(fontName) => {
-                this.setState({
-                  selectedTextFont: fontName
-                })
-                this.photoEditorLib.setSelectedFont(fontName);
-              }}>
-                {
-                  this.fonts.map((fontName, index) => (
-                    <Select.Option key={index} value={fontName}><span style={{fontFamily: fontName}}>{fontName}</span></Select.Option>
-                  ))
+            <div id="fontMenuContainer" style={{display: this.state.selectedTool === "addText" ? "inline-block" : "none", marginLeft: "10px"}}>
+              <Tooltip title="Font">
+                <Select className="fontMenu" size="default" value={this.state.selectedTextFont} defaultValue="Impact" onChange={(fontName) => {
+                  this.setState({
+                    selectedTextFont: fontName
+                  })
+                  this.photoEditorLib.setSelectedFont(fontName);
+                }}>
+                  {
+                    this.fonts.map((fontName, index) => (
+                      <Select.Option key={index} value={fontName}><span style={{fontFamily: fontName}}>{fontName}</span></Select.Option>
+                    ))
+                  }
+                </Select>
+              </Tooltip>
+            </div>
+            <Tooltip title="Emoji Sticker">
+              <Button id="addTextEmojiButton" className="addTextEmojiButton" style={{display: this.state.selectedTool === "addText" ? "inline-block" : "none"}} onClick={(e) => {
+                this.photoEditorLib.shortCutsTempDisabled = true;
+                var closeEventHandler = () => {
+                  this.photoEditorLib.shortCutsTempDisabled = false;
+                  this.photoEditorLib.emojiPicker.off("hidden", closeEventHandler)
                 }
-              </Select>
-            </div>
-            <Button id="addTextEmojiButton" className="addTextEmojiButton" style={{display: this.state.selectedTool === "addText" ? "inline-block" : "none"}} onClick={(e) => {
-              this.photoEditorLib.shortCutsTempDisabled = true;
-              var closeEventHandler = () => {
-                this.photoEditorLib.shortCutsTempDisabled = false;
-                this.photoEditorLib.emojiPicker.off("hidden", closeEventHandler)
-              }
-              this.photoEditorLib.emojiPicker.showPicker(e.target);
-              this.photoEditorLib.emojiPicker.on("hidden", closeEventHandler)
-            }}>😀</Button>
-            <div style={{height:"24px", position: "relative", display: this.state.selectedTool === "eyedrop" ? "block" : "none"}}>
+                this.photoEditorLib.emojiPicker.showPicker(e.target);
+                this.photoEditorLib.emojiPicker.on("hidden", closeEventHandler)
+              }}>😀</Button>
+            </Tooltip>
+            <div className="colorPickerContainer" style={{display: this.state.selectedTool === "eyedrop" ? "block" : "none"}}>
               <Tooltip title="Color">
                 <div id="eyedrop-color-picker-button" className="colorPickerButton" onClick={() => {
                 }}></div>
               </Tooltip>
             </div>
             {
-              this.state.selectedTool === "move" ?
+              this.state.selectedTool === "move" &&
                 <>
                   <Checkbox defaultChecked={true} onChange={(e) => {
                     this.photoEditorLib.toggleSnapToEdges(e.target.checked);
                   }}>Snap to edges</Checkbox>
                 </>
-              :
-              null
             }
           </div>
           {
-            this.state.imageInstanced ?
+            this.state.imageInstanced &&
               <Tooltip title="Delete Canvas">
                 <div className="clearCanvasButton">
                   <ConfirmPopupButton onOk={() => {
                     this.photoEditorLib.removeImageInstance();
                   }} content={
-                    <img className="toolIcon undoRedoButton" src="times-circle_antd-colors.svg" height="18px" style={{filter: "brightness(1)"}} onClick={() => {
-
-                    }}></img>
+                    <img className="toolIcon undoRedoButton" src="times-circle_antd-colors.svg" height="18px"></img>
                   } />
                 </div>
               </Tooltip>
-            :
-            null
           }
           <Tooltip title="Redo">
             <img className={"toolIcon redoButton undoRedoButton " + (this.state.redosAmount > 0 ? "" : "undoRedoButtonDisabled")} src="redo.svg" height="18px" onClick={() => {
@@ -471,7 +464,7 @@ class PhotoEditor extends React.Component {
           <div id="canvasesContainer" className="canvasesContainer">
             <div className="emptyCanvasImage">
               {
-                !this.state.imageInstanced && !this.state.canvasesContainerLoading && !this.state.error ?
+                !this.state.imageInstanced && !this.state.canvasesContainerLoading && !this.state.error &&
                   <Empty
                     image="image-outline.svg"
                     imageStyle={{
@@ -480,25 +473,23 @@ class PhotoEditor extends React.Component {
                     }}
                     description={
                       <>
-                        <p style={{color: "rgba(255, 255, 255, 0.25)"}}></p>
+                        <p className="emptyText"></p>
                       </>
                     }
                     >
                   </Empty>
-                :
-                null
               }
               {
-                !this.state.webGLSupported ?
+                !this.state.webGLSupported &&
                   <Empty
-                    image={<RobotOutlined style={{fontSize: "80px"}}/>}
+                    image={<RobotOutlined id="robotImage"/>}
                     imageStyle={{
                       height: 80,
                       filter: "brightness(0.25)"
                     }}
                     description={
                       <>
-                        <p style={{color: "rgba(255, 255, 255, 0.25)"}}>{(() => {
+                        <p className="emptyText">{(() => {
 
                           var baseMessage = "WebGL is not enabled.";
 
@@ -534,11 +525,8 @@ class PhotoEditor extends React.Component {
                     }
                     >
                   </Empty>
-                :
-                null
               }
             </div>
-            <Canvas id="canvas" containerId="canvasContainer" style={{display: "none"}}/>
             <ContextMenu visible={this.state.contextMenuVisible} onVisibleChange={(visible, setOptions, setMenuVisible) => {
               var target = this.photoEditorLib.getKonvaTarget();
 
@@ -584,7 +572,7 @@ class PhotoEditor extends React.Component {
             }}>
               <div id="canvasesZoomContainer">
                 <div id="konvaImagesContainer" className="canvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
-                <Canvas id="drawingCanvas" containerId="drawingCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
+                <Canvas id="drawingCanvas" containerId="drawingCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none", paddingTop: "0.2px" }}/>
                 <div id="konvaTransformersContainer" className="canvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
                 <Canvas id="overlayCanvas" containerId="overlayCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
                 <Canvas id="colorPickerCanvas" containerId="colorPickerCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none"}}/>
@@ -592,10 +580,9 @@ class PhotoEditor extends React.Component {
               </div>
             </ContextMenu>
             <Canvas id="cropDummyCanvas" containerId="cropDummyCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none", visibility: "hidden", display: "none" }}/>
-            <div id="drawingCanvasCursor" className="drawingCanvasCursor" style={{display: "none"}}></div>
             {
-              this.state.selectedTool === "crop" ?
-                ( <>
+              this.state.selectedTool === "crop" &&
+                <>
                     <div className="resolutionTag">
                       {this.state.cropBoxWidth} px x {this.state.cropBoxHeight} px
                     </div>
@@ -613,19 +600,14 @@ class PhotoEditor extends React.Component {
                       });
                       this.photoEditorLib.inCropMode = false;
                     }} id="cropCancel" className="cropCancel">Cancel</Button>
-                  </>
-                )
-              :
-              null
+                </>
             }
             {
-              this.state.canvasesContainerLoading ?
+              this.state.canvasesContainerLoading &&
                 <div style={{position: "absolute", top: "0px", left: "0px", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center"}}>
                   <Spin size="large" spinning={this.state.canvasesContainerLoading} tip={!this.state.imageInstanced ? "Loading image..." : ""}>
                   </Spin>
                 </div>
-              :
-              null
             }
           </div>
           <div className="toolIcons">
@@ -1060,8 +1042,8 @@ class PhotoEditor extends React.Component {
             <div style={{width: "96%", margin: "auto"}}>
               <div style={{height:"24px", position: "relative", display: this.state.selectedTab === "3" ? "block" : "none"}}>
                 <div style={{display: "flex", alignItems: "center", position: "relative"}}>
-                  <h5>Background color: </h5>
-                  <div style={{position: "relative", width: "24px", height: "24px"}}>
+                  <div class="optionsTabTitle"><h5>Background color: </h5></div>
+                  <div class="optionsTabValue" style={{position: "relative", height: "24px"}}>
                     <Tooltip title="Color">
                       <div style={{position: "relative", marginLeft: "10px", height: "24px", width: "24px"}}>
                         <div className="colorPickerButton" style={{pointerEvents: "none", zIndex: 1, position: "absolute", top: "0px", left: "0px", backgroundImage: "url(background_tile_pattern.png)", backgroundSize: "cover"}}></div>
@@ -1074,8 +1056,8 @@ class PhotoEditor extends React.Component {
                   </div>
                 </div>
                 <div style={{display: "flex", alignItems: "center", position: "relative", marginTop: "10px"}}>
-                  <h5>Canvas Width: </h5>
-                  <div style={{marginLeft: "10px"}}>
+                  <div class="optionsTabTitle"><h5>Canvas width: </h5></div>
+                  <div class="optionsTabValue">
                     <InputNumber min={100} max={3000} value={this.state.canvasWidth} onFocus={(e) => {
                       this.photoEditorLib.shortCutsTempDisabled = true;
                     }} onBlur={(e) => {
@@ -1107,8 +1089,8 @@ class PhotoEditor extends React.Component {
                   </div>
                 </div>
                 <div style={{display: "flex", alignItems: "center", position: "relative", marginTop: "10px"}}>
-                  <h5>Canvas Height: </h5>
-                  <div style={{marginLeft: "10px"}}>
+                  <div class="optionsTabTitle"><h5>Canvas height: </h5></div>
+                  <div class="optionsTabValue">
                     <InputNumber min={100} max={3000} value={this.state.canvasHeight} onFocus={(e) => {
                       this.photoEditorLib.shortCutsTempDisabled = true;
                     }} onBlur={(e) => {
@@ -1142,8 +1124,8 @@ class PhotoEditor extends React.Component {
                 </div>
               </div>
             </div>
-            <div className="fileOptionsMenu" style={{position: "absolute", bottom: "0px", width: "100%", display: "flex" }}>
-              <div style={{marginLeft: "5px"}}>
+            <div className="fileOptionsMenu">
+              <div>
                 <Upload buttonText="Import Image" onUpload={async (file) => {
                   if (!this.acceptedImageTypes.includes(file.type)) return;
 

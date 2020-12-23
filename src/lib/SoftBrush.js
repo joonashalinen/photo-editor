@@ -263,6 +263,46 @@ class SoftBrush {
       return Math.atan2( point2.x - point1.x, point2.y - point1.y );
     }
 
+    var getCircleImageData = (imageData, width, height) => {
+
+      var startX = width / 2;
+      var startY = height / 2;
+      var r = width / 2;
+      var index = 0;
+      var distSqr;
+      var opacity;
+      var minimumOpacity = brush.color[3];
+      var hardness = brush.hardness;
+      var opaqueCenterRadius = width / 2 * brush.hardness;
+
+      for (let y = 0; y < height; y++) {
+
+        for (let x = 0; x < width; x++) {
+          distSqr = ((x - startX) * (x - startX) + (y - startY) * (y - startY))
+          if (distSqr <= r * r) {
+            opacity = (Math.min(minimumOpacity, 1 - ((Math.sqrt(distSqr) - opaqueCenterRadius) / (r - opaqueCenterRadius))));
+            if (imageData.data[index + 3] > 0 ) {
+              imageData.data[index] = brush.color[0]* opacity + imageData.data[index] * (1 - opacity);
+              imageData.data[index + 1] = brush.color[1] * opacity + imageData.data[index + 1] * (1 - opacity);
+              imageData.data[index + 2] = brush.color[2] * opacity + imageData.data[index + 2] * (1 - opacity);
+              imageData.data[index + 3] = Math.min(Math.max(imageData.data[index + 3], minimumOpacity * 255) , opacity * 255 + imageData.data[index + 3] * (1 - opacity));
+            } else {
+              imageData.data[index] = brush.color[0];
+              imageData.data[index + 1] = brush.color[1];
+              imageData.data[index + 2] = brush.color[2];
+              imageData.data[index + 3] = opacity * 255;
+            }
+
+          }
+          index += 4;
+        }
+
+      }
+
+      return imageData;
+
+    }
+
     this.currentPoint = { x: x, y: y };
     var dist = distanceBetween(this.lastPoint, this.currentPoint);
     var angle = angleBetween(this.lastPoint, this.currentPoint);
@@ -271,6 +311,11 @@ class SoftBrush {
 
       x = this.lastPoint.x + (Math.sin(angle) * i);
       y = this.lastPoint.y + (Math.cos(angle) * i);
+
+      var circleImageData = getCircleImageData(this.canvasCtx.getImageData(Math.round(x - brush.size / 2), Math.round(y - brush.size / 2), brush.size, brush.size), brush.size, brush.size);
+      this.canvasCtx.putImageData(circleImageData, Math.round(x - brush.size / 2), Math.round(y - brush.size / 2));
+
+      continue;
 
       // hardness no longer applied for brush sizes below 5 or brushes at 100 hardness
       if (brush.size < 5 || brush.hardness === 1) {
@@ -321,6 +366,19 @@ class SoftBrush {
 
   enableSoftBrush() {
 
+    // #test
+    /*
+    setTimeout(() => {
+      this.canvasCtx.getImageData(0, 0, 500, 500);
+      console.log("got image data")
+    }, 15000);
+
+    // #test
+    setTimeout(() => {
+      this.canvasCtx.fillStyle = "white";
+      this.canvasCtx.fillRect(500, 0, 100, 100);
+    }, 5000); */
+
     function getColorAt(x, y, imageData) {
 
       x = Math.round(x);
@@ -334,56 +392,6 @@ class SoftBrush {
         imageData.data[index + 2],
         imageData.data[index + 3]
       ]
-
-    }
-
-    function distanceBetween(point1, point2) {
-      return Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2));
-    }
-
-    function angleBetween(point1, point2) {
-      return Math.atan2( point2.x - point1.x, point2.y - point1.y );
-    }
-
-    var drawPoints = (x, y, ctx, preventAddToDrawnPoints) => {
-
-      this.currentPoint = { x: x, y: y };
-      var dist = distanceBetween(this.lastPoint, this.currentPoint);
-      var angle = angleBetween(this.lastPoint, this.currentPoint);
-
-
-      for (var i = 0; i < Math.max(1, dist); i+= this.size < 35 ? 1 : this.size / 15) {
-
-        x = this.lastPoint.x + (Math.sin(angle) * i);
-        y = this.lastPoint.y + (Math.cos(angle) * i);
-
-        // hardness no longer applied for brush sizes below 5 or brushes at 100 hardness
-        if (this.size < 5 || this.hardness === 1) {
-          ctx.beginPath();
-          ctx.fillStyle = `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, ${this.color[3]})`;
-          ctx.arc(x, y, this.size / 2, 0, 2 * Math.PI);
-          ctx.fill();
-          ctx.closePath();
-        } else {
-
-          var radgrad = ctx.createRadialGradient(x,y, this.size < 40 ? Math.max(this.size / 2 / 2, 1) : 10,x,y,this.size / 2);
-
-          // dividing the opacity by 5 is simply the result of eyeballing what looks close to the real opacity value of the color picker
-          var opacity = this.color[3] === 1 ? this.color[3] : this.color[3] / 5;
-
-          radgrad.addColorStop(0, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, ${opacity})`);
-          // brush hardness settings on the UI as of the time of writing start from 0.1 and go up to 1
-          radgrad.addColorStop(0.5 + ((this.hardness - 0.1) / 2), `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, ${Math.min(opacity, 0.5 + ( this.hardness - 0.1) / 2)})`);
-          radgrad.addColorStop(1, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, 0)`);
-
-          ctx.fillStyle = radgrad;
-          ctx.fillRect(x-this.size / 2, y-this.size / 2, this.size, this.size);
-        }
-
-      }
-
-      if (!preventAddToDrawnPoints) this.addToCurrentDrawSegment(this.currentPoint);
-      this.lastPoint = this.currentPoint;
 
     }
 
@@ -452,7 +460,7 @@ class SoftBrush {
         stoppedCursor = false;
       }
 
-      drawPoints(x, y, ctx);
+      this.drawPoints(x, y, ctx, this);
 
       if (!this.lastCursorMovePoint) this.lastCursorMovePoint = { x: x, y: y };
 
@@ -522,7 +530,7 @@ class SoftBrush {
           { x: x / this.canvasScale, y: y / this.canvasScale }];
 
         if (isDrawing) {
-          drawPoints(x / this.canvasScale, y / this.canvasScale, ctx);
+          this.drawPoints(x / this.canvasScale, y / this.canvasScale, ctx, this);
           this.dispatchEvent("draw", [this.getDrawnPoints().length]);
           var drawSegmentItem = this.addDrawSegment(this.currentDrawSegment);
 

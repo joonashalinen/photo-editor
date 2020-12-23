@@ -15,6 +15,7 @@
       -ms-flex-flow: row wrap;
           flex-flow: row wrap;
   position: relative;
+  margin-bottom: 20px;
 }
 
 .picturesWallQueueContainer{
@@ -27,6 +28,7 @@
   border: 3px solid #434343;
   padding: 20px;
   border-radius: 5px;
+  background-color: #212121;
   -webkit-box-pack: center;
       -ms-flex-pack: center;
           justify-content: center;
@@ -64,7 +66,7 @@
   pointer-events: none;
 }
 
-.picturesWallQueueIconsContainer:hover {
+.picturesWallQueueContainer:hover .picturesWallQueueIconsContainer {
   background-color: rgba(10, 10, 10, 0.4)
 }
 

@@ -74,7 +74,6 @@ class PhotoEditorLib {
           offsetY: this.stage.height() / 2,
         }
       }, emojiSelection.emoji));
-      //document.getElementById("addTextEmojiButton").textContent = emojiSelection.emoji;
     });
 
     if (!this.PixiLib.isWebGLSupported()) {
@@ -552,7 +551,6 @@ class PhotoEditorLib {
     var factor = e.deltaY < 0 ? 1 : -1
     var zoomConstant = 0.1 * factor;
 
-    var canvas = document.getElementById("canvas");
     var drawingCanvas = document.getElementById("drawingCanvas");
     var konvaCanvas = document.getElementById("overlayCanvasContainer").firstElementChild;
 
@@ -577,8 +575,8 @@ class PhotoEditorLib {
     this.offsetY += (newY - y) * -1 * factor;
 
 
-    if (this.konvaLib.stage.width() * this.scale < canvas.parentElement.parentElement.offsetWidth ||
-        this.konvaLib.stage.height() * this.scale < canvas.parentElement.parentElement.offsetHeight) {
+    if (this.konvaLib.stage.width() * this.scale < this.canvasesZoomContainer.parentElement.offsetWidth ||
+        this.konvaLib.stage.height() * this.scale < this.canvasesZoomContainer.parentElement.offsetHeight) {
       this.offsetLeftOriginX = this.offsetLeftOriginY = this.offsetX = this.offsetY = 0;
     }
 
@@ -1117,6 +1115,8 @@ class PhotoEditorLib {
     ]);
 
     this.updateCanvasCSSTransforms();
+
+    this.getImageDataReset();
 
     setTimeout(() => {
       document.getElementById("move-tool-icon").click();
@@ -2350,6 +2350,32 @@ class PhotoEditorLib {
     cropDummyCanvas.parentElement.style.visibility = "hidden";
     cropDummyCanvas.parentElement.style.pointerEvents = "none";
 
+    this.getImageDataReset();
+
+  }
+
+  getImageDataReset() {
+
+    this.drawingCanvas.getContext("2d").getImageData(0, 0, this.drawingCanvas.width, this.drawingCanvas.height);
+    this.cursorCanvas.getContext("2d").getImageData(0, 0, this.cursorCanvas.width, this.cursorCanvas.height);
+
+    var konvaTextContainer = document.getElementById("overlayCanvasContainer").firstElementChild;
+
+    for (var i = 0; i < konvaTextContainer.firstElementChild.children.length; i++) {
+      var canvas = konvaTextContainer.firstElementChild.children[i];
+      canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height);
+    }
+
+    for (var i = 0; i < this.konvaImagesContainer.firstElementChild.children.length; i++) {
+      var canvas = this.konvaImagesContainer.firstElementChild.children[i];
+      canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height);
+    }
+
+    for (var i = 0; i < this.konvaTransformersContainer.firstElementChild.children.length; i++) {
+      var canvas = this.konvaTransformersContainer.firstElementChild.children[i];
+      canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height);
+    }
+
   }
 
   enableDrawing() {
@@ -2524,7 +2550,6 @@ class PhotoEditorLib {
   }
 
   focusCanvasContainer(id) {
-    document.getElementById("canvasContainer").style.pointerEvents = id === "canvasContainer" ? "auto" : "none";
     document.getElementById("drawingCanvasContainer").style.pointerEvents = id === "drawingCanvasContainer" ? "auto" : "none";
     document.getElementById("overlayCanvasContainer").style.pointerEvents = id === "overlayCanvasContainer" ? "auto" : "none";
     document.getElementById("konvaImagesContainer").style.pointerEvents = id === "konvaImagesContainer" ? "auto" : "none";
