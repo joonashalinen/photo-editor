@@ -119,6 +119,8 @@ class UndoRedo {
 
   async undoRedo(undoOrRedo) {
 
+    debugger;
+
     var handleUndoRedoCache = (undoRedoItem, undoOrRedo) => {
       if (undoOrRedo === "undo") {
         this.addToRedoCache(undoRedoItem);
@@ -243,10 +245,14 @@ class UndoRedo {
 
         } */
 
-        this.parent.softBrush.setDrawSegmentsOffset(latestUndoRedo.data.offsetX * -1, latestUndoRedo.data.offsetY * -1);
+        var oldLayerOffsetX = this.parent.layer.offsetX();
+        var oldLayerOffsetY = this.parent.layer.offsetY();
 
         this.parent.layer.offsetX(latestUndoRedo.data.offsetX);
         this.parent.layer.offsetY(latestUndoRedo.data.offsetY);
+
+        this.parent.softBrush.addOffsetToDrawSegments((this.parent.layer.offsetX() - oldLayerOffsetX) * -1, (this.parent.layer.offsetY() - oldLayerOffsetY) * -1);
+        this.parent.softBrush.setOffset(this.parent.layer.offsetX() * -1, this.parent.layer.offsetY() * -1);
 
         this.parent.stage.size({
           width: Math.round(latestUndoRedo.data.width),
@@ -428,11 +434,9 @@ class UndoRedo {
 
       case "image-delete": {
 
-        handleUndoRedoCache(this.typesLib.getImageDeleteUndoRedo(latestUndoRedo.data.imageNode), undoOrRedo);
-
         if (undoOrRedo === "undo") {
+          handleUndoRedoCache(this.typesLib.getImageDeleteUndoRedo(latestUndoRedo.data.imageNode), undoOrRedo);
           this.parent.konvaLib.imagesLayer.add(latestUndoRedo.data.imageNode);
-          debugger;
           if (latestUndoRedo.data.transformer) {
             latestUndoRedo.data.transformer.nodes([latestUndoRedo.data.imageNode]);
             this.parent.konvaLib.mainLayer.add(latestUndoRedo.data.transformer);
@@ -444,10 +448,10 @@ class UndoRedo {
           latestUndoRedo.data.imageNode.zIndex(latestUndoRedo.data.zIndex);
           if (this.parent.konvaLib.selectedTargetImage !== latestUndoRedo.data.imageNode) {
             this.parent.konvaLib.targetImage(latestUndoRedo.data.imageNode);
-            debugger;
             this.parent.dispatchEvent("imageTargetChange", [latestUndoRedo.data.imageNode]);
           }
         } else {
+          handleUndoRedoCache(this.typesLib.getImageDeleteUndoRedo(this.parent.konvaLib.getImageWithId(latestUndoRedo.data.imageNode.photoEditorId)), undoOrRedo);
           var selectedTarget = this.parent.konvaLib.selectedTargetImage;
           this.parent.konvaLib.deleteImageWithId(latestUndoRedo.data.imageNode.photoEditorId);
           if (selectedTarget.photoEditorId === latestUndoRedo.data.imageNode.photoEditorId) {
@@ -618,6 +622,21 @@ class UndoRedo {
 
         this.parent.softBrush.clearCanvas();
         this.parent.softBrush.redrawSegments();
+
+        break;
+      }
+
+      case "erase-all-drawing": {
+
+        handleUndoRedoCache(this.typesLib.getEraseAllDrawingUndoRedo(), undoOrRedo);
+
+        if (undoOrRedo === "undo") {
+          this.parent.softBrush.setDrawSegments(latestUndoRedo.data.drawSegments);
+          this.parent.softBrush.redrawSegments();
+        } else {
+          this.parent.softBrush.removeDrawSegments();
+          this.parent.softBrush.clearCanvas();
+        }
 
         break;
       }

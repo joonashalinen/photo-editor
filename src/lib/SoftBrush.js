@@ -144,6 +144,10 @@ class SoftBrush {
     return this.drawSegments;
   }
 
+  setDrawSegments(drawSegments) {
+    this.drawSegments = drawSegments;
+  }
+
   addOffsetToDrawSegments(offsetX, offsetY) {
 
     var drawSegments = this.getDrawSegments();
@@ -164,6 +168,11 @@ class SoftBrush {
       drawSegment.brush.offsetX = offsetX;
       drawSegment.brush.offsetY = offsetY;
     }
+  }
+
+  setOffset(offsetX, offsetY) {
+    this.offsetX = offsetX;
+    this.offsetY = offsetY;
   }
 
   addDrawSegment(drawSegment) {
@@ -192,6 +201,15 @@ class SoftBrush {
 
   resetCurrentDrawSegment() {
     this.currentDrawSegment = [];
+  }
+
+  removeDrawSegments() {
+
+    var drawSegments = this.drawSegments;
+    this.drawSegments = [];
+
+    return drawSegments;
+
   }
 
   redrawSegments() {
@@ -326,8 +344,6 @@ class SoftBrush {
     function angleBetween(point1, point2) {
       return Math.atan2( point2.x - point1.x, point2.y - point1.y );
     }
-
-    var drawn = 0;
 
     var drawPoints = (x, y, ctx, preventAddToDrawnPoints) => {
 

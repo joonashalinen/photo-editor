@@ -1515,9 +1515,12 @@ class KonvaLib {
     this.stage.draw();
   }
 
-  // #deprecated
   getBackgroundImage() {
     return this.backgroundImage;
+  }
+
+  getColorBackgroundImage() {
+    return this.colorBackgroundImage;
   }
 
 }

@@ -130,6 +130,7 @@ class UndoRedoTypesLib {
     undoRedoItem.type = "image-delete";
     undoRedoItem.data.zIndex = imageNode.zIndex();
     undoRedoItem.data.transformer = this.parent.konvaLib.getImageTransformer(imageNode);
+    debugger;
     undoRedoItem.data.overlayTransformer = this.parent.konvaLib.getImageTransformer(imageNode, this.parent.konvaLib.transformersStageMainLayer);
     return undoRedoItem;
   }
@@ -191,6 +192,15 @@ class UndoRedoTypesLib {
         drawSegment: drawSegment
       },
       type: "drawing"
+    }
+  }
+
+  getEraseAllDrawingUndoRedo() {
+    return {
+      data: {
+        drawSegments: this.parent.softBrush.getDrawSegments()
+      },
+      type: "erase-all-drawing"
     }
   }
 

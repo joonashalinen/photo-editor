@@ -546,7 +546,7 @@ class PhotoEditor extends React.Component {
                 contextMenuVisible: visible
               });
 
-              if (target === this.photoEditorLib.konvaLib.getBackgroundImage() || !target) {
+              if (target === this.photoEditorLib.konvaLib.getBackgroundImage() || !target || target === this.photoEditorLib.konvaLib.getColorBackgroundImage()) {
                 setOptions([]);
                 return;
               }
@@ -730,7 +730,7 @@ class PhotoEditor extends React.Component {
               </div>
             </Tooltip>
             <Tooltip placement="right" title="Rotate Images 90° [R]">
-              <div className="toolIconContainer" onClick={() => {
+              <div className="toolIconContainer" style={{display: "none"}} onClick={() => {
                 if (!this.state.imageInstanced) return;
                 this.photoEditorLib.rotate();
               }}>

@@ -2158,8 +2158,14 @@ class PhotoEditorLib {
     cropData.width = Math.round(cropData.width);
     cropData.height = Math.round(cropData.height)
 
+    var oldLayerOffsetX = this.layer.offsetX();
+    var oldLayerOffsetY = this.layer.offsetY();
+
     this.layer.offsetX(Math.round(this.layer.offsetX() + cropData.x));
     this.layer.offsetY(Math.round(this.layer.offsetY() + cropData.y));
+
+    this.softBrush.addOffsetToDrawSegments((this.layer.offsetX() - oldLayerOffsetX) * -1, (this.layer.offsetY() - oldLayerOffsetY) * -1);
+    this.softBrush.setOffset(this.layer.offsetX() * -1, this.layer.offsetY() * -1);
 
     this.stage.size({
       width: Math.round(cropData.width),
@@ -2172,27 +2178,14 @@ class PhotoEditorLib {
 
     var replaced = this.konvaLib.replaceImages(this.imagesWithNoFilters, 0);
 
-    debugger;
-
     this.konvaLib.cropImages(cropData);
-
-    debugger;
-
     var newImagesWithNoFilters = await this.konvaLib.getImageObjects(this.konvaLib.imagesLayer);
-
-    debugger;
 
     this.replaceImagesWithNoFilters(newImagesWithNoFilters);
 
-    debugger;
-
     await this.reapplyImageFilters();
 
-    debugger;
-
     if (selectedTargetImage) this.konvaLib.targetImage(this.konvaLib.getImageWithId(selectedTargetImage.photoEditorId));
-
-    debugger;
 
     for (var i = 0; i < this.konvaLib.imagesLayer.getChildren().length; i++) {
       let image = this.konvaLib.imagesLayer.getChildren()[i];
@@ -2295,8 +2288,6 @@ class PhotoEditorLib {
 
     this.drawingCanvas.width = Math.round(cropData.width);
     this.drawingCanvas.height = Math.round(cropData.height);
-
-    this.softBrush.setDrawSegmentsOffset(this.layer.offsetX() * -1, this.layer.offsetY() * -1);
 
     this.softBrush.clearCanvas();
     this.softBrush.redrawSegments();
@@ -2424,9 +2415,9 @@ class PhotoEditorLib {
 
   eraseAllDrawing() {
 
-    this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getDrawingUndoRedo());
-    this.softBrush.canvas.getContext("2d").clearRect(0, 0, this.konvaLib.stage.width(), this.konvaLib.stage.height());
-    this.konvaLib.stage.batchDraw();
+    this.undoRedoLib.addToUndoCache(this.undoRedoLib.typesLib.getEraseAllDrawingUndoRedo());
+    this.softBrush.removeDrawSegments();
+    this.softBrush.clearCanvas();
 
   }
 
