@@ -360,7 +360,7 @@ class PhotoEditor extends React.Component {
                     }}/>
                   </div>
                   <div className="toolOptionsSlider" style={{width: "240px"}}>
-                    <EffectSlider name="brushHardness" sliderWidth="80" inputWidth="60" updateState={updateState} positioning="horizontal" min={10} max={100} value={this.state.brushHardness} defaultValue={this.state.brushHardness} title="Hardness:" onAfterChange={(value) => {
+                    <EffectSlider name="brushHardness" sliderWidth="80" inputWidth="60" updateState={updateState} positioning="horizontal" min={0} max={100} value={this.state.brushHardness} defaultValue={this.state.brushHardness} title="Hardness:" onAfterChange={(value) => {
                       this.photoEditorLib.softBrush.setHardness(value / 100);
                     }}/>
                   </div>
