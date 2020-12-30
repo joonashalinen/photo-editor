@@ -20,6 +20,7 @@ function EffectSlider({ min, max, value, disabled, defaultValue, title, onAfterC
           showInput && positioning !== "horizontal" ?
             <InputNumber disabled={disabled} min={min} max={max} value={value} defaultValue={defaultValue} size="small" onChange={(newValue) => {
               if (isNaN(newValue)) return;
+              if (value === newValue) return;
               newValue = Math.min(max, newValue);
               newValue = Math.max(min, newValue);
               var stateObj = {};

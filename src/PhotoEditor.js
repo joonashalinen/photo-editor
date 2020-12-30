@@ -3,13 +3,11 @@ import React from "react";
 import Canvas from "./Canvas.js";
 import Upload from "./Upload.js" ;
 import EffectSlider from "./EffectSlider.js";
-import TextField from "./TextField.js";
-import { Input, InputNumber, Button, Tooltip, Empty, Select, Collapse, Spin, Checkbox } from "antd";
-import { RotateRightOutlined, UploadOutlined, DownloadOutlined, CloudUploadOutlined, ReloadOutlined, RobotOutlined } from "@ant-design/icons"
+import { InputNumber, Button, Tooltip, Empty, Select, Collapse, Spin, Checkbox } from "antd";
+import { DownloadOutlined, CloudUploadOutlined, RobotOutlined } from "@ant-design/icons"
 import '@simonwep/pickr/dist/themes/nano.min.css';
 import "./PhotoEditor.css";
 import CustomModal from "./CustomModal.js";
-import DropdownMenu from "./DropdownMenu.js";
 import ContextMenu from "./ContextMenu.js";
 import ImageGridMenu from "./ImageGridMenu.js";
 import ConfirmPopupButton from "./ConfirmPopupButton.js";
@@ -182,10 +180,10 @@ class PhotoEditor extends React.Component {
         motionBlurVelocityX: imageSettings.motionblur ? imageSettings.motionblur[0][0] : 0,
         motionBlurVelocityY: imageSettings.motionblur ? imageSettings.motionblur[0][1] : 0,
         motionBlurQuality: imageSettings.motionblur ? imageSettings.motionblur[1] : 5,
-        contrast: Math.floor((imageSettings.contrast - 1) * 100),
-        brightness: Math.floor((imageSettings.brightness - 1) * 100),
-        gamma: Math.floor((imageSettings.gamma - 1) * 100),
-        saturation: Math.floor((imageSettings.saturation - 1) * 100),
+        contrast: Math.round((imageSettings.contrast - 1) * 100),
+        brightness: Math.round((imageSettings.brightness - 1) * 100),
+        gamma: Math.round((imageSettings.gamma - 1) * 100),
+        saturation: Math.round((imageSettings.saturation - 1) * 100),
         filter: imageSettings.filter,
         imageFilterPreviewsLoading: false
       });
@@ -194,6 +192,7 @@ class PhotoEditor extends React.Component {
     this.photoEditorLib.on("imageTargetChange", (newTarget) => {
       var filterPreviewImages = this.photoEditorLib.getFilterPreviewImages(newTarget);
       var imageSettings = this.photoEditorLib.getSelectedTargetImageSettings();
+      debugger;
       this.setState({
         selectedImageWidth: imageSettings.width,
         selectedImageHeight: imageSettings.height
@@ -246,8 +245,8 @@ class PhotoEditor extends React.Component {
 
     this.photoEditorLib.on("croppingSelectionChange", (cropBox) => {
       this.setState({
-        cropBoxWidth: Math.floor(cropBox.width),
-        cropBoxHeight: Math.floor(cropBox.height)
+        cropBoxWidth: Math.round(cropBox.width),
+        cropBoxHeight: Math.round(cropBox.height)
       })
     });
 
@@ -831,7 +830,7 @@ class PhotoEditor extends React.Component {
                           strength: value / 100
                         }]);
                       }}/>
-                      <EffectSlider name="bulgePinchCenterX" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={100} updateState={updateState} value={this.state.bulgePinchCenterX} defaultValue={Math.floor(this.state.canvasWidth / 2)} title="Bulge/Pinch Center X" onAfterChange={(value) => {
+                      <EffectSlider name="bulgePinchCenterX" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={100} updateState={updateState} value={this.state.bulgePinchCenterX} defaultValue={Math.round(this.state.canvasWidth / 2)} title="Bulge/Pinch Center X" onAfterChange={(value) => {
 
 
 
@@ -848,7 +847,7 @@ class PhotoEditor extends React.Component {
 
 
                       }}/>
-                      <EffectSlider name="bulgePinchCenterY" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={100} updateState={updateState} value={this.state.bulgePinchCenterY} defaultValue={Math.floor(this.state.canvasHeight / 2)} title="Bulge/Pinch Center Y" onAfterChange={(value) => {
+                      <EffectSlider name="bulgePinchCenterY" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={100} updateState={updateState} value={this.state.bulgePinchCenterY} defaultValue={Math.round(this.state.canvasHeight / 2)} title="Bulge/Pinch Center Y" onAfterChange={(value) => {
                         this.photoEditorLib.setSelectedImageFilter("bulge/pinch", [{
                           center: [this.state.bulgePinchCenterX / 100, value / 100],
                           radius: this.state.bulgePinchRadius,
@@ -928,7 +927,7 @@ class PhotoEditor extends React.Component {
                           radius: this.state.zoomBlurOuterRadius
                         }]);
                       }}/>
-                      <EffectSlider name="zoomBlurCenterX" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={this.state.selectedImageWidth} updateState={updateState} value={this.state.zoomBlurCenterX} defaultValue={Math.floor(this.state.canvasWidth / 2)} title="Zoom Blur Center X" onAfterChange={(value) => {
+                      <EffectSlider name="zoomBlurCenterX" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={this.state.selectedImageWidth} updateState={updateState} value={this.state.zoomBlurCenterX} defaultValue={Math.round(this.state.canvasWidth / 2)} title="Zoom Blur Center X" onAfterChange={(value) => {
                         this.photoEditorLib.setSelectedImageFilter("zoomblur", [{
                           strength: this.state.zoomBlurStrength / 100,
                           center: [value, this.state.zoomBlurCenterY],
@@ -936,7 +935,7 @@ class PhotoEditor extends React.Component {
                           radius: this.state.zoomBlurOuterRadius
                         }]);
                       }}/>
-                      <EffectSlider name="zoomBlurCenterY" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={this.state.selectedImageHeight} updateState={updateState} value={this.state.zoomBlurCenterY} defaultValue={Math.floor(this.state.canvasHeight / 2)} title="Zoom Blur Center Y" onAfterChange={(value) => {
+                      <EffectSlider name="zoomBlurCenterY" disabled={this.state.selectedTargetImage ? false : true} showInput={true} min={0} max={this.state.selectedImageHeight} updateState={updateState} value={this.state.zoomBlurCenterY} defaultValue={Math.round(this.state.canvasHeight / 2)} title="Zoom Blur Center Y" onAfterChange={(value) => {
                         this.photoEditorLib.setSelectedImageFilter("zoomblur", [{
                           strength: this.state.zoomBlurStrength / 100,
                           center: [this.state.zoomBlurCenterX, value],
@@ -1017,6 +1016,7 @@ class PhotoEditor extends React.Component {
                   {
                     this.state.selectedTargetImage ?
                       <ImageGridMenu width={150} updateState={updateState} onSelectChange={(selectedFilterName) => {
+                        if (this.state.filter === selectedFilterName) return;
                         this.setState({
                           canvasesContainerLoading: true
                         })

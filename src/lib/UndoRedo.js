@@ -293,13 +293,13 @@ class UndoRedo {
         this.parent.colorPickerCanvas.height = Math.round(latestUndoRedo.data.height);
 
         this.parent.konvaLib.transformersStage.size({
-          width: Math.floor(latestUndoRedo.data.width),
-          height: Math.floor(latestUndoRedo.data.height)
+          width: Math.round(latestUndoRedo.data.width),
+          height: Math.round(latestUndoRedo.data.height)
         });
 
         this.parent.konvaLib.stage.size({
-          width: Math.floor(latestUndoRedo.data.width),
-          height: Math.floor(latestUndoRedo.data.height)
+          width: Math.round(latestUndoRedo.data.width),
+          height: Math.round(latestUndoRedo.data.height)
         });
 
         this.parent.replaceImagesWithNoFilters(latestUndoRedo.data.imagesWithNoFilters);

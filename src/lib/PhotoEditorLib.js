@@ -2259,8 +2259,8 @@ class PhotoEditorLib {
     this.konvaLib.imagesLayer.offsetX(Math.round(cropData.width / 2));
     this.konvaLib.imagesLayer.offsetY(Math.round(cropData.height / 2));
 
-    this.konvaLib.imagesLayer.x(Math.floor(this.konvaLib.imagesLayer.x() + diffX));
-    this.konvaLib.imagesLayer.y(Math.floor(this.konvaLib.imagesLayer.y() + diffY));
+    this.konvaLib.imagesLayer.x(Math.round(this.konvaLib.imagesLayer.x() + diffX));
+    this.konvaLib.imagesLayer.y(Math.round(this.konvaLib.imagesLayer.y() + diffY));
 
     this.konvaLib.colorBackgroundImage.size({
       width: Math.round(cropData.width),
