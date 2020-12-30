@@ -39,6 +39,12 @@ class App extends React.Component {
         name: 'image.png',
         status: 'done',
         url: 'spiderman-pointing.jpg',
+      },
+      {
+        uid: '-5',
+        name: 'image.png',
+        status: 'done',
+        url: 'white-background.png',
       }
     ];
 

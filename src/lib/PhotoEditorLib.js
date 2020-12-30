@@ -223,18 +223,36 @@ class PhotoEditorLib {
 
   async undo() {
     if (this.undoing || this.redoing) return;
+    if (this.undoRedoLib.getUndoCache().length === 0) return;
     this.undoing = true;
+    this.dispatchEvent("startUndoRedo", ["undo"]);
+    // stop blocking so the loading animation can render
+    await new Promise((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, 0)
+    });
     if (this.selectedTool === "crop") document.getElementById("cropCancel").click();
     await this.undoRedoLib.undoRedo("undo");
     this.undoing = false;
+    this.dispatchEvent("endUndoRedo", ["undo"]);
   }
 
   async redo() {
     if (this.undoing || this.redoing) return;
+    if (this.undoRedoLib.getRedoCache().length === 0) return;
     this.redoing = true;
+    this.dispatchEvent("startUndoRedo", ["redo"]);
+    // stop blocking so the loading animation can render
+    await new Promise((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, 0)
+    });
     if (this.selectedTool === "crop") document.getElementById("cropCancel").click();
     await this.undoRedoLib.undoRedo("redo")
     this.redoing = false;
+    this.dispatchEvent("endUndoRedo", ["redo"]);
   }
 
   getSelectedTargetImageSettings() {
@@ -1350,12 +1368,13 @@ class PhotoEditorLib {
       nodes: [text],
       rotateAnchorOffset: 60,
       enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
-      anchorSize: Math.max(5, this.nativeScale ? 15 / this.nativeScale : 15),
+      anchorSize: Math.max(5, this.nativeScale ? 24 / this.nativeScale : 24),
       rotationSnaps: [0, 90, 180, 270],
       borderStroke: "rgb(0 149 255)",
       anchorStroke: "rgb(0 149 255)",
       anchorCornerRadius: this.nativeScale ? 30 / this.nativeScale : 30,
-      anchorStrokeWidth: this.nativeScale ? 1 / this.nativeScale : 1,
+      anchorStrokeWidth: this.nativeScale ? 2 / this.nativeScale : 2,
+      borderStrokeWidth: this.nativeScale ? 2 / this.nativeScale : 2,
       anchorFill: "rgba(255, 255, 255, 0.5)"
     })
 

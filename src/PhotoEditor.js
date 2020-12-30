@@ -257,6 +257,18 @@ class PhotoEditor extends React.Component {
       });
     });
 
+    this.photoEditorLib.on("startUndoRedo", () => {
+      this.setState({
+        canvasesContainerLoading: true
+      });
+    });
+
+    this.photoEditorLib.on("endUndoRedo", () => {
+      this.setState({
+        canvasesContainerLoading: false
+      });
+    });
+
     this.photoEditorLib.on("rotated", () => {
       this.setState({
         canvasesContainerLoading: false

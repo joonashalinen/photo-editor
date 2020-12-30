@@ -113,11 +113,13 @@ class SoftBrush {
   enableEraseMode() {
     //this.disableBrushPreviewMode();
     this.canvasCtx.globalCompositeOperation = "destination-out";
+    this.inEraseMode = true;
   };
 
   disableEraseMode() {
     //this.enableBrushPreviewMode();
     this.canvasCtx.globalCompositeOperation = "source-over";
+    this.inEraseMode = false;
   };
 
   enableBrushPreviewMode() {
@@ -183,6 +185,7 @@ class SoftBrush {
         hardness: this.hardness,
         color: this.color,
         globalCompositeOperation: this.canvasCtx.globalCompositeOperation,
+        inEraseMode: this.inEraseMode,
         offsetX: 0,
         offsetY: 0
       }
@@ -263,60 +266,42 @@ class SoftBrush {
       return Math.atan2( point2.x - point1.x, point2.y - point1.y );
     }
 
-    var getCircleImageData = (imageData, width, height) => {
-
-      var startX = width / 2;
-      var startY = height / 2;
-      var r = width / 2;
-      var index = 0;
-      var distSqr;
-      var opacity;
-      var minimumOpacity = brush.color[3] === 1 && brush.size < 10 ? 0.99 : brush.color[3];
-      var hardness = brush.hardness;
-      var opaqueCenterRadius = width / 2 * brush.hardness;
-
-      for (let y = 0; y < height; y++) {
-
-        for (let x = 0; x < width; x++) {
-          distSqr = ((x - startX) * (x - startX) + (y - startY) * (y - startY))
-          if (distSqr <= r * r) {
-            opacity = (Math.min(minimumOpacity, 1 - ((Math.sqrt(distSqr) - opaqueCenterRadius) / (r - opaqueCenterRadius))));
-            if (imageData.data[index + 3] > 0 ) {
-              imageData.data[index] = brush.color[0]* opacity + imageData.data[index] * (1 - opacity);
-              imageData.data[index + 1] = brush.color[1] * opacity + imageData.data[index + 1] * (1 - opacity);
-              imageData.data[index + 2] = brush.color[2] * opacity + imageData.data[index + 2] * (1 - opacity);
-              imageData.data[index + 3] = Math.min(Math.max(minimumOpacity * 255, imageData.data[index + 3]) , opacity * 255 + imageData.data[index + 3] * (1 - opacity));
-            } else {
-              imageData.data[index] = brush.color[0];
-              imageData.data[index + 1] = brush.color[1];
-              imageData.data[index + 2] = brush.color[2];
-              imageData.data[index + 3] = opacity * 255;
-            }
-
-          }
-          index += 4;
-        }
-
-      }
-
-      return imageData;
-
-    }
-
     this.currentPoint = { x: x, y: y };
     var dist = distanceBetween(this.lastPoint, this.currentPoint);
     var angle = angleBetween(this.lastPoint, this.currentPoint);
 
-    var size = brush.size;
-    if (size < 2) size = 2;
-
-    for (var i = 0; i < Math.max(1, dist); i+= size < 35 ? 1 : size / 15) {
+    for (var i = 0; i < Math.max(1, dist); i+= brush.size < 35 ? 1 : brush.size / 15) {
 
       x = this.lastPoint.x + (Math.sin(angle) * i);
       y = this.lastPoint.y + (Math.cos(angle) * i);
 
-      var circleImageData = getCircleImageData(this.canvasCtx.getImageData(x - size / 2, y - size / 2, size, size), size, size);
-      this.canvasCtx.putImageData(circleImageData, x - size / 2, y - size / 2);
+      // hardness no longer applied for brush sizes below 5 or brushes at 100 hardness
+      if (brush.size < 5 || brush.hardness === 1) {
+        
+        var opacity = brush.color[3];
+        if (brush.inEraseMode) opacity = 1;
+
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(${brush.color[0]}, ${brush.color[1]}, ${brush.color[2]}, ${brush.color[3]})`;
+        ctx.arc(x, y, brush.size / 2, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.closePath();
+      } else {
+
+        var radgrad = ctx.createRadialGradient(x,y, brush.size < 40 ? Math.max(brush.size / 2 / 2, 1) : 10,x,y,brush.size / 2);
+
+        // dividing the opacity by 5 is simply the result of eyeballing what looks close to the real opacity value of the color picker
+        var opacity = brush.color[3] === 1 ? brush.color[3] : brush.color[3] / 5;
+        if (brush.inEraseMode) opacity = 1;
+
+        radgrad.addColorStop(0, `rgba(${brush.color[0]}, ${brush.color[1]}, ${brush.color[2]}, ${opacity})`);
+        // brush hardness settings on the UI as of the time of writing start from 0.1 and go up to 1
+        radgrad.addColorStop(0.5 + ((brush.hardness - 0.1) / 2), `rgba(${brush.color[0]}, ${brush.color[1]}, ${brush.color[2]}, ${Math.min(opacity, 0.5 + ( brush.hardness - 0.1) / 2)})`);
+        radgrad.addColorStop(1, `rgba(${brush.color[0]}, ${brush.color[1]}, ${brush.color[2]}, 0)`);
+
+        ctx.fillStyle = radgrad;
+        ctx.fillRect(x-brush.size / 2, y-brush.size / 2, brush.size, brush.size);
+      }
 
     }
 

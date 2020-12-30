@@ -209,7 +209,8 @@ class KonvaLib {
       rotationSnaps: [0, 90, 180, 270],
       anchorSize: Math.max(4, image.height() / 12),
       anchorCornerRadius: Math.max(4, image.height() / 12),
-      anchorStrokeWidth: this.initialScale ? 1 / this.initialScale : 1,
+      anchorStrokeWidth: this.initialScale ? 4 / this.initialScale : 4,
+      borderStrokeWidth: this.initialScale ? 4 / this.initialScale : 4,
       anchorFill: "rgba(255, 255, 255, 0.5)",
       rotateAnchorOffset: Math.max(4 * 2, image.height() / 12 * 2)
     });
