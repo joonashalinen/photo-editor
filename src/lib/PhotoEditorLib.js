@@ -869,6 +869,8 @@ class PhotoEditorLib {
     this.canvasesContainer = document.getElementById("canvasesContainer");
     this.canvasesZoomContainer = document.getElementById("canvasesZoomContainer")
 
+    this.canvasesZoomContainer.style.visibility = "hidden";
+
     var image;
 
     if (file instanceof HTMLImageElement) {
@@ -1139,6 +1141,8 @@ class PhotoEditorLib {
     setTimeout(() => {
       document.getElementById("move-tool-icon").click();
     }, 50)
+
+    this.canvasesZoomContainer.style.visibility = "visible";
 
     this.dispatchEvent("loadImage", [{
       konvaImage: konvaImage,

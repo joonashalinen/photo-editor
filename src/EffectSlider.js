@@ -17,7 +17,7 @@ function EffectSlider({ min, max, value, disabled, defaultValue, title, onAfterC
       <div style={{display: "flex", justifyContent: "space-between"}}>
         <h5 style={{marginBottom: (positioning === "horizontal" ? "0px" : "auto")}}>{title}</h5>
         {
-          showInput && positioning !== "horizontal" ?
+          showInput && positioning !== "horizontal" &&
             <InputNumber disabled={disabled} min={min} max={max} value={value} defaultValue={defaultValue} size="small" onChange={(newValue) => {
               if (isNaN(newValue)) return;
               if (value === newValue) return;
@@ -32,8 +32,6 @@ function EffectSlider({ min, max, value, disabled, defaultValue, title, onAfterC
                 updateState({canvasesContainerLoading: false});
               }, 50);
             }}/>
-          :
-          null
         }
 
       </div>
@@ -55,7 +53,7 @@ function EffectSlider({ min, max, value, disabled, defaultValue, title, onAfterC
         }} value={value} defaultValue={defaultValue} />
       </div>
       {
-        positioning === "horizontal" ?
+        positioning === "horizontal" &&
           <InputNumber style={{width: inputWidth ? inputWidth + "px" : null, marginLeft: "5px"}} disabled={disabled} min={min} max={max} value={value} defaultValue={defaultValue} size="small" onChange={(newValue) => {
             if (isNaN(newValue)) return;
             newValue = Math.min(max, newValue);
@@ -69,8 +67,6 @@ function EffectSlider({ min, max, value, disabled, defaultValue, title, onAfterC
               updateState({canvasesContainerLoading: false});
             }, 50);
           }}/>
-        :
-        null
       }
     </div>
   );

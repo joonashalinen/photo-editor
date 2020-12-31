@@ -581,7 +581,7 @@ class PhotoEditor extends React.Component {
                 return;
               }
             }}>
-              <div id="canvasesZoomContainer">
+              <div id="canvasesZoomContainer" style={{visibility: "hidden"}}>
                 <div id="konvaImagesContainer" className="canvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
                 <Canvas id="drawingCanvas" containerId="drawingCanvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none", paddingTop: "0.2px" }}/>
                 <div id="konvaTransformersContainer" className="canvasContainer" style={{ position: "absolute", top: 0, left: 0, backgroundColor: "transparent", pointerEvents: "none" }}/>
@@ -1005,16 +1005,14 @@ class PhotoEditor extends React.Component {
                     }}/>
                   </div> */ }
                   {
-                    this.state.imageFilterPreviewsLoading ?
+                    this.state.imageFilterPreviewsLoading &&
                       <div style={{position: "absolute", top: "90px", left: "0px", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center"}}>
                         <Spin spinning={this.state.imageFilterPreviewsLoading}>
                         </Spin>
                       </div>
-                    :
-                    null
                   }
                   {
-                    this.state.selectedTargetImage ?
+                    this.state.selectedTargetImage &&
                       <ImageGridMenu width={150} updateState={updateState} onSelectChange={(selectedFilterName) => {
                         if (this.state.filter === selectedFilterName) return;
                         this.setState({
@@ -1027,8 +1025,6 @@ class PhotoEditor extends React.Component {
                           });
                         }, 50)
                       }} titles={this.selectableFilters} images={this.state.filterPreviewImages} selectedIndex={this.selectableFilters.indexOf(this.state.filter)} />
-                    :
-                    null
                   }
                 </div>
               </Tabs.TabPane>
